@@ -81,7 +81,7 @@ select:focus,input:focus{outline:1px solid var(--amber-dim)}
 .count{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
 
 /* ---------- TABLE ---------- */
-.tablewrap{padding:0 32px 40px;overflow:auto;max-height:72vh;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void);}
+.tablewrap{padding:0 32px 40px;overflow:auto;max-height:80vh;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void);}
 .tablewrap::-webkit-scrollbar{width:10px;height:10px}
 .tablewrap::-webkit-scrollbar-track{background:transparent}
 .tablewrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--void)}
@@ -190,15 +190,6 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
     <tbody id="tbody"><tr><td colspan="10" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
   </table>
 </div>
-
-<footer>
-  Лёгкий цикл раз в 30 сек: цены спота + цены перпов + фандинг (Binance 3 запроса + Bybit 2 = 5).
-  Тяжёлый цикл раз в 5 мин: объёмы и изменение за 24ч у Binance (2 запроса); у Bybit эти данные уже входят в лёгкие тикеры.
-  Предохранитель: если в localStorage есть данные младше 30 сек, страница не обращается к API и показывает LOCAL DATA; запрос уходит только по истечении 30 сек.
-  Кнопки binance/bybit в шапке: клик — включить/выключить биржу (выключенная не опрашивается). Зелёная ✓ — API отвечает, красная ✗ — ошибка (наведите курсор для причины).
-  Спот берётся в приоритете с той же биржи, где перп; если там спота нет — с другой включённой (см. колонку «Спот-биржа»). Спред = (перп − спот) / спот × 100%.
-  Фильтр «Макс. |спред|» по умолчанию ≤ 50% — режет артефакты (делистинги, замороженные рынки, коллизии тикеров).
-</footer>
 
 <script type="module">
 /* ================= конфиг ================= */
