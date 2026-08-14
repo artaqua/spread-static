@@ -136,7 +136,7 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <header>
   <div>
-    <p class="eyebrow">Static edition · без сервера · ваш IP · MEXC-primary</p>
+    <p class="eyebrow">Static edition · без сервера · ваш IP · объёмы/Δ24ч: Binance → MEXC</p>
     <h1>SPREAD <span>//</span> SPOT-PERP SCANNER</h1>
   </div>
   <div class="status-block">
@@ -166,7 +166,7 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
     <option value="bybit">BYBIT</option>
   </select>
   <select id="fVol">
-    <option value="0">ОБЪЁМ 24Ч: БЕЗ ФИЛЬТРА</option>
+    <option value="0">ОБЪЁМ 24Ч (BNC→MEXC): БЕЗ ФИЛЬТРА</option>
     <option value="100000">&gt; 100K</option>
     <option value="500000">&gt; 500K</option>
     <option value="1000000">&gt; 1M</option>
@@ -194,8 +194,8 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
   <span class="hint gap-left">МАКС. СТРОК:</span>
   <select id="fMaxRows">
     <option value="100">100</option>
-    <option value="250">250</option>
-    <option value="500" selected>500</option>
+    <option value="250" selected>250</option>
+    <option value="500">500</option>
     <option value="1000">1000</option>
     <option value="2500">2500</option>
     <option value="0">БЕЗ ЛИМИТА</option>
@@ -212,8 +212,8 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
         <th>Спред (абс.)</th>
         <th class="sortable" data-sort="spreadPct">Спред % <span class="sort-arrow">▼</span></th>
         <th class="sortable" data-sort="funding">Фандинг % <span class="sort-arrow">▼</span></th>
-        <th class="sortable" data-sort="chg24h">24ч Δ % <span class="sort-arrow">▼</span></th>
-        <th>Объём 24ч</th>
+        <th class="sortable" data-sort="chg24h">24ч Δ % (BNC→MEXC) <span class="sort-arrow">▼</span></th>
+        <th>Объём 24ч (BNC→MEXC)</th>
       </tr>
     </thead>
     <tbody id="tbody"><tr><td colspan="10" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
@@ -223,10 +223,10 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
 <script type="module">
 /* ================= конфиг ================= */
 const FAST_MS    = 30_000;   // все биржи: лёгкие цены + фандинг
-const SLOW_MS    = 60_000;   // раз в минуту: тяжёлые 24hr (объёмы, Δ24ч)
+const SLOW_MS    = 60_000;   // раз в минуту: тяжёлые 24hr — Binance (приоритет) + MEXC (добивка)
 const MIN_GAP_MS = 30_000;
-const LS_KEY  = "spread-scanner-cache-v10";
-const LS_EXCH = "spread-scanner-exchanges-v10";
+const LS_KEY  = "spread-scanner-cache-v12";
+const LS_EXCH = "spread-scanner-exchanges-v11";
 /* MEXC — основная биржа: первый приоритет спота и дефолтный фильтр перпов */
 const EXCHANGES = ["mexc","binance","bybit"];
 const TOP_COINS = ["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
@@ -294,7 +294,7 @@ async function mexcFast(){
     })),
     perp: (Array.isArray(contract?.data)?contract.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({
       base:t.symbol.split("_")[0], perp:parseFloat(t.lastPrice),
-      funding:(parseFloat(t.fundingRate)||0)*100, volume:parseFloat(t.amount24)||0,
+      funding:(parseFloat(t.fundingRate)||0)*100,
     })),
   };
 }
@@ -321,27 +321,21 @@ async function bybitFast(){
   return {
     spot: (spotRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({
       base:t.symbol.slice(0,-4), price:parseFloat(t.lastPrice),
-      vol:parseFloat(t.turnover24h)||0, chg:(parseFloat(t.price24hPcnt)||0)*100,
     })),
     perp: (linRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({
       base:t.symbol.slice(0,-4), perp:parseFloat(t.lastPrice),
-      funding:(parseFloat(t.fundingRate)||0)*100, volume:parseFloat(t.turnover24h)||0,
+      funding:(parseFloat(t.fundingRate)||0)*100,
     })),
   };
 }
 
 /* ---------- тяжёлые запросы (раз в 60 сек): объёмы и Δ24ч ---------- */
+/* ПРИОРИТЕТ Binance (там самые большие объёмы); MEXC — добивка для монет, которых нет на Binance */
 async function binanceSpotSlow(){
   const t = await fetchJSON("https://api.binance.com/api/v3/ticker/24hr");
   return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({
     base:p.symbol.slice(0,-4), vol:parseFloat(p.quoteVolume)||0, chg:parseFloat(p.priceChangePercent)||0,
   }));
-}
-async function binancePerpSlow(){
-  const t = await fetchJSON("https://fapi.binance.com/fapi/v1/ticker/24hr");
-  const m = {};
-  for(const p of t) if(p.symbol.endsWith("USDT")) m[p.symbol.slice(0,-4)] = parseFloat(p.quoteVolume)||0;
-  return m;
 }
 async function mexcSpotSlow(){
   const t = await fetchJSON("https://api.mexc.com/api/v3/ticker/24hr");
@@ -366,21 +360,15 @@ function merge24(exch, arr){
     bucket[exch] = { ...(bucket[exch]||{}), vol:s.vol, chg:s.chg };
   }
 }
-/* быстрый цикл не затирает объём, полученный медленным циклом */
 function replacePerps(exch, arr){
-  const prevVol = new Map(
-    state.perps.filter(p=>p.exchange===exch).map(p=>[p.base, p.volume])
-  );
   const keep = state.perps.filter(p=>p.exchange!==exch);
   const add = arr.filter(p=>p?.base && isFinite(p.perp))
                  .map(p=>({ base:p.base, exchange:exch, perp:p.perp,
-                            funding:p.funding??0,
-                            volume:p.volume ?? prevVol.get(p.base) ?? 0 }));
+                            funding:p.funding??0, volume:0 }));
   state.perps = keep.concat(add);
 }
 
 /* ================= расчёт строк ================= */
-/* спот: сначала своя биржа перпа, затем приоритет MEXC → Binance → Bybit */
 function pickSpot(base, perpExch){
   const e = state.spotBook[base];
   if(!e) return null;
@@ -397,9 +385,19 @@ function computeRows(){
     const spotPrice = spot?.price ?? null;
     const spreadAbs = spotPrice!=null ? p.perp - spotPrice : null;
     const spreadPct = spotPrice!=null ? (spreadAbs/spotPrice)*100 : null;
+
+    /* тяжёлые данные: сначала Binance, если монеты там нет — MEXC */
+    const b = state.spotBook[p.base]?.binance;
+    const m = state.spotBook[p.base]?.mexc;
+    const chg24h = (b?.chg ?? null) ?? (m?.chg ?? null);
+    const volume = (b?.vol ? b.vol : (m?.vol || 0));
+    const src24  = (b && (b.chg!=null || b.vol)) ? "binance"
+                 : (m && (m.chg!=null || m.vol)) ? "mexc"
+                 : null;
+
     out.push({ base:p.base, exchange:p.exchange, spot:spotPrice,
       spotSource:spot?.source ?? null, perp:p.perp, spreadAbs, spreadPct,
-      funding:p.funding, chg24h:spot?.chg ?? null, volume:p.volume });
+      funding:p.funding, chg24h, volume, src24 });
   }
   return out;
 }
@@ -473,11 +471,11 @@ async function apiCycle(){
     });
   }
 
-  /* медленные (60 сек): большие данные — объёмы и Δ24ч.
-     Bybit отдаёт их сразу в быстром тикере, ему медленный цикл не нужен. */
+  /* медленные (60 сек): Binance 24hr (приоритет) + MEXC 24hr (добивка альт-монет) */
   const slowNames = [];
-  if(enabled.binance) slowNames.push(["binanceSpot",binanceSpotSlow],["binancePerp",binancePerpSlow]);
+  if(enabled.binance) slowNames.push(["binanceSpot",binanceSpotSlow]);
   if(enabled.mexc)    slowNames.push(["mexcSpot",mexcSpotSlow]);
+
   if(slowNames.length && now - state.lastSlowAt >= SLOW_MS){
     const ss = await Promise.allSettled(slowNames.map(([,fn])=>fn()));
     let anyOk = false;
@@ -487,11 +485,6 @@ async function apiCycle(){
       const [name] = slowNames[i];
       if(name==="binanceSpot") merge24("binance", s.value);
       else if(name==="mexcSpot") merge24("mexc", s.value);
-      else if(name==="binancePerp"){
-        const m = s.value;
-        for(const p of state.perps)
-          if(p.exchange==="binance" && m[p.base]!=null) p.volume = m[p.base];
-      }
     });
     if(anyOk) state.lastSlowAt = now;
   }
@@ -537,7 +530,6 @@ function updateExButtons(){
     btn.title = (errors[n] || (s===true ? "OK" : "")) + " · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";
   }
 }
-/* Wordmark-логотипы встроены в код (без CDN и внешних запросов) */
 const LOGO_BINANCE = `<b class="binance-word">BINANCE</b>`;
 const LOGO_BYBIT   = `<b class="bybit-word">BYB<i>I</i>T</b>`;
 const LOGO_MEXC    = `<b class="mexc-word">MEXC</b>`;
@@ -576,7 +568,7 @@ function topRange(){
 }
 function maxRows(){
   const v = parseInt(fMaxRows.value,10);
-  return (isNaN(v) || v<=0) ? Infinity : v;   // 0 = БЕЗ ЛИМИТА
+  return (isNaN(v) || v<=0) ? Infinity : v;
 }
 function getFilteredRows(){
   const q = fSearch.value.trim().toUpperCase();
@@ -590,7 +582,7 @@ function getFilteredRows(){
     if(q && !r.base.includes(q)) return false;
     if(exch!=="all" && r.exchange!==exch) return false;
     if(onlySpot && r.spot==null) return false;
-    if(minVol && !(r.volume>=minVol)) return false;
+    if(minVol && !(r.volume>=minVol)) return false; // объём = Binance, иначе MEXC
     if(minSpread && !(Math.abs(r.spreadPct??0)>=minSpread)) return false;
     if(maxSpread && !(Math.abs(r.spreadPct??0)<=maxSpread)) return false;
     if(tf!=null){ const rk = topRank(r.base); if(rk>=tf && rk<=tt) return false; }
@@ -598,8 +590,6 @@ function getFilteredRows(){
   });
 
   if(sortBy){
-    /* сортировка по реальному знаку: ▼ от +100% до −100% · ▲ от −100% до +100% ·
-       строки без значения (—) всегда в конце */
     rows.sort((a,b)=>{
       const av = a[sortBy], bv = b[sortBy];
       const aBad = av==null || !isFinite(av);
@@ -622,6 +612,7 @@ function render(){
     const spCls = r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
     const fCls = r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
     const cCls = r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
+    const t24 = r.src24 ? ` title="Источник 24ч данных: ${r.src24}"` : "";
     return `<tr>
       <td class="sym-cell">${r.base}</td>
       <td>${exBadge(r.spotSource)}</td>
@@ -631,8 +622,8 @@ function render(){
       <td class="muted-cell">${fmtPrice(r.spreadAbs)}</td>
       <td><span class="spread-cell ${spCls}">${fmtPct(r.spreadPct)}</span></td>
       <td class="${fCls}">${fmtPct(r.funding,4)}</td>
-      <td class="${cCls}">${fmtPct(r.chg24h,2)}</td>
-      <td>${fmtVol(r.volume)}</td>
+      <td class="${cCls}"${t24}>${fmtPct(r.chg24h,2)}</td>
+      <td${t24}>${fmtVol(r.volume)}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="10" class="empty">${
     noneEnabled ? "ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ — ВКЛЮЧИТЕ КНОПКАМИ В ШАПКЕ"
@@ -657,7 +648,7 @@ document.querySelectorAll("th.sortable").forEach(th=>{
     const f = th.dataset.sort;
     if(sortBy===f){
       if(sortDir==="desc") sortDir="asc";
-      else { sortBy=null; sortDir="desc"; }   // 3-й клик — возврат к сортировке по умолчанию
+      else { sortBy=null; sortDir="desc"; }
     } else { sortBy=f; sortDir="desc"; }
     render();
   });
@@ -674,7 +665,7 @@ for(const n of EXCHANGES){
 }
 btnRefresh.addEventListener("click", ()=>{
   if(busy) return;
-  apiCycle();   // защита от спама запросами — внутри apiCycle (MIN_GAP_MS)
+  apiCycle();
 });
 document.addEventListener("visibilitychange", ()=>{
   if(document.hidden){ clearTimeout(fastTimer); return; }
