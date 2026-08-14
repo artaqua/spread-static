@@ -24,9 +24,8 @@
   --green-dim:#1B4A32;
   --red:#FF5B5B;
   --red-dim:#4A1F1F;
-  --bybit:#F7A600;
-  --binance:#F0B90B;
-  --mexc:#1677FF;
+  --cyan:#57C7E3;
+  --cyan-glow:rgba(87,199,227,0.10);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -35,6 +34,7 @@ body{
   font-family:'IBM Plex Sans',sans-serif;min-height:100vh;
   -webkit-font-smoothing:antialiased;
 }
+/* ---------- скроллбар всей страницы и блоков ---------- */
 html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -42,6 +42,7 @@ html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
 ::-webkit-scrollbar-thumb:hover{background:#3a3b40}
 ::-webkit-scrollbar-corner{background:transparent}
 
+/* ---------- HEADER ---------- */
 header{padding:28px 32px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:16px}
 .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;color:var(--amber-dim);text-transform:uppercase;margin:0 0 8px}
 h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:0;letter-spacing:-0.01em}
@@ -57,12 +58,14 @@ h1 span{color:var(--amber)}
 .badge-txt.local{color:var(--amber)}
 .badge-txt.busy{color:var(--muted)}
 .badge-txt.err{color:var(--red)}
+/* метрики + время: одна строка, по центру, на одном уровне */
 .time-row{margin-top:10px;display:flex;align-items:center;justify-content:right;gap:8px;flex-wrap:wrap;
 font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .time-row b{color:var(--text);font-weight:600}
 .time-row .clock{font-size:12px;color:var(--text);font-weight:700;letter-spacing:.05em}
 .slash{color:var(--amber);font-weight:700}
 
+/* ---------- кнопки в шапке (обновить + биржи) ---------- */
 .exbtn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 9px;border-radius:3px;cursor:pointer;
 background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .15s;text-transform:uppercase}
 .exbtn.ok{color:var(--green);border-color:var(--green-dim);background:rgba(62,216,136,0.06)}
@@ -70,23 +73,21 @@ background:transparent;border:1px solid var(--border);color:var(--muted);transit
 .exbtn.off{opacity:.45;text-decoration:line-through}
 .exbtn:hover{border-color:var(--amber-dim)}
 
-.controls{display:flex;flex-wrap:wrap;gap:8px;padding:14px 32px;align-items:center;border-bottom:1px solid var(--border)}
-select,input{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase}
+/* ---------- CONTROLS ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:10px;padding:16px 32px;align-items:center;border-bottom:1px solid var(--border)}
+select,input{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase}
 select:focus,input:focus{outline:1px solid var(--amber-dim)}
-input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;border:1px solid var(--border);border-radius:2px;accent-color:var(--amber);cursor:pointer}
-.hint{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
-.chk{display:flex;align-items:center;gap:6px;cursor:pointer}
-.gap-left{margin-left:14px}
-.countbar{padding:10px 32px 0;display:flex;justify-content:flex-start}
+.hint{color:var(--muted);font-size:11px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
 .count{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
 
+/* ---------- TABLE ---------- */
 .tablewrap{padding:0 32px 40px;overflow:auto;max-height:80vh;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void);}
 .tablewrap::-webkit-scrollbar{width:10px;height:10px}
 .tablewrap::-webkit-scrollbar-track{background:transparent}
 .tablewrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--void)}
 .tablewrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
 .tablewrap::-webkit-scrollbar-corner{background:transparent}
-table{width:100%;border-collapse:collapse;margin-top:8px;min-width:1080px}
+table{width:100%;border-collapse:collapse;margin-top:12px;min-width:1080px}
 thead th{
   text-align:right;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;
   text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border);
@@ -104,29 +105,16 @@ tbody tr:hover{background:var(--panel-raised)}
 .spread-cell{font-weight:700;padding:2px 8px;border-radius:3px;display:inline-block;min-width:76px;text-align:center}
 .spread-pos{color:var(--green)}
 .spread-neg{color:var(--red)}
-.ex{padding:3px 8px;border-radius:3px;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;
-display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1;vertical-align:middle}
-.ex-binance{background:rgba(240,185,11,.10)}
-.ex-bybit{background:rgba(247,166,0,.10)}
-.ex-mexc{background:rgba(22,119,255,.10)}
-.binance-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--binance);line-height:1}
-.bybit-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.03em;color:var(--text);line-height:1}
-.bybit-word i{font-style:normal;color:var(--bybit)}
-.mexc-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--mexc);line-height:1}
+.ex{padding:1px 7px;border-radius:3px;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em}
+.ex-binance{background:var(--amber-glow);color:var(--amber)}
+.ex-bybit{background:var(--cyan-glow);color:var(--cyan)}
 .empty{text-align:center;color:var(--muted);padding:24px;text-transform:uppercase}
-
-.sortable{cursor:pointer;user-select:none;transition:color .15s}
-.sortable:hover{color:var(--amber)}
-.sortable .sort-arrow{margin-left:4px;font-size:9px;opacity:0.5}
-.sortable.active{color:var(--amber)}
-.sortable.active .sort-arrow{opacity:1}
 
 footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.2}
 
 @media (max-width:720px){
   header{padding:20px}
-  .controls{padding:12px 20px}
-  .countbar{padding:8px 20px 0}
+  .controls{padding:14px 20px}
   .tablewrap{padding:0 12px 30px}
   h1{font-size:20px}
 }
@@ -136,13 +124,12 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <header>
   <div>
-    <p class="eyebrow">Static edition · без сервера · ваш IP · MEXC-primary</p>
+    <p class="eyebrow">Static edition · без сервера · ваш IP</p>
     <h1>SPREAD <span>//</span> SPOT-PERP SCANNER</h1>
   </div>
   <div class="status-block">
     <div class="status-line">
       <button class="exbtn ok" id="btnRefresh">ОБНОВИТЬ</button>
-      <button class="exbtn" id="ex-mexc"    aria-pressed="true">mexc …</button>
       <button class="exbtn" id="ex-binance" aria-pressed="true">binance …</button>
       <button class="exbtn" id="ex-bybit"   aria-pressed="true">bybit …</button>
       <span class="dot" id="dot"></span><span class="badge-txt busy" id="srcBadge">ПОДКЛЮЧЕНИЕ…</span>
@@ -158,9 +145,8 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
 </header>
 
 <div class="controls">
-  <input id="fSearch" placeholder="ПОИСК МОНЕТЫ…" style="width:140px"/>
+  <input id="fSearch" placeholder="ПОИСК МОНЕТЫ…" style="width:150px"/>
   <select id="fExch">
-    <option value="mexc" selected>ПЕРП: MEXC</option>
     <option value="all">ПЕРП: ВСЕ</option>
     <option value="binance">BINANCE</option>
     <option value="bybit">BYBIT</option>
@@ -186,34 +172,19 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
     <option value="30">≤ 30%</option>
     <option value="50" selected>≤ 50%</option>
   </select>
-  <label class="hint chk"><input type="checkbox" id="fOnlySpot" checked/> ТОЛЬКО ПАРЫ СО СПОТОМ</label>
-  <span class="hint gap-left">БЕЗ ТОП-МОНЕТ, РАНГ С</span>
-  <input id="fTopFrom" type="number" min="1" placeholder="1" style="width:52px"/>
+  <span class="hint">БЕЗ ТОП-МОНЕТ, РАНГ С</span>
+  <input id="fTopFrom" type="number" min="1" placeholder="1" style="width:56px"/>
   <span class="hint">ПО</span>
-  <input id="fTopTo" type="number" min="1" placeholder="10" style="width:52px"/>
-  <span class="hint gap-left">МАКС. СТРОК:</span>
-  <select id="fMaxRows">
-    <option value="100">100</option>
-    <option value="250">250</option>
-    <option value="500" selected>500</option>
-    <option value="1000">1000</option>
-    <option value="2500">2500</option>
-    <option value="0">БЕЗ ЛИМИТА</option>
-  </select>
+  <input id="fTopTo" type="number" min="1" placeholder="10" style="width:56px"/>
+  <span class="count" id="rowCount">…</span>
 </div>
-
-<div class="countbar"><span class="count" id="rowCount">…</span></div>
 
 <div class="tablewrap">
   <table>
     <thead>
       <tr>
         <th>Монета</th><th>Спот-биржа</th><th>Перп-биржа</th><th>Спот</th><th>Перп</th>
-        <th>Спред (абс.)</th>
-        <th class="sortable" data-sort="spreadPct">Спред % <span class="sort-arrow">▼</span></th>
-        <th class="sortable" data-sort="funding">Фандинг % <span class="sort-arrow">▼</span></th>
-        <th class="sortable" data-sort="chg24h">24ч Δ % <span class="sort-arrow">▼</span></th>
-        <th>Объём 24ч</th>
+        <th>Спред (абс.)</th><th>Спред %</th><th>Фандинг %</th><th>24ч Δ %</th><th>Объём 24ч</th>
       </tr>
     </thead>
     <tbody id="tbody"><tr><td colspan="10" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
@@ -222,38 +193,35 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <script type="module">
 /* ================= конфиг ================= */
-const FAST_MS    = 30_000;   // все биржи: лёгкие цены + фандинг
-const SLOW_MS    = 60_000;   // раз в минуту: тяжёлые 24hr (объёмы, Δ24ч)
+const FAST_MS    = 30_000;
+const SLOW_MS    = 5 * 60_000;
 const MIN_GAP_MS = 30_000;
-const LS_KEY  = "spread-scanner-cache-v10";
-const LS_EXCH = "spread-scanner-exchanges-v10";
-/* MEXC — основная биржа: первый приоритет спота и дефолтный фильтр перпов */
-const EXCHANGES = ["mexc","binance","bybit"];
+const LS_KEY  = "spread-scanner-cache-v2";
+const LS_EXCH = "spread-scanner-exchanges-v2";
+const MAX_RENDER = 500;
+const EXCHANGES = ["binance","bybit"];
 const TOP_COINS = ["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
 
 /* ================= состояние ================= */
 const state = {
-  status:   { binance:null, bybit:null, mexc:null },
+  status:   { binance:null, bybit:null },
   spotBook: {},
   perps:    [],
   lastApiAt: 0,
   lastSlowAt: 0,
   badge: "init",
 };
-const errors = { binance:null, bybit:null, mexc:null };
+const errors = { binance:null, bybit:null };
 let enabled = loadEnabled();
 let busy = false, nextAt = 0, fastTimer = null;
 let cycleReqs = 0;
-let sortBy = null;      // null | "spreadPct" | "funding" | "chg24h"
-let sortDir = "desc";
 
 /* ================= DOM ================= */
 const $ = id => document.getElementById(id);
 const tbody=$("tbody"), elBadge=$("srcBadge"), elLast=$("lastUpd"), elNext=$("nextUpd"),
       elCount=$("rowCount"), elReqs=$("reqStat"), btnRefresh=$("btnRefresh"), elDot=$("dot"),
       fSearch=$("fSearch"), fExch=$("fExch"), fVol=$("fVol"), fSpread=$("fSpread"),
-      fMaxSpread=$("fMaxSpread"), fOnlySpot=$("fOnlySpot"), fMaxRows=$("fMaxRows"),
-      fTopFrom=$("fTopFrom"), fTopTo=$("fTopTo");
+      fMaxSpread=$("fMaxSpread"), fTopFrom=$("fTopFrom"), fTopTo=$("fTopTo");
 
 /* ================= утилиты ================= */
 async function fetchJSON(url, timeoutMs = 15000){
@@ -282,22 +250,7 @@ function shortErr(msg){
   return "ошибка";
 }
 
-/* ---------- лёгкие запросы (каждые 30 сек, все биржи) ---------- */
-async function mexcFast(){
-  const [spot, contract] = await Promise.all([
-    fetchJSON("https://api.mexc.com/api/v3/ticker/price"),
-    fetchJSON("https://contract.mexc.com/api/v1/contract/ticker"),
-  ]);
-  return {
-    spot: (Array.isArray(spot)?spot:[]).filter(t=>t.symbol?.endsWith("USDT")).map(t=>({
-      base:t.symbol.slice(0,-4), price:parseFloat(t.price),
-    })),
-    perp: (Array.isArray(contract?.data)?contract.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({
-      base:t.symbol.split("_")[0], perp:parseFloat(t.lastPrice),
-      funding:(parseFloat(t.fundingRate)||0)*100, volume:parseFloat(t.amount24)||0,
-    })),
-  };
-}
+/* ---------- лёгкие запросы ---------- */
 async function binanceFast(){
   const [spot, perp, funding] = await Promise.all([
     fetchJSON("https://api.binance.com/api/v3/ticker/price"),
@@ -330,7 +283,7 @@ async function bybitFast(){
   };
 }
 
-/* ---------- тяжёлые запросы (раз в 60 сек): объёмы и Δ24ч ---------- */
+/* ---------- тяжёлые запросы (раз в 5 мин) ---------- */
 async function binanceSpotSlow(){
   const t = await fetchJSON("https://api.binance.com/api/v3/ticker/24hr");
   return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({
@@ -342,12 +295,6 @@ async function binancePerpSlow(){
   const m = {};
   for(const p of t) if(p.symbol.endsWith("USDT")) m[p.symbol.slice(0,-4)] = parseFloat(p.quoteVolume)||0;
   return m;
-}
-async function mexcSpotSlow(){
-  const t = await fetchJSON("https://api.mexc.com/api/v3/ticker/24hr");
-  return (Array.isArray(t)?t:[]).filter(p=>p.symbol?.endsWith("USDT")).map(p=>({
-    base:p.symbol.slice(0,-4), vol:parseFloat(p.quoteVolume)||0, chg:parseFloat(p.priceChangePercent)||0,
-  }));
 }
 
 /* ================= merge ================= */
@@ -366,21 +313,15 @@ function merge24(exch, arr){
     bucket[exch] = { ...(bucket[exch]||{}), vol:s.vol, chg:s.chg };
   }
 }
-/* быстрый цикл не затирает объём, полученный медленным циклом */
 function replacePerps(exch, arr){
-  const prevVol = new Map(
-    state.perps.filter(p=>p.exchange===exch).map(p=>[p.base, p.volume])
-  );
   const keep = state.perps.filter(p=>p.exchange!==exch);
   const add = arr.filter(p=>p?.base && isFinite(p.perp))
                  .map(p=>({ base:p.base, exchange:exch, perp:p.perp,
-                            funding:p.funding??0,
-                            volume:p.volume ?? prevVol.get(p.base) ?? 0 }));
+                            funding:p.funding??0, volume:p.volume??0 }));
   state.perps = keep.concat(add);
 }
 
 /* ================= расчёт строк ================= */
-/* спот: сначала своя биржа перпа, затем приоритет MEXC → Binance → Bybit */
 function pickSpot(base, perpExch){
   const e = state.spotBook[base];
   if(!e) return null;
@@ -419,16 +360,15 @@ function loadCache(){
 }
 function applyCache(c){
   if(!c) return;
-  state.status   = { binance:c.status?.binance ?? null, bybit:c.status?.bybit ?? null, mexc:c.status?.mexc ?? null };
+  state.status   = { binance:c.status?.binance ?? null, bybit:c.status?.bybit ?? null };
   state.spotBook = c.spotBook || {};
   state.perps    = c.perps || [];
   state.lastSlowAt = c.lastSlowAt || 0;
   state.lastApiAt  = c.savedAt || 0;
 }
 function loadEnabled(){
-  const def = { binance:true, bybit:true, mexc:true };
-  try{ const raw = localStorage.getItem(LS_EXCH); if(raw) return { ...def, ...JSON.parse(raw) }; }catch{}
-  return def;
+  try{ const raw = localStorage.getItem(LS_EXCH); if(raw) return JSON.parse(raw); }catch{}
+  return { binance:true, bybit:true };
 }
 function saveEnabled(){
   try{ localStorage.setItem(LS_EXCH, JSON.stringify(enabled)); }catch{}
@@ -453,8 +393,7 @@ async function apiCycle(){
   cycleReqs = 0;
   const now = Date.now();
 
-  /* быстрые (30 сек): все включённые биржи */
-  const fastLoaders = { mexc:mexcFast, binance:binanceFast, bybit:bybitFast };
+  const fastLoaders = { binance:binanceFast, bybit:bybitFast };
   const names = EXCHANGES.filter(n=>enabled[n]);
   if(names.length){
     const settled = await Promise.allSettled(names.map(n=>fastLoaders[n]()));
@@ -473,11 +412,8 @@ async function apiCycle(){
     });
   }
 
-  /* медленные (60 сек): большие данные — объёмы и Δ24ч.
-     Bybit отдаёт их сразу в быстром тикере, ему медленный цикл не нужен. */
   const slowNames = [];
   if(enabled.binance) slowNames.push(["binanceSpot",binanceSpotSlow],["binancePerp",binancePerpSlow]);
-  if(enabled.mexc)    slowNames.push(["mexcSpot",mexcSpotSlow]);
   if(slowNames.length && now - state.lastSlowAt >= SLOW_MS){
     const ss = await Promise.allSettled(slowNames.map(([,fn])=>fn()));
     let anyOk = false;
@@ -486,7 +422,6 @@ async function apiCycle(){
       anyOk = true;
       const [name] = slowNames[i];
       if(name==="binanceSpot") merge24("binance", s.value);
-      else if(name==="mexcSpot") merge24("mexc", s.value);
       else if(name==="binancePerp"){
         const m = s.value;
         for(const p of state.perps)
@@ -537,17 +472,6 @@ function updateExButtons(){
     btn.title = (errors[n] || (s===true ? "OK" : "")) + " · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";
   }
 }
-/* Wordmark-логотипы встроены в код (без CDN и внешних запросов) */
-const LOGO_BINANCE = `<b class="binance-word">BINANCE</b>`;
-const LOGO_BYBIT   = `<b class="bybit-word">BYB<i>I</i>T</b>`;
-const LOGO_MEXC    = `<b class="mexc-word">MEXC</b>`;
-function exBadge(ex){
-  if(!ex) return `<span class="muted-cell">—</span>`;
-  if(ex==="binance") return `<span class="ex ex-binance" title="binance">${LOGO_BINANCE}</span>`;
-  if(ex==="bybit")   return `<span class="ex ex-bybit" title="bybit">${LOGO_BYBIT}</span>`;
-  if(ex==="mexc")    return `<span class="ex ex-mexc" title="mexc">${LOGO_MEXC}</span>`;
-  return `<span class="ex">${ex}</span>`;
-}
 function fmtPrice(p){
   if(p==null || !isFinite(p)) return "—";
   const a = Math.abs(p);
@@ -574,58 +498,36 @@ function topRange(){
   const to = parseInt(fTopTo.value,10);
   return [from, isNaN(to)?999:to];
 }
-function maxRows(){
-  const v = parseInt(fMaxRows.value,10);
-  return (isNaN(v) || v<=0) ? Infinity : v;   // 0 = БЕЗ ЛИМИТА
-}
 function getFilteredRows(){
   const q = fSearch.value.trim().toUpperCase();
   const exch = fExch.value;
   const minVol = parseFloat(fVol.value)||0;
   const minSpread = parseFloat(fSpread.value)||0;
   const maxSpread = parseFloat(fMaxSpread.value)||0;
-  const onlySpot = fOnlySpot.checked;
   const [tf,tt] = topRange();
-  const rows = computeRows().filter(r=>{
+  return computeRows().filter(r=>{
     if(q && !r.base.includes(q)) return false;
     if(exch!=="all" && r.exchange!==exch) return false;
-    if(onlySpot && r.spot==null) return false;
     if(minVol && !(r.volume>=minVol)) return false;
     if(minSpread && !(Math.abs(r.spreadPct??0)>=minSpread)) return false;
     if(maxSpread && !(Math.abs(r.spreadPct??0)<=maxSpread)) return false;
     if(tf!=null){ const rk = topRank(r.base); if(rk>=tf && rk<=tt) return false; }
     return true;
-  });
-
-  if(sortBy){
-    /* сортировка по реальному знаку: ▼ от +100% до −100% · ▲ от −100% до +100% ·
-       строки без значения (—) всегда в конце */
-    rows.sort((a,b)=>{
-      const av = a[sortBy], bv = b[sortBy];
-      const aBad = av==null || !isFinite(av);
-      const bBad = bv==null || !isFinite(bv);
-      if(aBad && bBad) return 0;
-      if(aBad) return 1;
-      if(bBad) return -1;
-      return sortDir==="desc" ? bv-av : av-bv;
-    });
-  } else {
-    rows.sort((a,b)=>Math.abs(b.spreadPct??0)-Math.abs(a.spreadPct??0));
-  }
-  return rows;
+  }).sort((a,b)=>Math.abs(b.spreadPct??0)-Math.abs(a.spreadPct??0));
 }
 function render(){
   const rows = getFilteredRows();
-  const shown = rows.slice(0, maxRows());
+  const shown = rows.slice(0, MAX_RENDER);
   const noneEnabled = EXCHANGES.every(n=>!enabled[n]);
   tbody.innerHTML = shown.length ? shown.map(r=>{
     const spCls = r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
     const fCls = r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
     const cCls = r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
+    const srcCell = r.spotSource ? `<span class="ex ex-${r.spotSource}">${r.spotSource}</span>` : `<span class="muted-cell">—</span>`;
     return `<tr>
       <td class="sym-cell">${r.base}</td>
-      <td>${exBadge(r.spotSource)}</td>
-      <td>${exBadge(r.exchange)}</td>
+      <td>${srcCell}</td>
+      <td><span class="ex ex-${r.exchange}">${r.exchange}</span></td>
       <td>${fmtPrice(r.spot)}</td>
       <td>${fmtPrice(r.perp)}</td>
       <td class="muted-cell">${fmtPrice(r.spreadAbs)}</td>
@@ -635,33 +537,15 @@ function render(){
       <td>${fmtVol(r.volume)}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="10" class="empty">${
-    noneEnabled ? "ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ — ВКЛЮЧИТЕ КНОПКАМИ В ШАПКЕ"
+    noneEnabled ? "ОБЕ БИРЖИ ВЫКЛЮЧЕНЫ — ВКЛЮЧИТЕ КНОПКАМИ BINANCE/BYBIT В ШАПКЕ"
     : "НЕТ ДАННЫХ" + (state.badge==="error" ? " — БИРЖИ НЕДОСТУПНЫ ИЗ БРАУЗЕРА (CORS / РЕГИОНАЛЬНАЯ БЛОКИРОВКА)" : "")
   }</td></tr>`;
-  elCount.textContent = `ПОКАЗАНО ${shown.length} ИЗ ${rows.length}`;
+  elCount.textContent = `ПОКАЗАНО ${shown.length} ИЗ ${rows.length} · СОРТИРОВКА ПО МОДУЛЮ СПРЕДА`;
   updateExButtons();
-  updateSortIndicators();
-}
-function updateSortIndicators(){
-  document.querySelectorAll("th.sortable").forEach(th=>{
-    const active = th.dataset.sort === sortBy;
-    th.classList.toggle("active", active);
-    th.querySelector(".sort-arrow").textContent = active && sortDir==="asc" ? "▲" : "▼";
-  });
 }
 
 /* ================= контролы ================= */
-[fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input", render));
-document.querySelectorAll("th.sortable").forEach(th=>{
-  th.addEventListener("click", ()=>{
-    const f = th.dataset.sort;
-    if(sortBy===f){
-      if(sortDir==="desc") sortDir="asc";
-      else { sortBy=null; sortDir="desc"; }   // 3-й клик — возврат к сортировке по умолчанию
-    } else { sortBy=f; sortDir="desc"; }
-    render();
-  });
-});
+[fSearch,fExch,fVol,fSpread,fMaxSpread,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input", render));
 for(const n of EXCHANGES){
   const btn = $("ex-"+n);
   btn.addEventListener("click", ()=>{
@@ -674,7 +558,8 @@ for(const n of EXCHANGES){
 }
 btnRefresh.addEventListener("click", ()=>{
   if(busy) return;
-  apiCycle();   // защита от спама запросами — внутри apiCycle (MIN_GAP_MS)
+  if(Date.now() < nextAt){ setBadge("local"); return; }
+  apiCycle();
 });
 document.addEventListener("visibilitychange", ()=>{
   if(document.hidden){ clearTimeout(fastTimer); return; }
@@ -686,7 +571,7 @@ setInterval(()=>{
   const left = Math.max(0, Math.ceil((nextAt - Date.now())/1000));
   elNext.textContent = nextAt ? left+"С" : "—";
   elLast.textContent = state.lastApiAt ? new Date(state.lastApiAt).toLocaleTimeString() : "--:--:--";
-  btnRefresh.textContent = busy ? "ЗАПРОС…" : "ОБНОВИТЬ";
+  btnRefresh.textContent = busy ? "ЗАПРОС…" : (left>0 && nextAt ? `ЖДАТЬ ${left}С` : "ОБНОВИТЬ");
 }, 500);
 
 /* ================= старт ================= */
