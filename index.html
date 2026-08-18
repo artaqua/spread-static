@@ -225,6 +225,7 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
 const FAST_MS    = 30_000;   // все биржи: лёгкие цены + фандинг
 const SLOW_MS    = 60_000;   // раз в минуту: тяжёлые 24hr — Binance (приоритет) + MEXC (добивка)
 const MIN_GAP_MS = 30_000;
+const FIRST_LOAD_DELAY_MS = 10_000; // при самой первой загрузке (без кэша) первый запрос уходит через 10 сек
 const LS_KEY  = "spread-scanner-cache-v12";
 const LS_EXCH = "spread-scanner-exchanges-v11";
 /* MEXC — основная биржа: первый приоритет спота и дефолтный фильтр перпов */
@@ -254,6 +255,17 @@ const tbody=$("tbody"), elBadge=$("srcBadge"), elLast=$("lastUpd"), elNext=$("ne
       fSearch=$("fSearch"), fExch=$("fExch"), fVol=$("fVol"), fSpread=$("fSpread"),
       fMaxSpread=$("fMaxSpread"), fOnlySpot=$("fOnlySpot"), fMaxRows=$("fMaxRows"),
       fTopFrom=$("fTopFrom"), fTopTo=$("fTopTo");
+
+/* Синхронизируем фильтр «ПЕРП: …» с реально включёнными биржами.
+   Без этого при перезагрузке страницы select всегда сбрасывается на HTML-дефолт
+   "mexc", даже если MEXC был выключен в предыдущей сессии (enabled{} хранится
+   отдельно в localStorage) — из-за этого таблица выглядела пустой, хотя
+   Binance/Bybit данные загружались нормально. */
+function syncExchFilterWithEnabled(){
+  if(fExch.value !== "all" && !enabled[fExch.value]){
+    fExch.value = "all";
+  }
+}
 
 /* ================= утилиты ================= */
 async function fetchJSON(url, timeoutMs = 15000){
@@ -681,6 +693,7 @@ setInterval(()=>{
 }, 500);
 
 /* ================= старт ================= */
+syncExchFilterWithEnabled();
 const cache = loadCache();
 if(cache){
   applyCache(cache);
@@ -694,8 +707,10 @@ if(cache){
     apiCycle();
   }
 } else {
-  setBadge("loading");
-  apiCycle();
+  /* самая первая загрузка страницы (кэша ещё нет) — не бьём по API сразу,
+     ждём 10 секунд, а дальше цикл идёт как обычно: 30 сек / 60 сек */
+  setBadge("init");
+  scheduleNext(FIRST_LOAD_DELAY_MS);
 }
 </script>
 </body>
