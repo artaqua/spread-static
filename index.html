@@ -120,6 +120,10 @@ display:inline-flex;align-items:center;justify-content:center;gap:5px;line-heigh
 .sortable .sort-arrow{margin-left:4px;font-size:9px;opacity:0.5}
 .sortable.active{color:var(--amber)}
 .sortable.active .sort-arrow{opacity:1}
+.spread-sort.mode-neg,.funding-sort.mode-neg{color:var(--red)}
+.spread-sort.mode-neg .sort-arrow,.funding-sort.mode-neg .sort-arrow{opacity:1}
+.spread-sort.mode-pos,.funding-sort.mode-pos{color:var(--green)}
+.spread-sort.mode-pos .sort-arrow,.funding-sort.mode-pos .sort-arrow{opacity:1}
 
 footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.2}
 
@@ -212,8 +216,8 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
       <tr>
         <th>Монета</th><th>Спот-биржа</th><th>Перп-биржа</th><th>Спот</th><th>Перп</th>
         <th>Спред (абс.)</th>
-        <th class="sortable" data-sort="spreadPct">Спред % <span class="sort-arrow">▼</span></th>
-        <th class="sortable" data-sort="funding">Фандинг % <span class="sort-arrow">▼</span></th>
+        <th class="sortable spread-sort" data-sort="spreadPct">Спред % <span class="sort-arrow">▼</span></th>
+        <th class="sortable funding-sort" data-sort="funding">Фандинг % <span class="sort-arrow">▼</span></th>
         <th class="sortable" data-sort="chg24h">24ч Δ % (BNC→MEXC) <span class="sort-arrow">▼</span></th>
         <th>Объём 24ч (BNC→MEXC)</th>
       </tr>
@@ -247,8 +251,18 @@ const errors = { binance:null, bybit:null, mexc:null };
 let enabled = loadEnabled();
 let busy = false, nextAt = 0, fastTimer = null;
 let cycleReqs = 0;
-let sortBy = null;      // null | "spreadPct" | "funding" | "chg24h"
+let sortBy = null;      // null | "chg24h" (для "Спред %" и "Фандинг %" используется своя логика ниже)
 let sortDir = "desc";
+/* Режим колонки "Спред %": цикл по клику на заголовок —
+   "abs" (все спреды, от самого большого по модулю) -> "pos" (только положительные) -> "neg" (только отрицательные) -> "abs" ...
+   При загрузке страницы по умолчанию включён режим "neg" (только отрицательные спреды). */
+let spreadMode = "neg";
+/* Режим колонки "Фандинг %": та же логика, что у спреда —
+   "abs" (все, без фильтра, сортировка по модулю) -> "pos" (только положительный) -> "neg" (только отрицательный) -> "abs" ...
+   По умолчанию "abs" (без фильтра), включается кликом по заголовку. */
+let fundingMode = "abs";
+/* Какая колонка сейчас управляет порядком строк: "spread" | "funding" | "chg24h" */
+let activeSort = "spread";
 
 /* ================= DOM ================= */
 const $ = id => document.getElementById(id);
@@ -592,7 +606,7 @@ function getFilteredRows(){
   const maxSpread = parseFloat(fMaxSpread.value)||0;
   const onlySpot = fOnlySpot.checked;
   const [tf,tt] = topRange();
-  const rows = computeRows().filter(r=>{
+  let rows = computeRows().filter(r=>{
     if(q && !r.base.includes(q)) return false;
     if(exch!=="all" && r.exchange!==exch) return false;
     if(onlySpot && r.spot==null) return false;
@@ -603,7 +617,54 @@ function getFilteredRows(){
     return true;
   });
 
-  if(sortBy){
+  /* режим колонки "Спред %": abs — не фильтруем; pos — только положительные; neg — только отрицательные */
+  if(spreadMode==="pos"){
+    rows = rows.filter(r=>r.spreadPct!=null && isFinite(r.spreadPct) && r.spreadPct>0);
+  } else if(spreadMode==="neg"){
+    rows = rows.filter(r=>r.spreadPct!=null && isFinite(r.spreadPct) && r.spreadPct<0);
+  }
+
+  /* режим колонки "Фандинг %": та же логика — abs без фильтра, pos/neg только по знаку */
+  if(fundingMode==="pos"){
+    rows = rows.filter(r=>r.funding!=null && isFinite(r.funding) && r.funding>0);
+  } else if(fundingMode==="neg"){
+    rows = rows.filter(r=>r.funding!=null && isFinite(r.funding) && r.funding<0);
+  }
+
+  /* Когда И спред, И фандинг одновременно переключены на конкретный знак (+ или −, не «±») —
+     сортируем по совокупному «счёту» обеих метрик: монеты, которые сильнее всего выражены
+     сразу по обоим показателям в выбранном направлении, оказываются наверху. */
+  const combinedActive = spreadMode!=="abs" && fundingMode!=="abs" && (activeSort==="spread" || activeSort==="funding");
+
+  if(combinedActive){
+    const scoreOf = r=>{
+      let s = 0;
+      if(r.spreadPct!=null && isFinite(r.spreadPct)){
+        s += spreadMode==="neg" ? -r.spreadPct : r.spreadPct;
+      }
+      if(r.funding!=null && isFinite(r.funding)){
+        s += fundingMode==="neg" ? -r.funding : r.funding;
+      }
+      return s;
+    };
+    rows.sort((a,b)=>scoreOf(b)-scoreOf(a)); // больше "счёт" — выше в списке
+  } else if(activeSort==="funding"){
+    if(fundingMode==="pos"){
+      rows.sort((a,b)=>b.funding-a.funding); // самый большой положительный фандинг вверху
+    } else if(fundingMode==="neg"){
+      rows.sort((a,b)=>a.funding-b.funding); // самый отрицательный фандинг вверху
+    } else {
+      rows.sort((a,b)=>{
+        const av = a.funding, bv = b.funding;
+        const aBad = av==null || !isFinite(av);
+        const bBad = bv==null || !isFinite(bv);
+        if(aBad && bBad) return 0;
+        if(aBad) return 1;
+        if(bBad) return -1;
+        return Math.abs(bv)-Math.abs(av); // весь фандинг, от самого большого по модулю
+      });
+    }
+  } else if(activeSort==="chg24h" && sortBy){
     rows.sort((a,b)=>{
       const av = a[sortBy], bv = b[sortBy];
       const aBad = av==null || !isFinite(av);
@@ -613,8 +674,20 @@ function getFilteredRows(){
       if(bBad) return -1;
       return sortDir==="desc" ? bv-av : av-bv;
     });
+  } else if(spreadMode==="pos"){
+    rows.sort((a,b)=>b.spreadPct-a.spreadPct); // самые большие положительные вверху
+  } else if(spreadMode==="neg"){
+    rows.sort((a,b)=>a.spreadPct-b.spreadPct); // самые отрицательные вверху
   } else {
-    rows.sort((a,b)=>Math.abs(b.spreadPct??0)-Math.abs(a.spreadPct??0));
+    rows.sort((a,b)=>{
+      const av = a.spreadPct, bv = b.spreadPct;
+      const aBad = av==null || !isFinite(av);
+      const bBad = bv==null || !isFinite(bv);
+      if(aBad && bBad) return 0;
+      if(aBad) return 1;
+      if(bBad) return -1;
+      return Math.abs(bv)-Math.abs(av); // все спреды, от самого большого по модулю
+    });
   }
   return rows;
 }
@@ -643,29 +716,65 @@ function render(){
     noneEnabled ? "ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ — ВКЛЮЧИТЕ КНОПКАМИ В ШАПКЕ"
     : "НЕТ ДАННЫХ" + (state.badge==="error" ? " — БИРЖИ НЕДОСТУПНЫ ИЗ БРАУЗЕРА (CORS / РЕГИОНАЛЬНАЯ БЛОКИРОВКА)" : "")
   }</td></tr>`;
-  elCount.textContent = `ПОКАЗАНО ${shown.length} ИЗ ${rows.length}`;
+  const combinedHint = (spreadMode!=="abs" && fundingMode!=="abs")
+    ? ` · КОМБО-СОРТИРОВКА: СПРЕД ${spreadMode==="neg"?"−":"+"} & ФАНДИНГ ${fundingMode==="neg"?"−":"+"}`
+    : "";
+  elCount.textContent = `ПОКАЗАНО ${shown.length} ИЗ ${rows.length}${combinedHint}`;
   updateExButtons();
   updateSortIndicators();
 }
 function updateSortIndicators(){
-  document.querySelectorAll("th.sortable").forEach(th=>{
-    const active = th.dataset.sort === sortBy;
+  document.querySelectorAll("th.sortable:not(.spread-sort):not(.funding-sort)").forEach(th=>{
+    const active = th.dataset.sort === sortBy && activeSort==="chg24h";
     th.classList.toggle("active", active);
     th.querySelector(".sort-arrow").textContent = active && sortDir==="asc" ? "▲" : "▼";
   });
+  const spreadTh = document.querySelector("th.spread-sort");
+  if(spreadTh){
+    spreadTh.classList.toggle("mode-neg", spreadMode==="neg");
+    spreadTh.classList.toggle("mode-pos", spreadMode==="pos");
+    const arrow = spreadTh.querySelector(".sort-arrow");
+    if(spreadMode==="abs") arrow.textContent = "± ▼";
+    else if(spreadMode==="pos") arrow.textContent = "+ ▼";
+    else arrow.textContent = "− ▲";
+  }
+  const fundingTh = document.querySelector("th.funding-sort");
+  if(fundingTh){
+    fundingTh.classList.toggle("mode-neg", fundingMode==="neg");
+    fundingTh.classList.toggle("mode-pos", fundingMode==="pos");
+    const arrow = fundingTh.querySelector(".sort-arrow");
+    if(fundingMode==="abs") arrow.textContent = "± ▼";
+    else if(fundingMode==="pos") arrow.textContent = "+ ▼";
+    else arrow.textContent = "− ▲";
+  }
 }
 
 /* ================= контролы ================= */
 [fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input", render));
-document.querySelectorAll("th.sortable").forEach(th=>{
+document.querySelectorAll("th.sortable:not(.spread-sort):not(.funding-sort)").forEach(th=>{
   th.addEventListener("click", ()=>{
     const f = th.dataset.sort;
+    activeSort = "chg24h";
     if(sortBy===f){
       if(sortDir==="desc") sortDir="asc";
       else { sortBy=null; sortDir="desc"; }
     } else { sortBy=f; sortDir="desc"; }
     render();
   });
+});
+/* Спред %: клик по заголовку циклит режимы —
+   1) ± все спреды (по модулю)  2) только +  3) только − (дефолт при загрузке) */
+document.querySelector("th.spread-sort")?.addEventListener("click", ()=>{
+  activeSort = "spread";
+  spreadMode = spreadMode==="neg" ? "abs" : spreadMode==="abs" ? "pos" : "neg";
+  render();
+});
+/* Фандинг %: та же логика —
+   1) ± весь фандинг (по модулю, дефолт при загрузке)  2) только +  3) только − */
+document.querySelector("th.funding-sort")?.addEventListener("click", ()=>{
+  activeSort = "funding";
+  fundingMode = fundingMode==="abs" ? "pos" : fundingMode==="pos" ? "neg" : "abs";
+  render();
 });
 for(const n of EXCHANGES){
   const btn = $("ex-"+n);
