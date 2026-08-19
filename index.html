@@ -532,8 +532,8 @@ async function apiCycle(){
 function setBadge(kind){
   state.badge = kind;
   const map = {
-    api:    ["LIVE · ОБНОВЛЕНО С API","ok"],
-    local:  ["LOCAL DATA · ИЗ КЭША, API НЕ ТРОГАЕМ","local"],
+    api:    ["LIVE · API","ok"],
+    local:  ["LIVE · LOCAL DATA","local"],
     loading:["ЗАПРОС К API…","busy"],
     error:  ["ОШИБКА API — ПОВТОР ЧЕРЕЗ 30 СЕК","err"],
     init:   ["ПОДКЛЮЧЕНИЕ…","busy"],
