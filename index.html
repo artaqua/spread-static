@@ -208,18 +208,18 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
       <div class="alert-field">
         <span>ФАНДИНГ</span>
         <select id="alertFundingDir">
-          <option value="pos" selected>&gt; +</option>
-          <option value="neg">&lt; −</option>
+          <option value="neg" selected>&lt; −</option>
+          <option value="pos">&gt; +</option>
           <option value="abs">| | &gt;</option>
         </select>
-        <input type="number" id="alertFundingThr" value="0.5" step="0.05" min="0"/>
+        <input type="number" id="alertFundingThr" value="1" step="0.05" min="0"/>
         <span>%</span>
       </div>
       <div class="alert-field" style="margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">
         <span>Δ СПРЕД ≥</span>
-        <input type="number" id="alertDeltaThr" value="0.3" step="0.05" min="0" style="width:60px"/>
+        <input type="number" id="alertDeltaThr" value="5" step="0.05" min="0" style="width:60px"/>
         <span>%</span>
-        <label class="hint chk" style="margin-left:4px"><input type="checkbox" id="alertDeltaEnabled"/> РЕЗКИЕ Δ</label>
+        <label class="hint" style="margin-left:4px"><input type="checkbox" id="alertDeltaEnabled"/> РЕЗКИЕ Δ</label>
       </div>
       <label class="hint chk" style="margin-left:6px"><input type="checkbox" id="alertNotifEnabled"/> УВЕДОМЛЕНИЯ</label>
       <label class="hint chk"><input type="checkbox" id="alertSoundEnabled"/> ЗВУК</label>
