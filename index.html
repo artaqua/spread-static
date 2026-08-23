@@ -12,7 +12,7 @@ body{background:var(--void);color:var(--text);font-family:'IBM Plex Sans',sans-s
 html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--void)}::-webkit-scrollbar-thumb:hover{background:#3a3b40}::-webkit-scrollbar-corner{background:transparent}
 
-header{padding:20px 14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+header{padding:18px 14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
 .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;color:var(--amber-dim);text-transform:uppercase;margin:0 0 8px}
 h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:0;letter-spacing:-0.01em}h1 span{color:var(--amber)}
 .status-block{text-align:right;font-family:'JetBrains Mono',monospace}
@@ -20,7 +20,7 @@ h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:
 @media(max-width:1200px){.status-line{justify-content:flex-start}}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s ease-in-out infinite}.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase}.badge-txt.ok{color:var(--green)}.badge-txt.local{color:var(--amber)}.badge-txt.busy{color:var(--muted)}.badge-txt.err{color:var(--red)}
+.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase;margin-right: 8px;}.badge-txt.ok{color:var(--green)}.badge-txt.local{color:var(--amber)}.badge-txt.busy{color:var(--muted)}.badge-txt.err{color:var(--red)}
 .time-row{margin-top:10px;display:flex;align-items:center;justify-content:right;gap:8px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .time-row b{color:var(--text);font-weight:600}.time-row .clock{font-size:12px;color:var(--text);font-weight:700;letter-spacing:.05em}
 .slash{color:var(--amber);font-weight:700}
@@ -124,11 +124,11 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
   </div>
   <div class="status-block">
     <div class="status-line">
+      <span class="dot" id="dot"></span><span class="badge-txt busy" id="srcBadge">ПОДКЛЮЧЕНИЕ…</span>
       <button class="refresh-btn" id="refreshBtn">ОБНОВИТЬ</button>
       <button class="exbtn" id="ex-mexc" aria-pressed="true">mexc …</button>
       <button class="exbtn" id="ex-binance" aria-pressed="true">binance …</button>
       <button class="exbtn" id="ex-bybit" aria-pressed="true">bybit …</button>
-      <span class="dot" id="dot"></span><span class="badge-txt busy" id="srcBadge">ПОДКЛЮЧЕНИЕ…</span>
     </div>
     <div class="time-row">
       <span>NEXT UPDATE: <b id="nextUpd">—</b></span>
