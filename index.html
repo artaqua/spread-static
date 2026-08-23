@@ -3,138 +3,116 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <title>SPREAD // Spot-Perp Scanner — static</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-
-:root{
-  --void:#0A0A0B;
-  --panel:#141517;
-  --panel-raised:#1B1D20;
-  --border:#28292C;
-  --amber:#FFB300;
-  --amber-dim:#8C6A1F;
-  --amber-glow:rgba(255,179,0,0.12);
-  --text:#E8E6E1;
-  --muted:#83898F;
-  --green:#3ED888;
-  --green-dim:#1B4A32;
-  --red:#FF5B5B;
-  --red-dim:#4A1F1F;
-  --bybit:#F7A600;
-  --binance:#F0B90B;
-  --mexc:#1677FF;
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
-  background:var(--void);color:var(--text);
-  font-family:'IBM Plex Sans',sans-serif;min-height:100vh;
-  -webkit-font-smoothing:antialiased;
-}
+:root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--void);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
-::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--void)}
-::-webkit-scrollbar-thumb:hover{background:#3a3b40}
-::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--void)}::-webkit-scrollbar-thumb:hover{background:#3a3b40}::-webkit-scrollbar-corner{background:transparent}
 
 header{padding:28px 32px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:16px}
 .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;color:var(--amber-dim);text-transform:uppercase;margin:0 0 8px}
-h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:0;letter-spacing:-0.01em}
-h1 span{color:var(--amber)}
+h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:0;letter-spacing:-0.01em}h1 span{color:var(--amber)}
 .status-block{text-align:right;font-family:'JetBrains Mono',monospace}
 .status-line{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12px;color:var(--muted);flex-wrap:wrap}
-@media (max-width:1200px){.status-line {justify-content: flex-start;}}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
-.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s ease-in-out infinite}
-.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
+@media(max-width:1200px){.status-line{justify-content:flex-start}}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s ease-in-out infinite}.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase}
-.badge-txt.ok{color:var(--green)}
-.badge-txt.local{color:var(--amber)}
-.badge-txt.busy{color:var(--muted)}
-.badge-txt.err{color:var(--red)}
-.time-row{margin-top:10px;display:flex;align-items:center;justify-content:right;gap:8px;flex-wrap:wrap;
-font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.time-row b{color:var(--text);font-weight:600}
-.time-row .clock{font-size:12px;color:var(--text);font-weight:700;letter-spacing:.05em}
+.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase}.badge-txt.ok{color:var(--green)}.badge-txt.local{color:var(--amber)}.badge-txt.busy{color:var(--muted)}.badge-txt.err{color:var(--red)}
+.time-row{margin-top:10px;display:flex;align-items:center;justify-content:right;gap:8px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.time-row b{color:var(--text);font-weight:600}.time-row .clock{font-size:12px;color:var(--text);font-weight:700;letter-spacing:.05em}
 .slash{color:var(--amber);font-weight:700}
 
-.exbtn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 9px;border-radius:3px;cursor:pointer;
-background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .15s;text-transform:uppercase}
-.exbtn.ok{color:var(--green);border-color:var(--green-dim);background:rgba(62,216,136,0.06)}
-.exbtn.err{color:var(--red);border-color:var(--red-dim);background:rgba(255,91,91,0.06)}
-.exbtn.off{opacity:.45;text-decoration:line-through}
-.exbtn:hover{border-color:var(--amber-dim)}
+.exbtn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 9px;border-radius:3px;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .15s;text-transform:uppercase}
+.exbtn.ok{color:var(--green);border-color:var(--green-dim);background:rgba(62,216,136,0.06)}.exbtn.err{color:var(--red);border-color:var(--red-dim);background:rgba(255,91,91,0.06)}.exbtn.off{opacity:.45;text-decoration:line-through}.exbtn:hover{border-color:var(--amber-dim)}
+.refresh-btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:6px 14px;border-radius:4px;cursor:pointer;background:var(--amber);color:var(--void);border:none;text-transform:uppercase;letter-spacing:.06em;transition:all .15s}.refresh-btn:hover{background:#ffc933;transform:translateY(-1px)}.refresh-btn:active{transform:translateY(0)}.refresh-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 
 .controls{display:flex;flex-wrap:wrap;gap:8px;padding:14px 32px;align-items:center;border-bottom:1px solid var(--border)}
 select,input{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase}
 select:focus,input:focus{outline:1px solid var(--amber-dim)}
 input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;border:1px solid var(--border);border-radius:2px;accent-color:var(--amber);cursor:pointer}
 .hint{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
-.chk{display:flex;align-items:center;gap:6px;cursor:pointer}
-.gap-left{margin-left:14px}
-.countbar{padding:10px 32px 0;display:flex;justify-content:flex-start}
-.count{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.chk{display:flex;align-items:center;gap:6px;cursor:pointer}.gap-left{margin-left:14px}
 
-.tablewrap{padding:0 32px 40px;overflow:auto;max-height:80vh;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void);}
-.tablewrap::-webkit-scrollbar{width:10px;height:10px}
-.tablewrap::-webkit-scrollbar-track{background:transparent}
-.tablewrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--void)}
-.tablewrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
-.tablewrap::-webkit-scrollbar-corner{background:transparent}
-table{width:100%;border-collapse:collapse;margin-top:8px;min-width:1080px}
-thead th{
-  text-align:right;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;
-  text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border);
-  white-space:nowrap;position:sticky;top:0;background:var(--void);z-index:2;
+.alert-panel,.table-panel{margin:14px 32px 0;border:1px solid var(--border);border-radius:6px;background:var(--panel);overflow:hidden}
+.alert-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg, rgba(255,179,0,0.06), rgba(255,179,0,0))}
+.alert-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:700;display:flex;align-items:center;gap:8px}
+.alert-title .bell{font-size:13px}
+.alert-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--red);color:#fff;letter-spacing:.04em;display:inline-flex;align-items:center;gap:5px;transition:all .2s ease}.alert-badge.idle{background:var(--border);color:var(--muted)}.alert-badge .pulse-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1s ease-in-out infinite}
+.alert-body{display:flex;flex-wrap:wrap;gap:14px;padding:12px 14px;align-items:center}
+.alert-config{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.alert-field{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.alert-field select{width:50px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text);background:var(--void);border:1px solid var(--border);border-radius:3px;padding:3px 4px;text-transform:none;cursor:pointer}.alert-field select:focus{outline:none;border-color:var(--amber)}
+.alert-field input[type="number"]{width:70px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text);background:var(--void);border:1px solid var(--border);border-radius:3px;padding:4px 6px;text-transform:none}.alert-field input[type="number"]:focus{outline:none;border-color:var(--amber)}
+.alert-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+.alert-btn{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:5px 10px;border-radius:3px;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;transition:all .15s}.alert-btn:hover{border-color:var(--amber-dim);color:var(--text)}.alert-btn.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}.alert-btn.primary:hover{background:#ffc933;border-color:#ffc933}.alert-btn.danger{color:var(--red);border-color:var(--red-dim)}.alert-btn.danger:hover{background:rgba(255,91,91,0.08);border-color:var(--red)}
+
+/* ===== NOTIFICATION STATUS INDICATOR ===== */
+.notif-status{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 11px;border-radius:20px;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  border:1px solid var(--border);
+  transition:all .2s ease;
+  white-space:nowrap;
 }
+.notif-status.off{
+  background:var(--panel);color:var(--muted);border-color:var(--border);
+}
+.notif-status.on{
+  background:var(--green-dim);color:var(--green);border-color:#1e5c3d;
+}
+.notif-status.denied{
+  background:var(--red-dim);color:var(--red);border-color:#5c1e1e;
+}
+.notif-status.pending{
+  background:var(--amber-dim);color:var(--amber);border-color:#5c4a1e;
+}
+.notif-status .ns-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:currentColor;flex:none;
+}
+.notif-status.on .ns-dot{
+  box-shadow:0 0 6px var(--green);animation:pulse 1.4s ease-in-out infinite;
+}
+
+.alert-feed{border-top:1px solid var(--border);max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel)}.alert-feed::-webkit-scrollbar{width:8px}.alert-feed::-webkit-scrollbar-track{background:transparent}.alert-feed::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:4px;border:2px solid var(--panel)}
+.alert-feed-empty{padding:16px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center}
+.alert-item{display:grid;grid-template-columns:90px 1fr auto auto auto auto;gap:12px;padding:8px 14px;border-bottom:1px solid #1c1d20;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11.5px;animation:alertIn .25s ease-out}@keyframes alertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}.alert-item:last-child{border-bottom:none}
+.alert-item .coin{font-weight:700;color:var(--text)}.alert-item .spread-val{color:var(--red);font-weight:700}.alert-item .spread-val.pos{color:var(--green)}.alert-item .funding-val{color:var(--green);font-weight:700}.alert-item .funding-val.neg{color:var(--red)}.alert-item .time{color:var(--muted);font-size:10px}.alert-item .exch-cell{display:flex;gap:4px}.alert-item .dismiss{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 4px;opacity:.5;transition:opacity .15s}.alert-item .dismiss:hover{opacity:1;color:var(--red)}
+
+.table-panel{margin:14px 32px 40px;border:1px solid var(--border);border-radius:6px;background:var(--panel-gray);overflow:hidden}
+.table-panel .panel-header{background:var(--panel-gray-header);border-bottom:1px solid var(--border-light);padding:10px 14px;display:flex;align-items:center}
+.table-panel .panel-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px}
+.table-panel .count-row{padding:8px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15)}
+.table-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel-gray)}.table-wrap::-webkit-scrollbar{width:10px;height:10px}.table-wrap::-webkit-scrollbar-track{background:transparent}.table-wrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--panel-gray)}.table-wrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
+table{width:100%;border-collapse:collapse;min-width:1080px}
+thead th{text-align:right;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border-light);white-space:nowrap;position:sticky;top:0;background:var(--panel-gray-header);z-index:2}
 thead th:nth-child(-n+3){text-align:left}
-tbody td{padding:9px 14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;border-bottom:1px solid #1c1d20;white-space:nowrap}
+tbody td{padding:9px 14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;border-bottom:1px solid #2a2d31;white-space:nowrap}
 tbody td:nth-child(-n+3){text-align:left}
-tbody tr{transition:background .1s ease}
-tbody tr:hover{background:var(--panel-raised)}
-.sym-cell{font-weight:700;color:var(--text)}
-.pos{color:var(--green)}
-.neg{color:var(--red)}
-.muted-cell{color:var(--muted)}
-.spread-cell{font-weight:700;padding:2px 8px;border-radius:3px;display:inline-block;min-width:76px;text-align:center}
-.spread-pos{color:var(--green)}
-.spread-neg{color:var(--red)}
-.ex{padding:3px 8px;border-radius:3px;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;
-display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1;vertical-align:middle}
-.ex-binance{background:rgba(240,185,11,.10)}
-.ex-bybit{background:rgba(247,166,0,.10)}
-.ex-mexc{background:rgba(22,119,255,.10)}
+tbody tr{transition:background .1s ease}tbody tr:hover{background:rgba(255,255,255,0.03)}
+tbody tr.alert-row{background:var(--amber-glow)}
+.sym-cell{font-weight:700;color:var(--text)}.pos{color:var(--green)}.neg{color:var(--red)}.muted-cell{color:var(--muted)}
+.spread-cell{font-weight:700;padding:2px 8px;border-radius:3px;display:inline-block;min-width:76px;text-align:center}.spread-pos{color:var(--green)}.spread-neg{color:var(--red)}
+.ex{padding:3px 8px;border-radius:3px;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1;vertical-align:middle}
+.ex-binance{background:rgba(240,185,11,.15);color:var(--binance)}.ex-bybit{background:rgba(247,166,0,.15);color:var(--bybit)}.ex-mexc{background:rgba(22,119,255,.15);color:var(--mexc)}
 .binance-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--binance);line-height:1}
-.bybit-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.03em;color:var(--text);line-height:1}
-.bybit-word i{font-style:normal;color:var(--bybit)}
+.bybit-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.03em;color:var(--text);line-height:1}.bybit-word i{font-style:normal;color:var(--bybit)}
 .mexc-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--mexc);line-height:1}
 .empty{text-align:center;color:var(--muted);padding:24px;text-transform:uppercase}
 
-.sortable{cursor:pointer;user-select:none;transition:color .15s}
-.sortable:hover{color:var(--amber)}
-.sortable .sort-arrow{margin-left:4px;font-size:9px;opacity:0.5}
-.sortable.active{color:var(--amber)}
-.sortable.active .sort-arrow{opacity:1}
-.spread-sort.mode-neg,.funding-sort.mode-neg,.chg24h-sort.mode-neg{color:var(--red)}
-.spread-sort.mode-neg .sort-arrow,.funding-sort.mode-neg .sort-arrow,.chg24h-sort.mode-neg .sort-arrow{opacity:1}
-.spread-sort.mode-pos,.funding-sort.mode-pos,.chg24h-sort.mode-pos{color:var(--green)}
-.spread-sort.mode-pos .sort-arrow,.funding-sort.mode-pos .sort-arrow,.chg24h-sort.mode-pos .sort-arrow{opacity:1}
+.sortable{cursor:pointer;user-select:none;transition:color .15s}.sortable:hover{color:var(--amber)}.sortable .sort-arrow{margin-left:4px;font-size:9px;opacity:0.5}.sortable.active{color:var(--amber)}.sortable.active .sort-arrow{opacity:1}
+.spread-sort.mode-neg,.funding-sort.mode-neg,.chg24h-sort.mode-neg{color:var(--red)}.spread-sort.mode-neg .sort-arrow,.funding-sort.mode-neg .sort-arrow,.chg24h-sort.mode-neg .sort-arrow{opacity:1}
+.spread-sort.mode-pos,.funding-sort.mode-pos,.chg24h-sort.mode-pos{color:var(--green)}.spread-sort.mode-pos .sort-arrow,.funding-sort.mode-pos .sort-arrow,.chg24h-sort.mode-pos .sort-arrow{opacity:1}
 
 footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.2}
 
-@media (max-width:720px){
-  header{padding:20px}
-  .controls{padding:12px 20px}
-  .countbar{padding:8px 20px 0}
-  .tablewrap{padding:0 12px 30px}
-  h1{font-size:20px}
-}
+@media(max-width:900px){.alert-body{flex-direction:column;align-items:stretch}.alert-actions{margin-left:0;justify-content:flex-start}.alert-item{grid-template-columns:80px 1fr;gap:6px}}
+@media(max-width:720px){header{padding:20px}.controls{padding:12px 20px}.alert-panel,.table-panel{margin:14px 20px 0}h1{font-size:20px}}
 </style>
 </head>
 <body>
@@ -146,9 +124,10 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
   </div>
   <div class="status-block">
     <div class="status-line">
-      <button class="exbtn" id="ex-mexc"    aria-pressed="true">mexc …</button>
+      <button class="refresh-btn" id="refreshBtn">ОБНОВИТЬ</button>
+      <button class="exbtn" id="ex-mexc" aria-pressed="true">mexc …</button>
       <button class="exbtn" id="ex-binance" aria-pressed="true">binance …</button>
-      <button class="exbtn" id="ex-bybit"   aria-pressed="true">bybit …</button>
+      <button class="exbtn" id="ex-bybit" aria-pressed="true">bybit …</button>
       <span class="dot" id="dot"></span><span class="badge-txt busy" id="srcBadge">ПОДКЛЮЧЕНИЕ…</span>
     </div>
     <div class="time-row">
@@ -165,9 +144,9 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
 <div class="controls">
   <input id="fSearch" placeholder="ПОИСК МОНЕТЫ…" style="width:140px"/>
   <select id="fExch">
-    <option value="mexc" selected>ПЕРП: MEXC</option>
-    <option value="all">ПЕРП: ВСЕ</option>
     <option value="binance">BINANCE</option>
+    <option value="all" selected>ПЕРП: ВСЕ</option>
+    <option value="mexc">MEXC</option>
     <option value="bybit">BYBIT</option>
   </select>
   <select id="fVol">
@@ -195,9 +174,9 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
   </select>
   <label class="hint chk"><input type="checkbox" id="fOnlySpot" checked/> ТОЛЬКО ПАРЫ СО СПОТОМ</label>
   <span class="hint gap-left">БЕЗ ТОП-МОНЕТ, РАНГ С</span>
-  <input id="fTopFrom" type="number" min="1" placeholder="1" style="width:52px"/>
+  <input id="fTopFrom" type="number" min="1" value="1" placeholder="1" style="width:52px"/>
   <span class="hint">ПО</span>
-  <input id="fTopTo" type="number" min="1" placeholder="10" style="width:52px"/>
+  <input id="fTopTo" type="number" min="1" value="10" placeholder="10" style="width:52px"/>
   <span class="hint gap-left">МАКС. СТРОК:</span>
   <select id="fMaxRows">
     <option value="100">100</option>
@@ -209,603 +188,256 @@ footer{padding:18px 32px 18px;color:#54585c;font-size:10px;font-family:'JetBrain
   </select>
 </div>
 
-<div class="countbar"><span class="count" id="rowCount">…</span></div>
-
-<div class="tablewrap">
-  <table>
-    <thead>
-      <tr>
-        <th>Монета</th><th>Спот-биржа</th><th>Перп-биржа</th><th>Спот</th><th>Перп</th>
-        <th>Спред (абс.)</th>
-        <th class="sortable spread-sort" data-sort="spreadPct">Спред % <span class="sort-arrow">▼</span></th>
-        <th class="sortable funding-sort" data-sort="funding">Фандинг % <span class="sort-arrow">▼</span></th>
-        <th class="sortable chg24h-sort" data-sort="chg24h">24ч Δ % (BNC→MEXC) <span class="sort-arrow">▼</span></th>
-        <th>Объём 24ч (BNC→MEXC)</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"><tr><td colspan="10" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
-  </table>
+<div class="alert-panel" id="alertPanel">
+  <div class="alert-header">
+    <div class="alert-title"><span class="bell">🔔</span> АЛЕРТЫ · УВЕДОМЛЕНИЯ</div>
+    <div class="alert-badge idle" id="alertBadge"><span class="pulse-dot" style="display:none"></span><span id="alertBadgeText">0</span></div>
+  </div>
+  <div class="alert-body">
+    <div class="alert-config">
+      <div class="alert-field">
+        <span>СПРЕД</span>
+        <select id="alertSpreadDir">
+          <option value="neg" selected>&lt; −</option>
+          <option value="pos">&gt; +</option>
+          <option value="abs">| | &gt;</option>
+        </select>
+        <input type="number" id="alertSpreadThr" value="5" step="0.1" min="0"/>
+        <span>%</span>
+      </div>
+      <div class="alert-field">
+        <span>ФАНДИНГ</span>
+        <select id="alertFundingDir">
+          <option value="pos" selected>&gt; +</option>
+          <option value="neg">&lt; −</option>
+          <option value="abs">| | &gt;</option>
+        </select>
+        <input type="number" id="alertFundingThr" value="0.5" step="0.05" min="0"/>
+        <span>%</span>
+      </div>
+      <div class="alert-field" style="margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">
+        <span>Δ СПРЕД ≥</span>
+        <input type="number" id="alertDeltaThr" value="0.3" step="0.05" min="0" style="width:60px"/>
+        <span>%</span>
+        <label class="hint chk" style="margin-left:4px"><input type="checkbox" id="alertDeltaEnabled"/> РЕЗКИЕ Δ</label>
+      </div>
+      <label class="hint chk" style="margin-left:6px"><input type="checkbox" id="alertNotifEnabled"/> УВЕДОМЛЕНИЯ</label>
+      <label class="hint chk"><input type="checkbox" id="alertSoundEnabled"/> ЗВУК</label>
+    </div>
+    <div class="alert-actions">
+      <button class="alert-btn primary" id="alertTestBtn">🔔 ПРОВЕРИТЬ</button>
+      <button class="alert-btn danger" id="alertClearBtn">ОЧИСТИТЬ</button>
+      <div class="notif-status off" id="notifStatus">
+        <span class="ns-dot"></span>
+        <span id="notifStatusText">ВЫКЛ</span>
+      </div>
+    </div>
+  </div>
+  <div class="alert-feed" id="alertFeed">
+    <div class="alert-feed-empty">УСЛОВИЯ НЕ ВЫПОЛНЕНЫ</div>
+  </div>
 </div>
 
+<div class="table-panel">
+  <div class="panel-header">
+    <div class="panel-title"><span>📊</span> СПРЕД · ФАНДИНГ · ОБЪЁМЫ</div>
+  </div>
+  <div class="count-row"><span id="rowCount">…</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Монета</th><th>Спот-биржа</th><th>Перп-биржа</th><th>Спот</th><th>Перп</th>
+          <th>Спред (абс.)</th>
+          <th class="sortable spread-sort">Спред % <span class="sort-arrow">▼</span></th>
+          <th class="sortable funding-sort">Фандинг % <span class="sort-arrow">▼</span></th>
+          <th class="sortable chg24h-sort">24ч Δ % <span class="sort-arrow">▼</span></th>
+          <th>Объём 24ч</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"><tr><td colspan="10" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке</footer>
+
 <script type="module">
-/* ================= конфиг ================= */
-const FAST_MS    = 30_000;   // все биржи: лёгкие цены + фандинг
-const SLOW_MS    = 60_000;   // раз в минуту: тяжёлые 24hr — Binance (приоритет) + MEXC (добивка)
-const MIN_GAP_MS = 30_000;
-const FIRST_LOAD_DELAY_MS = 10_000; // при самой первой загрузке (без кэша) первый запрос уходит через 10 сек
-const LS_KEY  = "spread-scanner-cache-v12";
-const LS_EXCH = "spread-scanner-exchanges-v11";
-/* MEXC — основная биржа: первый приоритет спота и дефолтный фильтр перпов */
-const EXCHANGES = ["mexc","binance","bybit"];
-const TOP_COINS = ["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
+const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
+const LS_KEY="spread-scanner-cache-v17",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3";
+const EXCHANGES=["mexc","binance","bybit"];
+const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
 
-/* ================= состояние ================= */
-const state = {
-  status:   { binance:null, bybit:null, mexc:null },
-  spotBook: {},
-  perps:    [],
-  lastApiAt: 0,
-  lastSlowAt: 0,
-  badge: "init",
-};
-const errors = { binance:null, bybit:null, mexc:null };
-let enabled = loadEnabled();
-let busy = false, nextAt = 0, fastTimer = null;
-let cycleReqs = 0;
-let sortBy = null;      // не используется — оставлено для совместимости
-let sortDir = "desc";
-/* Режим колонки "Спред %": цикл по клику на заголовок —
-   "abs" (все спреды, от самого большого по модулю) -> "pos" (только положительные) -> "neg" (только отрицательные) -> "abs" ...
-   При загрузке страницы по умолчанию включён режим "neg" (только отрицательные спреды). */
-let spreadMode = "neg";
-/* Режим колонки "Фандинг %": та же логика, что у спреда —
-   "abs" (все, без фильтра, сортировка по модулю) -> "pos" (только положительный) -> "neg" (только отрицательный) -> "abs" ...
-   По умолчанию "abs" (без фильтра), включается кликом по заголовку. */
-let fundingMode = "abs";
-/* Режим колонки "24ч Δ %": та же логика, что у спреда/фандинга. По умолчанию "abs". */
-let chg24hMode = "abs";
-/* Какая колонка была нажата последней (используется только когда ВСЕ три колонки в режиме "±") */
-let activeSort = "spread";
+const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],lastApiAt:0,lastSlowAt:0,badge:"init"};
+const errors={binance:null,bybit:null,mexc:null};
+let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
+let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
 
-/* ================= DOM ================= */
-const $ = id => document.getElementById(id);
-const tbody=$("tbody"), elBadge=$("srcBadge"), elLast=$("lastUpd"), elNext=$("nextUpd"),
-      elCount=$("rowCount"), elReqs=$("reqStat"), elDot=$("dot"),
-      fSearch=$("fSearch"), fExch=$("fExch"), fVol=$("fVol"), fSpread=$("fSpread"),
-      fMaxSpread=$("fMaxSpread"), fOnlySpot=$("fOnlySpot"), fMaxRows=$("fMaxRows"),
-      fTopFrom=$("fTopFrom"), fTopTo=$("fTopTo");
+const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",deltaThr:0.3,deltaEnabled:false,notifEnabled:false,soundEnabled:false,prevSpreads:{},lastAlertTs:{}};
+let audioCtx=null;
 
-/* Синхронизируем фильтр «ПЕРП: …» с реально включёнными биржами.
-   Без этого при перезагрузке страницы select всегда сбрасывается на HTML-дефолт
-   "mexc", даже если MEXC был выключен в предыдущей сессии (enabled{} хранится
-   отдельно в localStorage) — из-за этого таблица выглядела пустой, хотя
-   Binance/Bybit данные загружались нормально. */
-function syncExchFilterWithEnabled(){
-  if(fExch.value !== "all" && !enabled[fExch.value]){
-    fExch.value = "all";
-  }
-}
+function loadAlerts(){try{const r=localStorage.getItem(LS_ALERTS);if(!r)return;const d=JSON.parse(r);if(typeof d.spreadThr==='number')alertState.spreadThr=d.spreadThr;if(typeof d.spreadDir==='string')alertState.spreadDir=d.spreadDir;if(typeof d.fundingThr==='number')alertState.fundingThr=d.fundingThr;if(typeof d.fundingDir==='string')alertState.fundingDir=d.fundingDir;if(typeof d.deltaThr==='number')alertState.deltaThr=d.deltaThr;if(typeof d.deltaEnabled==='boolean')alertState.deltaEnabled=d.deltaEnabled;if(typeof d.notifEnabled==='boolean')alertState.notifEnabled=d.notifEnabled;if(typeof d.soundEnabled==='boolean')alertState.soundEnabled=d.soundEnabled;if(Array.isArray(d.feed))alertState.feed=d.feed.slice(0,50);if(Array.isArray(d.firedKeys))d.firedKeys.forEach(k=>alertState.firedKeys.add(k));}catch(e){}}
+function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadThr:alertState.spreadThr,spreadDir:alertState.spreadDir,fundingThr:alertState.fundingThr,fundingDir:alertState.fundingDir,deltaThr:alertState.deltaThr,deltaEnabled:alertState.deltaEnabled,notifEnabled:alertState.notifEnabled,soundEnabled:alertState.soundEnabled,feed:alertState.feed.slice(0,50),firedKeys:Array.from(alertState.firedKeys).slice(-200)}));}catch(e){}}
 
-/* ================= утилиты ================= */
-async function fetchJSON(url, timeoutMs = 15000){
-  const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
-  try{
-    cycleReqs++;
-    const res = await fetch(url, { signal: ctrl.signal });
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    return await res.json();
-  } finally { clearTimeout(t); }
-}
-function describeErr(e){
-  const m = (e && e.message) ? e.message : String(e);
-  if(/Failed to fetch|Load failed|NetworkError|terminated/i.test(m))
-    return m + " — похоже на CORS (браузер заблокировал ответ) или сеть/блокировщик";
-  if(/abort/i.test(m)) return m + " — таймаут";
-  return m;
-}
-function shortErr(msg){
-  if(!msg) return "";
-  if(/CORS|Failed to fetch|Load failed|NetworkError/i.test(msg)) return "CORS/сеть";
-  const m = msg.match(/HTTP (\d{3})/);
-  if(m) return "HTTP "+m[1];
-  if(/таймаут|abort/i.test(msg)) return "таймаут";
-  return "ошибка";
-}
+const $=id=>document.getElementById(id);
+const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
+const fSearch=$("fSearch"),fExch=$("fExch"),fVol=$("fVol"),fSpread=$("fSpread"),fMaxSpread=$("fMaxSpread"),fOnlySpot=$("fOnlySpot"),fMaxRows=$("fMaxRows"),fTopFrom=$("fTopFrom"),fTopTo=$("fTopTo");
+const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed");
+const alertSpreadThr=$("alertSpreadThr"),alertSpreadDir=$("alertSpreadDir"),alertFundingThr=$("alertFundingThr"),alertFundingDir=$("alertFundingDir");
+const alertDeltaThr=$("alertDeltaThr"),alertDeltaEnabled=$("alertDeltaEnabled");
+const alertNotifEnabled=$("alertNotifEnabled"),alertSoundEnabled=$("alertSoundEnabled");
+const alertTestBtn=$("alertTestBtn"),alertClearBtn=$("alertClearBtn");
+const notifStatus=$("notifStatus"),notifStatusText=$("notifStatusText");
+const refreshBtn=$("refreshBtn");
 
-/* ---------- лёгкие запросы (каждые 30 сек, все биржи) ---------- */
-async function mexcFast(){
-  const [spot, contract] = await Promise.all([
-    fetchJSON("https://api.mexc.com/api/v3/ticker/price"),
-    fetchJSON("https://contract.mexc.com/api/v1/contract/ticker"),
-  ]);
-  return {
-    spot: (Array.isArray(spot)?spot:[]).filter(t=>t.symbol?.endsWith("USDT")).map(t=>({
-      base:t.symbol.slice(0,-4), price:parseFloat(t.price),
-    })),
-    perp: (Array.isArray(contract?.data)?contract.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({
-      base:t.symbol.split("_")[0], perp:parseFloat(t.lastPrice),
-      funding:(parseFloat(t.fundingRate)||0)*100,
-    })),
-  };
-}
-async function binanceFast(){
-  const [spot, perp, funding] = await Promise.all([
-    fetchJSON("https://api.binance.com/api/v3/ticker/price"),
-    fetchJSON("https://fapi.binance.com/fapi/v1/ticker/price"),
-    fetchJSON("https://fapi.binance.com/fapi/v1/premiumIndex"),
-  ]);
-  const fundMap = new Map(funding.map(p=>[p.symbol, parseFloat(p.lastFundingRate)]));
-  return {
-    spot: spot.filter(p=>p.symbol.endsWith("USDT"))
-              .map(p=>({ base:p.symbol.slice(0,-4), price:parseFloat(p.price) })),
-    perp: perp.filter(p=>p.symbol.endsWith("USDT"))
-              .map(p=>({ base:p.symbol.slice(0,-4), perp:parseFloat(p.price),
-                         funding:(fundMap.get(p.symbol)||0)*100 })),
-  };
-}
-async function bybitFast(){
-  const [spotRes, linRes] = await Promise.all([
-    fetchJSON("https://api.bybit.com/v5/market/tickers?category=spot"),
-    fetchJSON("https://api.bybit.com/v5/market/tickers?category=linear"),
-  ]);
-  return {
-    spot: (spotRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({
-      base:t.symbol.slice(0,-4), price:parseFloat(t.lastPrice),
-    })),
-    perp: (linRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({
-      base:t.symbol.slice(0,-4), perp:parseFloat(t.lastPrice),
-      funding:(parseFloat(t.fundingRate)||0)*100,
-    })),
-  };
-}
+function syncExchFilterWithEnabled(){if(fExch.value!=="all"&&!enabled[fExch.value])fExch.value="all";}
 
-/* ---------- тяжёлые запросы (раз в 60 сек): объёмы и Δ24ч ---------- */
-/* ПРИОРИТЕТ Binance (там самые большие объёмы); MEXC — добивка для монет, которых нет на Binance */
-async function binanceSpotSlow(){
-  const t = await fetchJSON("https://api.binance.com/api/v3/ticker/24hr");
-  return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({
-    base:p.symbol.slice(0,-4), vol:parseFloat(p.quoteVolume)||0, chg:parseFloat(p.priceChangePercent)||0,
-  }));
-}
-async function mexcSpotSlow(){
-  const t = await fetchJSON("https://api.mexc.com/api/v3/ticker/24hr");
-  return (Array.isArray(t)?t:[]).filter(p=>p.symbol?.endsWith("USDT")).map(p=>({
-    base:p.symbol.slice(0,-4), vol:parseFloat(p.quoteVolume)||0, chg:parseFloat(p.priceChangePercent)||0,
-  }));
-}
+async function fetchJSON(url,timeoutMs=15000){const c=new AbortController();const t=setTimeout(()=>c.abort(),timeoutMs);try{cycleReqs++;const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json();}finally{clearTimeout(t);}}
+function describeErr(e){const m=(e&&e.message)?e.message:String(e);if(/Failed to fetch|Load failed|NetworkError|terminated/i.test(m))return m+" — CORS или сеть";if(/abort/i.test(m))return m+" — таймаут";return m;}
+function shortErr(msg){if(!msg)return"";if(/CORS|Failed to fetch|Load failed|NetworkError/i.test(msg))return"CORS/сеть";const m=msg.match(/HTTP (\d{3})/);if(m)return"HTTP "+m[1];if(/таймаут|abort/i.test(msg))return"таймаут";return"ошибка";}
 
-/* ================= merge ================= */
-function mergeSpot(exch, arr){
-  for(const s of arr){
-    if(!s?.base || !isFinite(s.price)) continue;
-    const bucket = state.spotBook[s.base] || (state.spotBook[s.base] = {});
-    const prev = bucket[exch] || {};
-    bucket[exch] = { price:s.price, vol:s.vol ?? prev.vol ?? 0, chg:s.chg ?? prev.chg ?? null };
-  }
-}
-function merge24(exch, arr){
-  for(const s of arr){
-    if(!s?.base) continue;
-    const bucket = state.spotBook[s.base] || (state.spotBook[s.base] = {});
-    bucket[exch] = { ...(bucket[exch]||{}), vol:s.vol, chg:s.chg };
-  }
-}
-function replacePerps(exch, arr){
-  const keep = state.perps.filter(p=>p.exchange!==exch);
-  const add = arr.filter(p=>p?.base && isFinite(p.perp))
-                 .map(p=>({ base:p.base, exchange:exch, perp:p.perp,
-                            funding:p.funding??0, volume:0 }));
-  state.perps = keep.concat(add);
-}
+async function mexcFast(){const[spot,contract]=await Promise.all([fetchJSON("https://api.mexc.com/api/v3/ticker/price"),fetchJSON("https://contract.mexc.com/api/v1/contract/ticker")]);return{spot:(Array.isArray(spot)?spot:[]).filter(t=>t.symbol?.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),price:parseFloat(t.price)})),perp:(Array.isArray(contract?.data)?contract.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({base:t.symbol.split("_")[0],perp:parseFloat(t.lastPrice),funding:(parseFloat(t.fundingRate)||0)*100}))};}
+async function binanceFast(){const[spot,perp,funding]=await Promise.all([fetchJSON("https://api.binance.com/api/v3/ticker/price"),fetchJSON("https://fapi.binance.com/fapi/v1/ticker/price"),fetchJSON("https://fapi.binance.com/fapi/v1/premiumIndex")]);const fundMap=new Map(funding.map(p=>[p.symbol,parseFloat(p.lastFundingRate)]));return{spot:spot.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),price:parseFloat(p.price)})),perp:perp.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),perp:parseFloat(p.price),funding:(fundMap.get(p.symbol)||0)*100}))};}
+async function bybitFast(){const[spotRes,linRes]=await Promise.all([fetchJSON("https://api.bybit.com/v5/market/tickers?category=spot"),fetchJSON("https://api.bybit.com/v5/market/tickers?category=linear")]);return{spot:(spotRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),price:parseFloat(t.lastPrice)})),perp:(linRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),perp:parseFloat(t.lastPrice),funding:(parseFloat(t.fundingRate)||0)*100}))};}
+async function binanceSpotSlow(){const t=await fetchJSON("https://api.binance.com/api/v3/ticker/24hr");return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),vol:parseFloat(p.quoteVolume)||0,chg:parseFloat(p.priceChangePercent)||0}));}
+async function mexcSpotSlow(){const t=await fetchJSON("https://api.mexc.com/api/v3/ticker/24hr");return(Array.isArray(t)?t:[]).filter(p=>p.symbol?.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),vol:parseFloat(p.quoteVolume)||0,chg:parseFloat(p.priceChangePercent)||0}));}
 
-/* ================= расчёт строк ================= */
-function pickSpot(base, perpExch){
-  const e = state.spotBook[base];
-  if(!e) return null;
-  if(enabled[perpExch] && e[perpExch]?.price) return { ...e[perpExch], source:perpExch };
-  for(const ex of EXCHANGES)
-    if(enabled[ex] && e[ex]?.price) return { ...e[ex], source:ex };
-  return null;
-}
-function computeRows(){
-  const out = [];
-  for(const p of state.perps){
-    if(!enabled[p.exchange]) continue;
-    const spot = pickSpot(p.base, p.exchange);
-    const spotPrice = spot?.price ?? null;
-    const spreadAbs = spotPrice!=null ? p.perp - spotPrice : null;
-    const spreadPct = spotPrice!=null ? (spreadAbs/spotPrice)*100 : null;
+function mergeSpot(exch,arr){for(const s of arr){if(!s?.base||!isFinite(s.price))continue;const b=state.spotBook[s.base]||(state.spotBook[s.base]={});const p=b[exch]||{};b[exch]={price:s.price,vol:s.vol??p.vol??0,chg:s.chg??p.chg??null};}}
+function merge24(exch,arr){for(const s of arr){if(!s?.base)continue;const b=state.spotBook[s.base]||(state.spotBook[s.base]={});b[exch]={...(b[exch]||{}),vol:s.vol,chg:s.chg};}}
+function replacePerps(exch,arr){const keep=state.perps.filter(p=>p.exchange!==exch);const add=arr.filter(p=>p?.base&&isFinite(p.perp)).map(p=>({base:p.base,exchange:exch,perp:p.perp,funding:p.funding??0,volume:0}));state.perps=keep.concat(add);}
 
-    /* тяжёлые данные: сначала Binance, если монеты там нет — MEXC */
-    const b = state.spotBook[p.base]?.binance;
-    const m = state.spotBook[p.base]?.mexc;
-    const chg24h = (b?.chg ?? null) ?? (m?.chg ?? null);
-    const volume = (b?.vol ? b.vol : (m?.vol || 0));
-    const src24  = (b && (b.chg!=null || b.vol)) ? "binance"
-                 : (m && (m.chg!=null || m.vol)) ? "mexc"
-                 : null;
+function pickSpot(base,perpExch){const e=state.spotBook[base];if(!e)return null;if(enabled[perpExch]&&e[perpExch]?.price)return{...e[perpExch],source:perpExch};for(const ex of EXCHANGES)if(enabled[ex]&&e[ex]?.price)return{...e[ex],source:ex};return null;}
 
-    out.push({ base:p.base, exchange:p.exchange, spot:spotPrice,
-      spotSource:spot?.source ?? null, perp:p.perp, spreadAbs, spreadPct,
-      funding:p.funding, chg24h, volume, src24 });
-  }
-  return out;
-}
+function computeRows(){const out=[];for(const p of state.perps){if(!enabled[p.exchange])continue;const spot=pickSpot(p.base,p.exchange);const sp=spot?.price??null;const sa=sp!=null?p.perp-sp:null;const spc=sp!=null?(sa/sp)*100:null;const b=state.spotBook[p.base]?.binance,m=state.spotBook[p.base]?.mexc;const chg=(b?.chg??null)??(m?.chg??null);const vol=(b?.vol?b.vol:(m?.vol||0));const src=(b&&(b.chg!=null||b.vol))?"binance":(m&&(m.chg!=null||m.vol))?"mexc":null;out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,spreadAbs:sa,spreadPct:spc,funding:p.funding,chg24h:chg,volume:vol,src24:src});}return out;}
 
-/* ================= localStorage ================= */
-function saveCache(){
-  try{
-    localStorage.setItem(LS_KEY, JSON.stringify({
-      savedAt:Date.now(), status:state.status, spotBook:state.spotBook,
-      perps:state.perps, lastSlowAt:state.lastSlowAt,
-    }));
-  }catch(e){ console.warn("localStorage save failed:", e); }
-}
-function loadCache(){
-  try{ const raw = localStorage.getItem(LS_KEY); return raw?JSON.parse(raw):null; }
-  catch{ return null; }
-}
-function applyCache(c){
-  if(!c) return;
-  state.status   = { binance:c.status?.binance ?? null, bybit:c.status?.bybit ?? null, mexc:c.status?.mexc ?? null };
-  state.spotBook = c.spotBook || {};
-  state.perps    = c.perps || [];
-  state.lastSlowAt = c.lastSlowAt || 0;
-  state.lastApiAt  = c.savedAt || 0;
-}
-function loadEnabled(){
-  const def = { binance:true, bybit:true, mexc:true };
-  try{ const raw = localStorage.getItem(LS_EXCH); if(raw) return { ...def, ...JSON.parse(raw) }; }catch{}
-  return def;
-}
-function saveEnabled(){
-  try{ localStorage.setItem(LS_EXCH, JSON.stringify(enabled)); }catch{}
-}
+function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt}));}catch(e){}}
+function loadCache(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null;}catch{return null;}}
+function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;}
+function loadEnabled(){const d={binance:true,bybit:true,mexc:true};try{const r=localStorage.getItem(LS_EXCH);if(r)return{...d,...JSON.parse(r)};}catch{}return d;}
+function saveEnabled(){try{localStorage.setItem(LS_EXCH,JSON.stringify(enabled));}catch{}}
 
-/* ================= основной цикл ================= */
-function scheduleNext(delayMs){
-  clearTimeout(fastTimer);
-  nextAt = Date.now() + delayMs;
-  fastTimer = setTimeout(()=>apiCycle(), delayMs);
-}
-async function apiCycle(){
-  if(busy) return;
-  const c = loadCache();
-  if(c && Date.now() - c.savedAt < MIN_GAP_MS){
-    applyCache(c); render(); setBadge("local");
-    scheduleNext(MIN_GAP_MS - (Date.now() - c.savedAt));
+function checkAlertCondition(spreadPct,funding){const sThr=alertState.spreadThr,fThr=alertState.fundingThr,sDir=alertState.spreadDir,fDir=alertState.fundingDir;let sOk=false;if(sDir==="neg")sOk=spreadPct<-sThr;else if(sDir==="pos")sOk=spreadPct>sThr;else if(sDir==="abs")sOk=Math.abs(spreadPct)>sThr;let fOk=false;if(fDir==="pos")fOk=funding>fThr;else if(fDir==="neg")fOk=funding<-fThr;else if(fDir==="abs")fOk=Math.abs(funding)>fThr;return sOk&&fOk;}
+
+function fireAlert(type,coin,exchange,spreadPct,funding,delta){const key=type+"|"+coin+"|"+exchange;const lastAlert=alertState.lastAlertTs[key]||0;if(Date.now()-lastAlert<30000)return false;alertState.lastAlertTs[key]=Date.now();alertState.firedKeys.add(key);alertState.feed.unshift({id:key+"|"+Date.now(),type,coin,exchange,spreadPct,funding,delta,time:Date.now()});alertState.feed=alertState.feed.slice(0,50);if(alertState.notifEnabled)sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta);if(alertState.soundEnabled)playAlertSound();saveAlerts();renderAlerts();updateAlertBadge();return true;}
+
+function checkAlerts(rows){try{for(const r of rows){if(r.spreadPct==null||!isFinite(r.spreadPct))continue;if(r.funding==null||!isFinite(r.funding))continue;const key=r.base+"|"+r.exchange;const prevSpread=alertState.prevSpreads[key];if(checkAlertCondition(r.spreadPct,r.funding)){if(!alertState.firedKeys.has("abs|"+key)){fireAlert("abs",r.base,r.exchange,r.spreadPct,r.funding,null);}}if(alertState.deltaEnabled&&prevSpread!=null){const delta=Math.abs(r.spreadPct-prevSpread);if(delta>=alertState.deltaThr){fireAlert("delta",r.base,r.exchange,r.spreadPct,r.funding,delta);}}alertState.prevSpreads[key]=r.spreadPct;}const still=new Set(rows.filter(r=>{if(r.spreadPct==null||!isFinite(r.spreadPct))return false;if(r.funding==null||!isFinite(r.funding))return false;return checkAlertCondition(r.spreadPct,r.funding);}).map(r=>"abs|"+r.base+"|"+r.exchange));for(const k of alertState.firedKeys){if(k.startsWith("abs|")&&!still.has(k))alertState.firedKeys.delete(k);}}catch(e){console.warn("checkAlerts error:",e);}}
+
+function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){if(!("Notification"in window))return;if(Notification.permission!=="granted")return;try{const ss=spreadPct<0?"":"+",fs=funding<0?"":"";const deltaStr=delta!=null?` · Δ спред: ${delta.toFixed(2)}%`:"";const body=`Спред: ${ss}${spreadPct.toFixed(2)}% · Фандинг: ${fs}${funding.toFixed(3)}%${deltaStr} · ${exchange.toUpperCase()}`;const n=new Notification(`${type==="delta"?"Δ ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});setTimeout(()=>n.close&&n.close(),10000);}catch(e){}}
+
+function playAlertSound(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const ctx=audioCtx,now=ctx.currentTime,osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";osc.frequency.setValueAtTime(880,now);osc.frequency.exponentialRampToValueAtTime(440,now+0.25);gain.gain.setValueAtTime(0.15,now);gain.gain.exponentialRampToValueAtTime(0.001,now+0.3);osc.connect(gain).connect(ctx.destination);osc.start(now);osc.stop(now+0.3);}catch(e){}}
+
+function updateAlertBadge(){const c=alertState.feed.length;alertBadgeText.textContent=c;if(c>0){alertBadge.classList.remove("idle");alertBadge.querySelector(".pulse-dot").style.display="inline-block";}else{alertBadge.classList.add("idle");alertBadge.querySelector(".pulse-dot").style.display="none";}}
+
+function renderAlerts(){if(alertState.feed.length===0){const sd=alertState.spreadDir==="neg"?"< −":alertState.spreadDir==="pos"?"> +":"| | >";const fd=alertState.fundingDir==="pos"?"> +":alertState.fundingDir==="neg"?"< −":"| | >";const deltaStr=alertState.deltaEnabled?` · Δ СПРЕД ≥${alertState.deltaThr}%`:"";alertFeed.innerHTML=`<div class="alert-feed-empty">УСЛОВИЯ НЕ ВЫПОЛНЕНЫ · СПРЕД ${sd}${alertState.spreadThr}% И ФАНДИНГ ${fd}${alertState.fundingThr}%${deltaStr}</div>`;return;}alertFeed.innerHTML=alertState.feed.map(a=>{const t=new Date(a.time),ts=t.toLocaleTimeString();const ec=a.exchange==="binance"?"ex-binance":a.exchange==="bybit"?"ex-bybit":"ex-mexc",el=a.exchange.toUpperCase();const sc=a.spreadPct<0?"spread-val":"spread-val pos",fc=a.funding<0?"funding-val neg":"funding-val";const ss=a.spreadPct<0?"":"+",fs=a.funding<0?"":"";const typeLabel=a.type==="delta"?"Δ ":"";const deltaStr=a.delta!=null?` · Δ${a.delta.toFixed(2)}%`:"";return`<div class="alert-item" data-id="${a.id}"><span class="coin">${typeLabel}${a.coin}</span><span class="exch-cell"><span class="ex ${ec}">${el}</span></span><span class="${sc}">${ss}${a.spreadPct.toFixed(2)}%</span><span class="${fc}">${fs}${a.funding.toFixed(3)}%</span><span class="time">${ts}${deltaStr}</span><button class="dismiss" data-dismiss="${a.id}">✕</button></div>`;}).join("");alertFeed.querySelectorAll(".dismiss").forEach(btn=>{btn.addEventListener("click",()=>{const id=btn.dataset.dismiss;alertState.feed=alertState.feed.filter(a=>a.id!==id);saveAlerts();renderAlerts();updateAlertBadge();});});}
+
+/* ===== NOTIFICATION STATUS INDICATOR ===== */
+function updateNotifStatus(){
+  if(!alertState.notifEnabled){
+    notifStatus.className="notif-status off";
+    notifStatusText.textContent="ВЫКЛ";
     return;
   }
-  busy = true;
-  setBadge("loading");
-  cycleReqs = 0;
-  const now = Date.now();
-
-  /* быстрые (30 сек): все включённые биржи */
-  const fastLoaders = { mexc:mexcFast, binance:binanceFast, bybit:bybitFast };
-  const names = EXCHANGES.filter(n=>enabled[n]);
-  if(names.length){
-    const settled = await Promise.allSettled(names.map(n=>fastLoaders[n]()));
-    names.forEach((n,i)=>{
-      const s = settled[i];
-      if(s.status==="fulfilled"){
-        state.status[n] = true;
-        errors[n] = null;
-        mergeSpot(n, s.value.spot);
-        replacePerps(n, s.value.perp);
-      } else {
-        state.status[n] = false;
-        errors[n] = describeErr(s.reason);
-        console.warn(n+" fast failed:", errors[n]);
-      }
-    });
+  if(!("Notification"in window)){
+    notifStatus.className="notif-status denied";
+    notifStatusText.textContent="НЕ ПОДДЕРЖИВАЕТСЯ";
+    return;
   }
-
-  /* медленные (60 сек): Binance 24hr (приоритет) + MEXC 24hr (добивка альт-монет) */
-  const slowNames = [];
-  if(enabled.binance) slowNames.push(["binanceSpot",binanceSpotSlow]);
-  if(enabled.mexc)    slowNames.push(["mexcSpot",mexcSpotSlow]);
-
-  if(slowNames.length && now - state.lastSlowAt >= SLOW_MS){
-    const ss = await Promise.allSettled(slowNames.map(([,fn])=>fn()));
-    let anyOk = false;
-    ss.forEach((s,i)=>{
-      if(s.status!=="fulfilled") return;
-      anyOk = true;
-      const [name] = slowNames[i];
-      if(name==="binanceSpot") merge24("binance", s.value);
-      else if(name==="mexcSpot") merge24("mexc", s.value);
-    });
-    if(anyOk) state.lastSlowAt = now;
+  const p=Notification.permission;
+  if(p==="granted"){
+    notifStatus.className="notif-status on";
+    notifStatusText.textContent="АКТИВНЫ";
+  }else if(p==="denied"){
+    notifStatus.className="notif-status denied";
+    notifStatusText.textContent="ЗАБЛОКИРОВАНЫ";
+  }else{
+    notifStatus.className="notif-status pending";
+    notifStatusText.textContent="ТРЕБУЕТСЯ РАЗРЕШЕНИЕ";
   }
-
-  state.lastApiAt = Date.now();
-  saveCache();
-  render();
-  elReqs.textContent = cycleReqs;
-  const allDead = names.length>0 && names.every(n=>state.status[n]===false);
-  setBadge(allDead ? "error" : "api");
-  busy = false;
-  scheduleNext(FAST_MS);
 }
 
-/* ================= рендер ================= */
-function setBadge(kind){
-  state.badge = kind;
-  const map = {
-    api:    ["LIVE · API","ok"],
-    local:  ["LIVE · LOCAL DATA","local"],
-    loading:["ЗАПРОС К API…","busy"],
-    error:  ["ОШИБКА API — ПОВТОР ЧЕРЕЗ 30 СЕК","err"],
-    init:   ["ПОДКЛЮЧЕНИЕ…","busy"],
-  };
-  const [t,cls] = map[kind] || map.init;
-  elBadge.textContent = t;
-  elBadge.className = "badge-txt "+cls;
-  elDot.className = "dot" + (cls==="ok"?" live": cls==="err"?" err":"");
-}
-function updateExButtons(){
-  for(const n of EXCHANGES){
-    const btn = $("ex-"+n);
-    if(!enabled[n]){
-      btn.textContent = n+" off";
-      btn.className = "exbtn off";
-      btn.title = "БИРЖА ВЫКЛЮЧЕНА — ЗАПРОСЫ НЕ ОТПРАВЛЯЮТСЯ · КЛИК, ЧТОБЫ ВКЛЮЧИТЬ";
-      continue;
+async function requestNotifPermission(){if(!("Notification"in window))return false;if(Notification.permission==="granted")return true;if(Notification.permission==="denied")return false;try{return(await Notification.requestPermission())==="granted";}catch(e){return false;}}
+
+function testNotification(){if(!("Notification"in window)){alert("Ваш браузер не поддерживает уведомления");return;}const trySend=()=>{try{const n=new Notification("🔔 SPREAD // TEST",{body:"Уведомления работают ✓ · Спред "+(alertState.spreadDir==="neg"?"< −":alertState.spreadDir==="pos"?"> +":"| | >")+alertState.spreadThr+"% и Фандинг "+(alertState.fundingDir==="pos"?"> +":alertState.fundingDir==="neg"?"< −":"| | >")+alertState.fundingThr+"%",tag:"spread-test",silent:false});setTimeout(()=>n.close&&n.close(),5000);}catch(e){alert("Не удалось показать уведомление: "+e.message);}};if(Notification.permission==="granted")trySend();else requestNotifPermission().then(ok=>{if(ok)trySend();else alert("Разрешение не получено");});if(alertState.soundEnabled)playAlertSound();}
+
+function scheduleNext(delayMs){clearTimeout(fastTimer);nextAt=Date.now()+delayMs;fastTimer=setTimeout(()=>{apiCycle().catch(e=>console.error("apiCycle error:",e));},delayMs);}
+
+async function apiCycle(){
+  if(busy)return;
+  busy=true;
+  try{
+    const c=loadCache();
+    if(c&&Date.now()-c.savedAt<MIN_GAP_MS){applyCache(c);render();setBadge("local");scheduleNext(MIN_GAP_MS-(Date.now()-c.savedAt));return;}
+    setBadge("loading");cycleReqs=0;const now=Date.now();
+    const fl={mexc:mexcFast,binance:binanceFast,bybit:bybitFast};
+    const names=EXCHANGES.filter(n=>enabled[n]);
+    if(names.length){
+      const settled=await Promise.allSettled(names.map(n=>fl[n]()));
+      names.forEach((n,i)=>{const s=settled[i];if(s.status==="fulfilled"){state.status[n]=true;errors[n]=null;mergeSpot(n,s.value.spot);replacePerps(n,s.value.perp);}else{state.status[n]=false;errors[n]=describeErr(s.reason);console.warn(n+" failed:",errors[n]);}});
     }
-    const s = state.status[n];
-    const errTxt = (s===false && errors[n]) ? " · "+shortErr(errors[n]) : "";
-    btn.textContent = n + (s===true?" ✓": s===false?" ✗"+errTxt:" …");
-    btn.className = "exbtn " + (s===true?"ok": s===false?"err":"");
-    btn.title = (errors[n] || (s===true ? "OK" : "")) + " · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";
-  }
-}
-const LOGO_BINANCE = `<b class="binance-word">BINANCE</b>`;
-const LOGO_BYBIT   = `<b class="bybit-word">BYB<i>I</i>T</b>`;
-const LOGO_MEXC    = `<b class="mexc-word">MEXC</b>`;
-function exBadge(ex){
-  if(!ex) return `<span class="muted-cell">—</span>`;
-  if(ex==="binance") return `<span class="ex ex-binance" title="binance">${LOGO_BINANCE}</span>`;
-  if(ex==="bybit")   return `<span class="ex ex-bybit" title="bybit">${LOGO_BYBIT}</span>`;
-  if(ex==="mexc")    return `<span class="ex ex-mexc" title="mexc">${LOGO_MEXC}</span>`;
-  return `<span class="ex">${ex}</span>`;
-}
-function fmtPrice(p){
-  if(p==null || !isFinite(p)) return "—";
-  const a = Math.abs(p);
-  if(a>=1000) return p.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
-  if(a>=1)    return p.toFixed(4);
-  if(a>=0.01) return p.toFixed(6);
-  return p.toPrecision(4);
-}
-function fmtPct(x,d=3){
-  if(x==null || !isFinite(x)) return "—";
-  return (x>0?"+":"") + x.toFixed(d) + "%";
-}
-function fmtVol(v){
-  if(!v || !isFinite(v)) return "—";
-  if(v>=1e9) return (v/1e9).toFixed(2)+"B";
-  if(v>=1e6) return (v/1e6).toFixed(2)+"M";
-  if(v>=1e3) return (v/1e3).toFixed(1)+"K";
-  return v.toFixed(0);
-}
-function topRank(base){ const i = TOP_COINS.indexOf(base); return i<0?0:i+1; }
-function topRange(){
-  const from = parseInt(fTopFrom.value,10);
-  if(isNaN(from)) return [null,null];
-  const to = parseInt(fTopTo.value,10);
-  return [from, isNaN(to)?999:to];
-}
-function maxRows(){
-  const v = parseInt(fMaxRows.value,10);
-  return (isNaN(v) || v<=0) ? Infinity : v;
-}
-function getFilteredRows(){
-  const q = fSearch.value.trim().toUpperCase();
-  const exch = fExch.value;
-  const minVol = parseFloat(fVol.value)||0;
-  const minSpread = parseFloat(fSpread.value)||0;
-  const maxSpread = parseFloat(fMaxSpread.value)||0;
-  const onlySpot = fOnlySpot.checked;
-  const [tf,tt] = topRange();
-  let rows = computeRows().filter(r=>{
-    if(q && !r.base.includes(q)) return false;
-    if(exch!=="all" && r.exchange!==exch) return false;
-    if(onlySpot && r.spot==null) return false;
-    if(minVol && !(r.volume>=minVol)) return false; // объём = Binance, иначе MEXC
-    if(minSpread && !(Math.abs(r.spreadPct??0)>=minSpread)) return false;
-    if(maxSpread && !(Math.abs(r.spreadPct??0)<=maxSpread)) return false;
-    if(tf!=null){ const rk = topRank(r.base); if(rk>=tf && rk<=tt) return false; }
-    return true;
-  });
-
-  /* Режимы колонок "Спред %", "Фандинг %", "24ч Δ %": abs — без фильтра; pos/neg — фильтруем по знаку */
-  if(spreadMode==="pos"){
-    rows = rows.filter(r=>r.spreadPct!=null && isFinite(r.spreadPct) && r.spreadPct>0);
-  } else if(spreadMode==="neg"){
-    rows = rows.filter(r=>r.spreadPct!=null && isFinite(r.spreadPct) && r.spreadPct<0);
-  }
-  if(fundingMode==="pos"){
-    rows = rows.filter(r=>r.funding!=null && isFinite(r.funding) && r.funding>0);
-  } else if(fundingMode==="neg"){
-    rows = rows.filter(r=>r.funding!=null && isFinite(r.funding) && r.funding<0);
-  }
-  if(chg24hMode==="pos"){
-    rows = rows.filter(r=>r.chg24h!=null && isFinite(r.chg24h) && r.chg24h>0);
-  } else if(chg24hMode==="neg"){
-    rows = rows.filter(r=>r.chg24h!=null && isFinite(r.chg24h) && r.chg24h<0);
-  }
-
-  /* Собираем список "активных" (не «±») колонок среди Спред/Фандинг/24чΔ.
-     Если активны 2 или больше — сортируем по совокупному "счёту": монеты, которые сильнее всего
-     выражены сразу по всем выбранным метрикам в выбранном направлении, оказываются наверху.
-     Если активна ровно одна — сортируем строго по ней.
-     Если ни одна не активна (все «±») — сортируем по модулю той колонки, что была нажата последней. */
-  const dims = [
-    { key:"spread",  mode:spreadMode,  field:"spreadPct" },
-    { key:"funding", mode:fundingMode, field:"funding"   },
-    { key:"chg24h",  mode:chg24hMode,  field:"chg24h"    },
-  ];
-  const activeDims = dims.filter(d=>d.mode!=="abs");
-
-  if(activeDims.length>=2){
-    const scoreOf = r=>{
-      let s = 0;
-      for(const d of activeDims){
-        const v = r[d.field];
-        if(v!=null && isFinite(v)) s += d.mode==="neg" ? -v : v;
-      }
-      return s;
-    };
-    rows.sort((a,b)=>scoreOf(b)-scoreOf(a)); // больше "счёт" — выше в списке
-  } else if(activeDims.length===1){
-    const { mode, field } = activeDims[0];
-    rows.sort((a,b)=>{
-      const av=a[field], bv=b[field];
-      const aBad=av==null||!isFinite(av), bBad=bv==null||!isFinite(bv);
-      if(aBad&&bBad) return 0; if(aBad) return 1; if(bBad) return -1;
-      return mode==="pos" ? bv-av : av-bv; // pos: больше сверху; neg: отрицательнее сверху
-    });
-  } else {
-    const field = activeSort==="funding" ? "funding" : activeSort==="chg24h" ? "chg24h" : "spreadPct";
-    rows.sort((a,b)=>{
-      const av=a[field], bv=b[field];
-      const aBad=av==null||!isFinite(av), bBad=bv==null||!isFinite(bv);
-      if(aBad&&bBad) return 0; if(aBad) return 1; if(bBad) return -1;
-      return Math.abs(bv)-Math.abs(av); // от самого большого по модулю
-    });
-  }
-  return rows;
-}
-function render(){
-  const rows = getFilteredRows();
-  const shown = rows.slice(0, maxRows());
-  const noneEnabled = EXCHANGES.every(n=>!enabled[n]);
-  tbody.innerHTML = shown.length ? shown.map(r=>{
-    const spCls = r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
-    const fCls = r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
-    const cCls = r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
-    const t24 = r.src24 ? ` title="Источник 24ч данных: ${r.src24}"` : "";
-    return `<tr>
-      <td class="sym-cell">${r.base}</td>
-      <td>${exBadge(r.spotSource)}</td>
-      <td>${exBadge(r.exchange)}</td>
-      <td>${fmtPrice(r.spot)}</td>
-      <td>${fmtPrice(r.perp)}</td>
-      <td class="muted-cell">${fmtPrice(r.spreadAbs)}</td>
-      <td><span class="spread-cell ${spCls}">${fmtPct(r.spreadPct)}</span></td>
-      <td class="${fCls}">${fmtPct(r.funding,4)}</td>
-      <td class="${cCls}"${t24}>${fmtPct(r.chg24h,2)}</td>
-      <td${t24}>${fmtVol(r.volume)}</td>
-    </tr>`;
-  }).join("") : `<tr><td colspan="10" class="empty">${
-    noneEnabled ? "ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ — ВКЛЮЧИТЕ КНОПКАМИ В ШАПКЕ"
-    : "НЕТ ДАННЫХ" + (state.badge==="error" ? " — БИРЖИ НЕДОСТУПНЫ ИЗ БРАУЗЕРА (CORS / РЕГИОНАЛЬНАЯ БЛОКИРОВКА)" : "")
-  }</td></tr>`;
-  const activeCount = [spreadMode, fundingMode, chg24hMode].filter(m=>m!=="abs").length;
-  const combinedHint = activeCount>=2
-    ? ` · КОМБО-СОРТИРОВКА: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`
-    : "";
-  elCount.textContent = `ПОКАЗАНО ${shown.length} ИЗ ${rows.length}${combinedHint}`;
-  updateExButtons();
-  updateSortIndicators();
-}
-function updateSortIndicators(){
-  const spreadTh = document.querySelector("th.spread-sort");
-  if(spreadTh){
-    spreadTh.classList.toggle("mode-neg", spreadMode==="neg");
-    spreadTh.classList.toggle("mode-pos", spreadMode==="pos");
-    const arrow = spreadTh.querySelector(".sort-arrow");
-    if(spreadMode==="abs") arrow.textContent = "± ▼";
-    else if(spreadMode==="pos") arrow.textContent = "+ ▼";
-    else arrow.textContent = "− ▲";
-  }
-  const fundingTh = document.querySelector("th.funding-sort");
-  if(fundingTh){
-    fundingTh.classList.toggle("mode-neg", fundingMode==="neg");
-    fundingTh.classList.toggle("mode-pos", fundingMode==="pos");
-    const arrow = fundingTh.querySelector(".sort-arrow");
-    if(fundingMode==="abs") arrow.textContent = "± ▼";
-    else if(fundingMode==="pos") arrow.textContent = "+ ▼";
-    else arrow.textContent = "− ▲";
-  }
-  const chg24hTh = document.querySelector("th.chg24h-sort");
-  if(chg24hTh){
-    chg24hTh.classList.toggle("mode-neg", chg24hMode==="neg");
-    chg24hTh.classList.toggle("mode-pos", chg24hMode==="pos");
-    const arrow = chg24hTh.querySelector(".sort-arrow");
-    if(chg24hMode==="abs") arrow.textContent = "± ▼";
-    else if(chg24hMode==="pos") arrow.textContent = "+ ▼";
-    else arrow.textContent = "− ▲";
+    const sn=[];if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
+    if(sn.length&&now-state.lastSlowAt>=SLOW_MS){const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));let ok=false;ss.forEach((s,i)=>{if(s.status!=="fulfilled")return;ok=true;const[nm]=sn[i];if(nm==="binanceSpot")merge24("binance",s.value);else if(nm==="mexcSpot")merge24("mexc",s.value);});if(ok)state.lastSlowAt=now;}
+    state.lastApiAt=Date.now();saveCache();render();elReqs.textContent=cycleReqs;
+    const allDead=names.length>0&&names.every(n=>state.status[n]===false);
+    setBadge(allDead?"error":"api");
+  }catch(e){
+    console.error("apiCycle fatal:",e);
+    setBadge("error");
+  }finally{
+    busy=false;
+    scheduleNext(FAST_MS);
   }
 }
 
-/* ================= контролы ================= */
-[fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input", render));
-/* Спред %: клик по заголовку циклит режимы —
-   1) ± все спреды (по модулю)  2) только +  3) только − (дефолт при загрузке) */
-document.querySelector("th.spread-sort")?.addEventListener("click", ()=>{
-  activeSort = "spread";
-  spreadMode = spreadMode==="neg" ? "abs" : spreadMode==="abs" ? "pos" : "neg";
-  render();
-});
-/* Фандинг %: та же логика —
-   1) ± весь фандинг (по модулю, дефолт при загрузке)  2) только +  3) только − */
-document.querySelector("th.funding-sort")?.addEventListener("click", ()=>{
-  activeSort = "funding";
-  fundingMode = fundingMode==="abs" ? "pos" : fundingMode==="pos" ? "neg" : "abs";
-  render();
-});
-/* 24ч Δ %: та же логика —
-   1) ± вся дельта (по модулю, дефолт при загрузке)  2) только +  3) только − */
-document.querySelector("th.chg24h-sort")?.addEventListener("click", ()=>{
-  activeSort = "chg24h";
-  chg24hMode = chg24hMode==="abs" ? "pos" : chg24hMode==="pos" ? "neg" : "abs";
-  render();
-});
-for(const n of EXCHANGES){
-  const btn = $("ex-"+n);
-  btn.addEventListener("click", ()=>{
-    enabled[n] = !enabled[n];
-    saveEnabled();
-    if(!enabled[n] && fExch.value===n) fExch.value = "all";
-    btn.setAttribute("aria-pressed", String(!!enabled[n]));
-    render();
-  });
-}
-document.addEventListener("visibilitychange", ()=>{
-  if(document.hidden){ clearTimeout(fastTimer); return; }
-  const c = loadCache();
-  const wait = c ? Math.max(0, c.savedAt + MIN_GAP_MS - Date.now()) : 0;
-  scheduleNext(wait);
-});
-setInterval(()=>{
-  const left = Math.max(0, Math.ceil((nextAt - Date.now())/1000));
-  elNext.textContent = nextAt ? left+"С" : "—";
-  elLast.textContent = state.lastApiAt ? new Date(state.lastApiAt).toLocaleTimeString() : "--:--:--";
-}, 500);
+function setBadge(kind){state.badge=kind;const map={api:["LIVE · API","ok"],local:["LIVE · LOCAL DATA","local"],loading:["ЗАПРОС К API…","busy"],error:["ОШИБКА API — ПОВТОР ЧЕРЕЗ 30 СЕК","err"],init:["ПОДКЛЮЧЕНИЕ…","busy"]};const[t,cls]=map[kind]||map.init;elBadge.textContent=t;elBadge.className="badge-txt "+cls;elDot.className="dot"+(cls==="ok"?" live":cls==="err"?" err":"");}
 
-/* ================= старт ================= */
+function updateExButtons(){for(const n of EXCHANGES){const btn=$("ex-"+n);if(!enabled[n]){btn.textContent=n+" off";btn.className="exbtn off";btn.title="БИРЖА ВЫКЛЮЧЕНА · КЛИК, ЧТОБЫ ВКЛЮЧИТЬ";continue;}const s=state.status[n];const et=(s===false&&errors[n])?" · "+shortErr(errors[n]):"";btn.textContent=n+(s===true?" ✓":s===false?" "+et:" …");btn.className="exbtn "+(s===true?"ok":s===false?"err":"");btn.title=(errors[n]||(s===true?"OK":""))+" · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";}}
+
+const LOGO_BINANCE=`<b class="binance-word">BINANCE</b>`,LOGO_BYBIT=`<b class="bybit-word">BYB<i>I</i>T</b>`,LOGO_MEXC=`<b class="mexc-word">MEXC</b>`;
+function exBadge(ex){if(!ex)return`<span class="muted-cell">—</span>`;if(ex==="binance")return`<span class="ex ex-binance">${LOGO_BINANCE}</span>`;if(ex==="bybit")return`<span class="ex ex-bybit">${LOGO_BYBIT}</span>`;if(ex==="mexc")return`<span class="ex ex-mexc">${LOGO_MEXC}</span>`;return`<span class="ex">${ex}</span>`;}
+function fmtPrice(p){if(p==null||!isFinite(p))return"—";const a=Math.abs(p);if(a>=1000)return p.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});if(a>=1)return p.toFixed(4);if(a>=0.01)return p.toFixed(6);return p.toPrecision(4);}
+function fmtPct(x,d=3){if(x==null||!isFinite(x))return"—";return(x>0?"+":"")+x.toFixed(d)+"%";}
+function fmtVol(v){if(!v||!isFinite(v))return"—";if(v>=1e9)return(v/1e9).toFixed(2)+"B";if(v>=1e6)return(v/1e6).toFixed(2)+"M";if(v>=1e3)return(v/1e3).toFixed(1)+"K";return v.toFixed(0);}
+function topRank(base){const i=TOP_COINS.indexOf(base);return i<0?0:i+1;}
+function topRange(){const from=parseInt(fTopFrom.value,10);if(isNaN(from))return[null,null];const to=parseInt(fTopTo.value,10);return[from,isNaN(to)?999:to];}
+function maxRows(){const v=parseInt(fMaxRows.value,10);return(isNaN(v)||v<=0)?Infinity:v;}
+
+function getFilteredRows(){const q=fSearch.value.trim().toUpperCase(),exch=fExch.value,minVol=parseFloat(fVol.value)||0,minSp=parseFloat(fSpread.value)||0,maxSp=parseFloat(fMaxSpread.value)||0,onlySpot=fOnlySpot.checked,[tf,tt]=topRange();let rows=computeRows().filter(r=>{if(q&&!r.base.includes(q))return false;if(exch!=="all"&&r.exchange!==exch)return false;if(onlySpot&&r.spot==null)return false;if(minVol&&!(r.volume>=minVol))return false;if(minSp&&!(Math.abs(r.spreadPct??0)>=minSp))return false;if(maxSp&&!(Math.abs(r.spreadPct??0)<=maxSp))return false;if(tf!=null){const rk=topRank(r.base);if(rk>=tf&&rk<=tt)return false;}return true;});if(spreadMode==="pos")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct>0);else if(spreadMode==="neg")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct<0);if(fundingMode==="pos")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding>0);else if(fundingMode==="neg")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding<0);if(chg24hMode==="pos")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h>0);else if(chg24hMode==="neg")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h<0);const dims=[{key:"spread",mode:spreadMode,field:"spreadPct"},{key:"funding",mode:fundingMode,field:"funding"},{key:"chg24h",mode:chg24hMode,field:"chg24h"}];const ad=dims.filter(d=>d.mode!=="abs");if(ad.length>=2){const so=r=>{let s=0;for(const d of ad){const v=r[d.field];if(v!=null&&isFinite(v))s+=d.mode==="neg"?-v:v;}return s;};rows.sort((a,b)=>so(b)-so(a));}else if(ad.length===1){const{mode,field}=ad[0];rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return mode==="pos"?bv-av:av-bv;});}else{const field=activeSort==="funding"?"funding":activeSort==="chg24h"?"chg24h":"spreadPct";rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return Math.abs(bv)-Math.abs(av);});}return rows;}
+
+function render(){try{const rows=getFilteredRows(),shown=rows.slice(0,maxRows()),noneEnabled=EXCHANGES.every(n=>!enabled[n]);tbody.innerHTML=shown.length?shown.map(r=>{const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");const t24=r.src24?` title="Источник 24ч: ${r.src24}"`:"";const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${exBadge(r.spotSource)}</td><td>${exBadge(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;}).join(""):`<tr><td colspan="10" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;const ac=[spreadMode,fundingMode,chg24hMode].filter(m=>m!=="abs").length;const ch=ac>=2?` · КОМБО: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`:"";elCount.textContent=`ПОКАЗАНО ${shown.length} ИЗ ${rows.length}${ch}`;updateExButtons();updateSortIndicators();checkAlerts(computeRows());}catch(e){console.error("render error:",e);}}
+
+function updateSortIndicators(){const st=document.querySelector("th.spread-sort");if(st){st.classList.toggle("mode-neg",spreadMode==="neg");st.classList.toggle("mode-pos",spreadMode==="pos");const a=st.querySelector(".sort-arrow");if(spreadMode==="abs")a.textContent="± ▼";else if(spreadMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}const ft=document.querySelector("th.funding-sort");if(ft){ft.classList.toggle("mode-neg",fundingMode==="neg");ft.classList.toggle("mode-pos",fundingMode==="pos");const a=ft.querySelector(".sort-arrow");if(fundingMode==="abs")a.textContent="± ▼";else if(fundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}}
+
+[fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input",render));
+document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
+document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeSort="funding";fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";render();});
+document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
+for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));render();});}
+
+alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;alertState.firedKeys.clear();saveAlerts();render();}});
+alertSpreadDir.addEventListener("change",()=>{alertState.spreadDir=alertSpreadDir.value;alertState.firedKeys.clear();saveAlerts();render();});
+alertFundingThr.addEventListener("input",()=>{const v=parseFloat(alertFundingThr.value);if(!isNaN(v)&&v>=0){alertState.fundingThr=v;alertState.firedKeys.clear();saveAlerts();render();}});
+alertFundingDir.addEventListener("change",()=>{alertState.fundingDir=alertFundingDir.value;alertState.firedKeys.clear();saveAlerts();render();});
+alertDeltaThr.addEventListener("input",()=>{const v=parseFloat(alertDeltaThr.value);if(!isNaN(v)&&v>=0){alertState.deltaThr=v;saveAlerts();}});
+alertDeltaEnabled.addEventListener("change",()=>{alertState.deltaEnabled=alertDeltaEnabled.checked;saveAlerts();});
+alertNotifEnabled.addEventListener("change",async()=>{if(alertNotifEnabled.checked){const ok=await requestNotifPermission();if(!ok)alertNotifEnabled.checked=false;}alertState.notifEnabled=alertNotifEnabled.checked;saveAlerts();updateNotifStatus();});
+alertSoundEnabled.addEventListener("change",()=>{alertState.soundEnabled=alertSoundEnabled.checked;saveAlerts();});
+alertTestBtn.addEventListener("click",testNotification);
+alertClearBtn.addEventListener("click",()=>{alertState.feed=[];alertState.firedKeys.clear();alertState.prevSpreads={};alertState.lastAlertTs={};saveAlerts();renderAlerts();updateAlertBadge();});
+refreshBtn.addEventListener("click",()=>{if(busy)return;clearTimeout(fastTimer);try{localStorage.removeItem(LS_KEY);}catch{}apiCycle().catch(e=>console.error("refresh error:",e));});
+
+setInterval(()=>{const left=Math.max(0,Math.ceil((nextAt-Date.now())/1000));elNext.textContent=nextAt?left+"С":"—";elLast.textContent=state.lastApiAt?new Date(state.lastApiAt).toLocaleTimeString():"--:--:--";},500);
+
+loadAlerts();
+alertSpreadThr.value=alertState.spreadThr;alertSpreadDir.value=alertState.spreadDir;
+alertFundingThr.value=alertState.fundingThr;alertFundingDir.value=alertState.fundingDir;
+alertDeltaThr.value=alertState.deltaThr;alertDeltaEnabled.checked=alertState.deltaEnabled;
+alertNotifEnabled.checked=alertState.notifEnabled;alertSoundEnabled.checked=alertState.soundEnabled;
+updateAlertBadge();renderAlerts();updateNotifStatus();
 syncExchFilterWithEnabled();
-const cache = loadCache();
-if(cache){
-  applyCache(cache);
-  render();
-  const age = Date.now() - cache.savedAt;
-  if(age < MIN_GAP_MS){
-    setBadge("local");
-    scheduleNext(MIN_GAP_MS - age);
-  } else {
-    setBadge("local");
-    apiCycle();
-  }
-} else {
-  /* самая первая загрузка страницы (кэша ещё нет) — не бьём по API сразу,
-     ждём 10 секунд, а дальше цикл идёт как обычно: 30 сек / 60 сек */
-  setBadge("init");
-  scheduleNext(FIRST_LOAD_DELAY_MS);
-}
+
+const cache=loadCache();
+if(cache){applyCache(cache);render();const age=Date.now()-cache.savedAt;if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}}
+else{setBadge("init");scheduleNext(FIRST_LOAD_DELAY_MS);}
 </script>
 </body>
 </html>
