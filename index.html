@@ -324,7 +324,48 @@ function checkAlerts(rows){try{for(const r of rows){if(r.spreadPct==null||!isFin
 
 function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){if(!("Notification"in window))return;if(Notification.permission!=="granted")return;try{const ss=spreadPct<0?"":"+",fs=funding<0?"":"";const deltaStr=delta!=null?` · Δ спред: ${delta.toFixed(2)}%`:"";const body=`Спред: ${ss}${spreadPct.toFixed(2)}% · Фандинг: ${fs}${funding.toFixed(3)}%${deltaStr} · ${exchange.toUpperCase()}`;const n=new Notification(`${type==="delta"?"Δ ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});setTimeout(()=>n.close&&n.close(),10000);}catch(e){}}
 
-function playAlertSound(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const ctx=audioCtx,now=ctx.currentTime,osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";osc.frequency.setValueAtTime(880,now);osc.frequency.exponentialRampToValueAtTime(440,now+0.25);gain.gain.setValueAtTime(0.15,now);gain.gain.exponentialRampToValueAtTime(0.001,now+0.3);osc.connect(gain).connect(ctx.destination);osc.start(now);osc.stop(now+0.3);}catch(e){}}
+// NEW SOUND: 3-second alarm siren
+function playAlertSound(){
+  try{
+    if(!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    const now = ctx.currentTime;
+    const duration = 3.0; // 3 seconds
+    
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    // Sawtooth wave for a harsher alarm sound
+    osc.type = "sawtooth"; 
+    
+    // Siren effect: frequency sweeps up and down
+    // Cycle 1
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.linearRampToValueAtTime(900, now + 0.4);
+    osc.frequency.linearRampToValueAtTime(600, now + 0.8);
+    // Cycle 2
+    osc.frequency.linearRampToValueAtTime(900, now + 1.2);
+    osc.frequency.linearRampToValueAtTime(600, now + 1.6);
+    // Cycle 3
+    osc.frequency.linearRampToValueAtTime(900, now + 2.0);
+    osc.frequency.linearRampToValueAtTime(600, now + 2.4);
+    // Final fade out sweep
+    osc.frequency.linearRampToValueAtTime(900, now + 2.7);
+    osc.frequency.linearRampToValueAtTime(400, now + 3.0);
+
+    // Volume envelope
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.2, now + 0.1); // Attack
+    gain.gain.setValueAtTime(0.2, now + 2.5); // Sustain
+    gain.gain.linearRampToValueAtTime(0, now + 3.0); // Release
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + duration);
+  } catch(e){
+    console.error("Audio error:", e);
+  }
+}
 
 function updateAlertBadge(){const c=alertState.feed.length;alertBadgeText.textContent=c;if(c>0){alertBadge.classList.remove("idle");alertBadge.querySelector(".pulse-dot").style.display="inline-block";}else{alertBadge.classList.add("idle");alertBadge.querySelector(".pulse-dot").style.display="none";}}
 
@@ -413,7 +454,6 @@ document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeS
 document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
 for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));render();});}
 
-// FIX: Added renderAlerts() calls to update the status text immediately when settings change
 alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();}});
 alertSpreadDir.addEventListener("change",()=>{alertState.spreadDir=alertSpreadDir.value;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();});
 alertFundingThr.addEventListener("input",()=>{const v=parseFloat(alertFundingThr.value);if(!isNaN(v)&&v>=0){alertState.fundingThr=v;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();}});
