@@ -33,7 +33,7 @@ h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:
 select,input{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase}
 select:focus,input:focus{outline:1px solid var(--amber-dim)}
 input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;border:1px solid var(--border);border-radius:2px;accent-color:var(--amber);cursor:pointer}
-.hint{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
+.hint{display:flex;justify-content: center;align-items: center;gap:6px;color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
 .chk{display:flex;align-items:center;gap:6px;cursor:pointer}.gap-left{margin-left:14px}
 
 .alert-panel,.table-panel{margin:14px 14px 0;border:1px solid var(--border);border-radius:6px;background:var(--panel);overflow:hidden}
@@ -44,8 +44,8 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .alert-body{display:flex;flex-wrap:wrap;gap:14px;padding:12px 14px;align-items:center}
 .alert-config{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .alert-field{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.alert-field select{width:50px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text);background:var(--void);border:1px solid var(--border);border-radius:3px;padding:3px 4px;text-transform:none;cursor:pointer}.alert-field select:focus{outline:none;border-color:var(--amber)}
-.alert-field input[type="number"]{width:70px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text);background:var(--void);border:1px solid var(--border);border-radius:3px;padding:4px 6px;text-transform:none}.alert-field input[type="number"]:focus{outline:none;border-color:var(--amber)}
+.alert-field select{height:26px;width:50px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--text);background:var(--void);border:1px solid var(--border);border-radius:3px;padding:4px 4px;text-transform:none;cursor:pointer}.alert-field select:focus{outline:none;border-color:var(--amber)}
+.alert-field input[type="number"]{height:26px;width:70px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--text);background:var(--void);border:1px solid var(--border);border-radius:3px;padding:4px 6px;text-transform:none}.alert-field input[type="number"]:focus{outline:none;border-color:var(--amber)}
 .alert-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
 .alert-btn{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:5px 10px;border-radius:3px;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;transition:all .15s}.alert-btn:hover{border-color:var(--amber-dim);color:var(--text)}.alert-btn.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}.alert-btn.primary:hover{background:#ffc933;border-color:#ffc933}.alert-btn.danger{color:var(--red);border-color:var(--red-dim)}.alert-btn.danger:hover{background:rgba(255,91,91,0.08);border-color:var(--red)}
 
@@ -225,11 +225,11 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
         <span style="margin:0 4px">ЗА</span>
         <input type="number" id="alertPriceJumpMin" value="15" step="1" min="1" style="width:45px"/>
         <span>МИН</span>
-        <label class="hint" style="margin-left:4px"><input type="checkbox" id="alertPriceJumpEnabled"/> СКАЧОК Δ</label>
+        <label class="hint" style="margin-left:4px"><input type="checkbox" id="alertPriceJumpEnabled"/><span>СКАЧЕК</span></label>
       </div>
       
-      <label class="hint chk" style="margin-left:6px"><input type="checkbox" id="alertNotifEnabled"/> УВЕДОМЛЕНИЯ</label>
-      <label class="hint chk"><input type="checkbox" id="alertSoundEnabled"/> ЗВУК</label>
+      <label class="hint chk" style="margin-left:6px"><input type="checkbox" id="alertNotifEnabled"/><span>УВЕДОМЛЕНИЯ</span></label>
+      <label class="hint chk"><input type="checkbox" id="alertSoundEnabled"/><span>ЗВУК</span></label>
     </div>
     <div class="alert-actions">
       <button class="alert-btn primary" id="alertTestBtn"> ПРОВЕРИТЬ</button>
