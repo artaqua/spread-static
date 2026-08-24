@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>SPREAD // Spot-Perp Scanner — static</title>
+<title>SPREAD // Spot-Perp Scanner — WebSocket</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 :root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF}
@@ -18,15 +18,15 @@ h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:
 .status-block{text-align:right;font-family:'JetBrains Mono',monospace}
 .status-line{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12px;color:var(--muted);flex-wrap:wrap}
 @media(max-width:1200px){.status-line{justify-content:flex-start}}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s ease-in-out infinite}.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s ease-in-out infinite}.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}.dot.ws{background:var(--amber);box-shadow:0 0 8px var(--amber)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase;margin-right: 8px;}.badge-txt.ok{color:var(--green)}.badge-txt.local{color:var(--amber)}.badge-txt.busy{color:var(--muted)}.badge-txt.err{color:var(--red)}
+.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase;margin-right: 8px;}.badge-txt.ok{color:var(--green)}.badge-txt.local{color:var(--amber)}.badge-txt.busy{color:var(--muted)}.badge-txt.err{color:var(--red)}.badge-txt.ws{color:var(--amber)}
 .time-row{margin-top:10px;display:flex;align-items:center;justify-content:right;gap:8px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .time-row b{color:var(--text);font-weight:600}.time-row .clock{font-size:12px;color:var(--text);font-weight:700;letter-spacing:.05em}
 .slash{color:var(--amber);font-weight:700}
 
 .exbtn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 9px;border-radius:3px;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .15s;text-transform:uppercase}
-.exbtn.ok{color:var(--green);border-color:var(--green-dim);background:rgba(62,216,136,0.06)}.exbtn.err{color:var(--red);border-color:var(--red-dim);background:rgba(255,91,91,0.06)}.exbtn.off{opacity:.45;text-decoration:line-through}.exbtn:hover{border-color:var(--amber-dim)}
+.exbtn.ok{color:var(--green);border-color:var(--green-dim);background:rgba(62,216,136,0.06)}.exbtn.err{color:var(--red);border-color:var(--red-dim);background:rgba(255,91,91,0.06)}.exbtn.off{opacity:.45;text-decoration:line-through}.exbtn.ws-active{color:var(--amber);border-color:rgba(255,179,0,0.3);background:rgba(255,179,0,0.05)}.exbtn:hover{border-color:var(--amber-dim)}
 .refresh-btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:5px 14px;border-radius:4px;cursor:pointer;background:var(--amber);color:var(--void);border:none;text-transform:uppercase;letter-spacing:.06em;transition:all .15s}.refresh-btn:hover{background:#ffc933;transform:translateY(-1px)}.refresh-btn:active{transform:translateY(0)}.refresh-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 
 .controls{display:flex;flex-wrap:wrap;gap:8px;padding:14px 14px;align-items:center;border-bottom:1px solid var(--border)}
@@ -49,35 +49,13 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .alert-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
 .alert-btn{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:5px 10px;border-radius:3px;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;transition:all .15s}.alert-btn:hover{border-color:var(--amber-dim);color:var(--text)}.alert-btn.primary{background:var(--amber);color:var(--void);border-color:var(--amber);font-weight:700}.alert-btn.primary:hover{background:#ffc933;border-color:#ffc933}.alert-btn.danger{color:var(--red);border-color:var(--red-dim)}.alert-btn.danger:hover{background:rgba(255,91,91,0.08);border-color:var(--red)}
 
-/* ===== NOTIFICATION STATUS INDICATOR ===== */
-.notif-status{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:5px 11px;border-radius:20px;
-  font-family:'JetBrains Mono',monospace;font-size:10.5px;
-  font-weight:600;text-transform:uppercase;letter-spacing:.06em;
-  border:1px solid var(--border);
-  transition:all .2s ease;
-  white-space:nowrap;
-}
-.notif-status.off{
-  background:var(--panel);color:var(--muted);border-color:var(--border);
-}
-.notif-status.on{
-  background:var(--green-dim);color:var(--green);border-color:#1e5c3d;
-}
-.notif-status.denied{
-  background:var(--red-dim);color:var(--red);border-color:#5c1e1e;
-}
-.notif-status.pending{
-  background:var(--amber-dim);color:var(--amber);border-color:#5c4a1e;
-}
-.notif-status .ns-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:currentColor;flex:none;
-}
-.notif-status.on .ns-dot{
-  box-shadow:0 0 6px var(--green);animation:pulse 1.4s ease-in-out infinite;
-}
+.notif-status{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--border);transition:all .2s ease;white-space:nowrap}
+.notif-status.off{background:var(--panel);color:var(--muted);border-color:var(--border)}
+.notif-status.on{background:var(--green-dim);color:var(--green);border-color:#1e5c3d}
+.notif-status.denied{background:var(--red-dim);color:var(--red);border-color:#5c1e1e}
+.notif-status.pending{background:var(--amber-dim);color:var(--amber);border-color:#5c4a1e}
+.notif-status .ns-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.notif-status.on .ns-dot{box-shadow:0 0 6px var(--green);animation:pulse 1.4s ease-in-out infinite}
 
 .alert-feed{border-top:1px solid var(--border);max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel)}.alert-feed::-webkit-scrollbar{width:8px}.alert-feed::-webkit-scrollbar-track{background:transparent}.alert-feed::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:4px;border:2px solid var(--panel)}
 .alert-feed-empty{padding:16px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center}
@@ -119,7 +97,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <header>
   <div>
-    <p class="eyebrow">Static edition · без сервера · ваш IP · объёмы/Δ24ч: Binance → MEXC</p>
+    <p class="eyebrow">WebSocket edition · real-time · ваш IP · объёмы/Δ24ч: Binance → MEXC</p>
     <h1>SPREAD <span>//</span> SPOT-PERP SCANNER</h1>
   </div>
   <div class="status-block">
@@ -260,11 +238,11 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
   </div>
 </div>
 
-<footer>Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке</footer>
+<footer>WebSocket edition · real-time data · уведомления работают даже в скрытой вкладке</footer>
 
 <script type="module">
-const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
-const LS_KEY="spread-scanner-cache-v17",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3";
+const SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=2_000;
+const LS_KEY="spread-scanner-ws-cache-v1",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3";
 const EXCHANGES=["mexc","binance","bybit"];
 const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
 
@@ -272,6 +250,12 @@ const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],las
 const errors={binance:null,bybit:null,mexc:null};
 let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
 let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
+
+// WebSocket connections storage
+const wsConnections = {};
+const wsReconnectTimers = {};
+let needsRender = false;
+let renderInterval = null;
 
 const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",deltaThr:0.3,deltaEnabled:false,notifEnabled:false,soundEnabled:false,prevSpreads:{},lastAlertTs:{}};
 let audioCtx=null;
@@ -296,9 +280,157 @@ async function fetchJSON(url,timeoutMs=15000){const c=new AbortController();cons
 function describeErr(e){const m=(e&&e.message)?e.message:String(e);if(/Failed to fetch|Load failed|NetworkError|terminated/i.test(m))return m+" — CORS или сеть";if(/abort/i.test(m))return m+" — таймаут";return m;}
 function shortErr(msg){if(!msg)return"";if(/CORS|Failed to fetch|Load failed|NetworkError/i.test(msg))return"CORS/сеть";const m=msg.match(/HTTP (\d{3})/);if(m)return"HTTP "+m[1];if(/таймаут|abort/i.test(msg))return"таймаут";return"ошибка";}
 
-async function mexcFast(){const[spot,contract]=await Promise.all([fetchJSON("https://api.mexc.com/api/v3/ticker/price"),fetchJSON("https://contract.mexc.com/api/v1/contract/ticker")]);return{spot:(Array.isArray(spot)?spot:[]).filter(t=>t.symbol?.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),price:parseFloat(t.price)})),perp:(Array.isArray(contract?.data)?contract.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({base:t.symbol.split("_")[0],perp:parseFloat(t.lastPrice),funding:(parseFloat(t.fundingRate)||0)*100}))};}
+// --- WEBSOCKET IMPLEMENTATION ---
+
+function connectMexcWS() {
+  if(wsConnections.mexc) wsConnections.mexc.close();
+  clearTimeout(wsReconnectTimers.mexc);
+  
+  const url = "wss://wbs.mexc.com/ws";
+  const ws = new WebSocket(url);
+  wsConnections.mexc = ws;
+  
+  ws.onopen = () => {
+    console.log("MEXC WS Connected");
+    state.status.mexc = true;
+    updateExButtons();
+    
+    // Subscribe to all spot tickers
+    ws.send(JSON.stringify({"method":"SUBSCRIPTION","params":["spot@public.miniTicker.v3.api"]}));
+    // Subscribe to all contract tickers
+    ws.send(JSON.stringify({"method":"SUBSCRIPTION","params":["contractV2@public.deal.ticker"]}));
+  };
+  
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if(msg.channel === "spot@public.miniTicker.v3.api") {
+        const spotData = msg.data.map(t => ({
+          base: t.s.replace("USDT",""),
+          price: parseFloat(t.p)
+        }));
+        mergeSpot("mexc", spotData);
+        triggerRender();
+      } else if(msg.channel === "contractV2@public.deal.ticker") {
+        const perpData = msg.data.map(t => ({
+          base: t.s.replace("_USDT",""),
+          perp: parseFloat(t.p),
+          funding: parseFloat(t.r) * 100 // MEXC WS funding rate is decimal
+        }));
+        replacePerps("mexc", perpData);
+        triggerRender();
+      }
+    } catch(e) {}
+  };
+  
+  ws.onclose = () => {
+    state.status.mexc = false;
+    updateExButtons();
+    wsReconnectTimers.mexc = setTimeout(connectMexcWS, 3000);
+  };
+  
+  ws.onerror = () => {
+    ws.close();
+  };
+}
+
+function connectBybitWS() {
+  if(wsConnections.bybit) wsConnections.bybit.close();
+  clearTimeout(wsReconnectTimers.bybit);
+  
+  const url = "wss://stream.bybit.com/v5/public/spot";
+  const ws = new WebSocket(url);
+  wsConnections.bybit = ws;
+  
+  ws.onopen = () => {
+    console.log("Bybit WS Connected");
+    state.status.bybit = true;
+    updateExButtons();
+    ws.send(JSON.stringify({"op":"subscribe","args":["tickers.*"]}));
+  };
+  
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if(msg.topic && msg.topic.startsWith("tickers.")) {
+        const list = Array.isArray(msg.data) ? msg.data : [msg.data];
+        const spotData = list.filter(t => t.symbol.endsWith("USDT")).map(t => ({
+          base: t.symbol.replace("USDT",""),
+          price: parseFloat(t.lastPrice)
+        }));
+        mergeSpot("bybit", spotData);
+        triggerRender();
+      }
+    } catch(e) {}
+  };
+  
+  ws.onclose = () => {
+    state.status.bybit = false;
+    updateExButtons();
+    wsReconnectTimers.bybit = setTimeout(connectBybitWS, 3000);
+  };
+  
+  ws.onerror = () => {
+    ws.close();
+  };
+}
+
+// Helper to reconnect linear stream separately for Bybit perps
+function connectBybitLinearWS() {
+  const url = "wss://stream.bybit.com/v5/public/linear";
+  const ws = new WebSocket(url);
+  
+  ws.onopen = () => {
+    ws.send(JSON.stringify({"op":"subscribe","args":["tickers.*"]}));
+  };
+  
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if(msg.topic && msg.topic.startsWith("tickers.")) {
+        const list = Array.isArray(msg.data) ? msg.data : [msg.data];
+        const perpData = list.filter(t => t.symbol.endsWith("USDT")).map(t => ({
+          base: t.symbol.replace("USDT",""),
+          perp: parseFloat(t.lastPrice),
+          funding: parseFloat(t.fundingRate) * 100
+        }));
+        replacePerps("bybit", perpData);
+        triggerRender();
+      }
+    } catch(e) {}
+  };
+  
+  ws.onclose = () => setTimeout(connectBybitLinearWS, 3000);
+  ws.onerror = () => ws.close();
+}
+
+// Throttled render trigger for WS updates
+function triggerRender() {
+  needsRender = true;
+}
+
+// Start render loop for throttling
+function startRenderLoop() {
+  if(renderInterval) return;
+  renderInterval = setInterval(() => {
+    if(needsRender) {
+      needsRender = false;
+      safeRender();
+    }
+  }, 500); // Update UI max twice per second from WS
+}
+
+// Safe render that checks if we have any data
+function safeRender() {
+  const hasData = state.perps.length > 0 || Object.keys(state.spotBook).length > 0;
+  if(hasData || state.badge === 'error' || state.badge === 'local') {
+    render();
+  }
+}
+
+// --- LEGACY REST FOR BINANCE & VOLUME DATA ---
+
 async function binanceFast(){const[spot,perp,funding]=await Promise.all([fetchJSON("https://api.binance.com/api/v3/ticker/price"),fetchJSON("https://fapi.binance.com/fapi/v1/ticker/price"),fetchJSON("https://fapi.binance.com/fapi/v1/premiumIndex")]);const fundMap=new Map(funding.map(p=>[p.symbol,parseFloat(p.lastFundingRate)]));return{spot:spot.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),price:parseFloat(p.price)})),perp:perp.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),perp:parseFloat(p.price),funding:(fundMap.get(p.symbol)||0)*100}))};}
-async function bybitFast(){const[spotRes,linRes]=await Promise.all([fetchJSON("https://api.bybit.com/v5/market/tickers?category=spot"),fetchJSON("https://api.bybit.com/v5/market/tickers?category=linear")]);return{spot:(spotRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),price:parseFloat(t.lastPrice)})),perp:(linRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),perp:parseFloat(t.lastPrice),funding:(parseFloat(t.fundingRate)||0)*100}))};}
 async function binanceSpotSlow(){const t=await fetchJSON("https://api.binance.com/api/v3/ticker/24hr");return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),vol:parseFloat(p.quoteVolume)||0,chg:parseFloat(p.priceChangePercent)||0}));}
 async function mexcSpotSlow(){const t=await fetchJSON("https://api.mexc.com/api/v3/ticker/24hr");return(Array.isArray(t)?t:[]).filter(p=>p.symbol?.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),vol:parseFloat(p.quoteVolume)||0,chg:parseFloat(p.priceChangePercent)||0}));}
 
@@ -368,29 +500,57 @@ async function apiCycle(){
     const c=loadCache();
     if(c&&Date.now()-c.savedAt<MIN_GAP_MS){applyCache(c);render();setBadge("local");scheduleNext(MIN_GAP_MS-(Date.now()-c.savedAt));return;}
     setBadge("loading");cycleReqs=0;const now=Date.now();
-    const fl={mexc:mexcFast,binance:binanceFast,bybit:bybitFast};
-    const names=EXCHANGES.filter(n=>enabled[n]);
-    if(names.length){
-      const settled=await Promise.allSettled(names.map(n=>fl[n]()));
-      names.forEach((n,i)=>{const s=settled[i];if(s.status==="fulfilled"){state.status[n]=true;errors[n]=null;mergeSpot(n,s.value.spot);replacePerps(n,s.value.perp);}else{state.status[n]=false;errors[n]=describeErr(s.reason);console.warn(n+" failed:",errors[n]);}});
+    
+    // Initialize WebSockets for MEXC and Bybit
+    if(enabled.mexc && !wsConnections.mexc) connectMexcWS();
+    if(enabled.bybit && !wsConnections.bybit) {
+      connectBybitWS();
+      connectBybitLinearWS();
     }
+    
+    // Start render loop for throttling WS updates
+    startRenderLoop();
+
+    // Keep Binance on REST as it doesn't support global ticker WS well
+    if(enabled.binance){
+      try{
+        const data = await binanceFast();
+        state.status.binance = true;
+        errors.binance = null;
+        mergeSpot("binance", data.spot);
+        replacePerps("binance", data.perp);
+      } catch(e){
+        state.status.binance = false;
+        errors.binance = describeErr(e);
+      }
+    }
+
+    // Fetch volume data periodically
     const sn=[];if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
     if(sn.length&&now-state.lastSlowAt>=SLOW_MS){const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));let ok=false;ss.forEach((s,i)=>{if(s.status!=="fulfilled")return;ok=true;const[nm]=sn[i];if(nm==="binanceSpot")merge24("binance",s.value);else if(nm==="mexcSpot")merge24("mexc",s.value);});if(ok)state.lastSlowAt=now;}
-    state.lastApiAt=Date.now();saveCache();render();elReqs.textContent=cycleReqs;
-    const allDead=names.length>0&&names.every(n=>state.status[n]===false);
-    setBadge(allDead?"error":"api");
+    
+    state.lastApiAt=Date.now();saveCache();
+    
+    // Force initial render after REST data arrives
+    safeRender();
+    
+    elReqs.textContent=cycleReqs;
+    
+    // Check if any enabled exchange is actually working (either WS or REST)
+    const hasActive = EXCHANGES.some(n => enabled[n] && state.status[n]);
+    setBadge(hasActive ? "ws" : "error");
   }catch(e){
     console.error("apiCycle fatal:",e);
     setBadge("error");
   }finally{
     busy=false;
-    scheduleNext(FAST_MS);
+    scheduleNext(SLOW_MS); // Reduced frequency since WS handles realtime updates
   }
 }
 
-function setBadge(kind){state.badge=kind;const map={api:["LIVE · API","ok"],local:["LIVE · LOCAL DATA","local"],loading:["ЗАПРОС К API…","busy"],error:["ОШИБКА API — ПОВТОР ЧЕРЕЗ 30 СЕК","err"],init:["ПОДКЛЮЧЕНИЕ…","busy"]};const[t,cls]=map[kind]||map.init;elBadge.textContent=t;elBadge.className="badge-txt "+cls;elDot.className="dot"+(cls==="ok"?" live":cls==="err"?" err":"");}
+function setBadge(kind){state.badge=kind;const map={api:["LIVE · API","ok"],local:["LIVE · LOCAL DATA","local"],loading:["ЗАПРОС К API…","busy"],error:["ОШИБКА API — ПОВТОР ЧЕРЕЗ 30 СЕК","err"],init:["ПОДКЛЮЧЕНИЕ…","busy"],ws:["WEBSOCKET ACTIVE","ws"]};const[t,cls]=map[kind]||map.init;elBadge.textContent=t;elBadge.className="badge-txt "+cls;elDot.className="dot"+(cls==="ok"?" live":cls==="err"?" err":cls==="ws"?" ws":"");}
 
-function updateExButtons(){for(const n of EXCHANGES){const btn=$("ex-"+n);if(!enabled[n]){btn.textContent=n+" off";btn.className="exbtn off";btn.title="БИРЖА ВЫКЛЮЧЕНА · КЛИК, ЧТОБЫ ВКЛЮЧИТЬ";continue;}const s=state.status[n];const et=(s===false&&errors[n])?" · "+shortErr(errors[n]):"";btn.textContent=n+(s===true?" ✓":s===false?" "+et:" …");btn.className="exbtn "+(s===true?"ok":s===false?"err":"");btn.title=(errors[n]||(s===true?"OK":""))+" · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";}}
+function updateExButtons(){for(const n of EXCHANGES){const btn=$("ex-"+n);if(!enabled[n]){btn.textContent=n+" off";btn.className="exbtn off";btn.title="БИРЖА ВЫКЛЮЧЕНА · КЛИК, ЧТОБЫ ВКЛЮЧИТЬ";continue;}const s=state.status[n];const et=(s===false&&errors[n])?" · "+shortErr(errors[n]):"";const isWs = n !== 'binance';btn.textContent=n+(s===true?" ✓":s===false?" "+et:" …");btn.className="exbtn "+(s===true?(isWs?"ws-active":"ok"):s===false?"err":"");btn.title=(errors[n]||(s===true?"OK":""))+" · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";}}
 
 const LOGO_BINANCE=`<b class="binance-word">BINANCE</b>`,LOGO_BYBIT=`<b class="bybit-word">BYB<i>I</i>T</b>`,LOGO_MEXC=`<b class="mexc-word">MEXC</b>`;
 function exBadge(ex){if(!ex)return`<span class="muted-cell">—</span>`;if(ex==="binance")return`<span class="ex ex-binance">${LOGO_BINANCE}</span>`;if(ex==="bybit")return`<span class="ex ex-bybit">${LOGO_BYBIT}</span>`;if(ex==="mexc")return`<span class="ex ex-mexc">${LOGO_MEXC}</span>`;return`<span class="ex">${ex}</span>`;}
@@ -411,12 +571,19 @@ function updateSortIndicators(){const st=document.querySelector("th.spread-sort"
 document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
 document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeSort="funding";fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";render();});
 document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
-for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));render();});}
+for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));
+  // Handle WS cleanup on toggle
+  if(!enabled[n] && wsConnections[n]) {
+    wsConnections[n].close();
+    delete wsConnections[n];
+    clearTimeout(wsReconnectTimers[n]);
+  }
+  render();});}
 
-alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;alertState.firedKeys.clear();saveAlerts();render();}});
-alertSpreadDir.addEventListener("change",()=>{alertState.spreadDir=alertSpreadDir.value;alertState.firedKeys.clear();saveAlerts();render();});
-alertFundingThr.addEventListener("input",()=>{const v=parseFloat(alertFundingThr.value);if(!isNaN(v)&&v>=0){alertState.fundingThr=v;alertState.firedKeys.clear();saveAlerts();render();}});
-alertFundingDir.addEventListener("change",()=>{alertState.fundingDir=alertFundingDir.value;alertState.firedKeys.clear();saveAlerts();render();});
+alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();}});
+alertSpreadDir.addEventListener("change",()=>{alertState.spreadDir=alertSpreadDir.value;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();});
+alertFundingThr.addEventListener("input",()=>{const v=parseFloat(alertFundingThr.value);if(!isNaN(v)&&v>=0){alertState.fundingThr=v;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();}});
+alertFundingDir.addEventListener("change",()=>{alertState.fundingDir=alertFundingDir.value;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();});
 alertDeltaThr.addEventListener("input",()=>{const v=parseFloat(alertDeltaThr.value);if(!isNaN(v)&&v>=0){alertState.deltaThr=v;saveAlerts();}});
 alertDeltaEnabled.addEventListener("change",()=>{alertState.deltaEnabled=alertDeltaEnabled.checked;saveAlerts();});
 alertNotifEnabled.addEventListener("change",async()=>{if(alertNotifEnabled.checked){const ok=await requestNotifPermission();if(!ok)alertNotifEnabled.checked=false;}alertState.notifEnabled=alertNotifEnabled.checked;saveAlerts();updateNotifStatus();});
