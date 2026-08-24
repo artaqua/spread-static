@@ -109,7 +109,8 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .spread-sort.mode-neg,.funding-sort.mode-neg,.chg24h-sort.mode-neg{color:var(--red)}.spread-sort.mode-neg .sort-arrow,.funding-sort.mode-neg .sort-arrow,.chg24h-sort.mode-neg .sort-arrow{opacity:1}
 .spread-sort.mode-pos,.funding-sort.mode-pos,.chg24h-sort.mode-pos{color:var(--green)}.spread-sort.mode-pos .sort-arrow,.funding-sort.mode-pos .sort-arrow,.chg24h-sort.mode-pos .sort-arrow{opacity:1}
 
-footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.2}
+footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.4}
+.footer-note{color:var(--amber-dim);margin-top:4px;display:block}
 
 @media(max-width:900px){.alert-body{flex-direction:column;align-items:stretch}.alert-actions{margin-left:0;justify-content:flex-start}.alert-item{grid-template-columns:80px 1fr;gap:6px}.time-row{justify-content:space-between;}}
 @media(max-width:720px){header{padding:20px}.controls{padding:12px 20px}.alert-panel,.table-panel{margin:14px 20px 0}h1{font-size:20px}}
@@ -190,7 +191,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <div class="alert-panel" id="alertPanel">
   <div class="alert-header">
-    <div class="alert-title"><span class="bell">🔔</span> АЛЕРТЫ · УВЕДОМЛЕНИЯ</div>
+    <div class="alert-title"><span class="bell"></span> АЛЕРТЫ · УВЕДОМЛЕНИЯ</div>
     <div class="alert-badge idle" id="alertBadge"><span class="pulse-dot" style="display:none"></span><span id="alertBadgeText">0</span></div>
   </div>
   <div class="alert-body">
@@ -215,17 +216,23 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
         <input type="number" id="alertFundingThr" value="1" step="0.05" min="0"/>
         <span>%</span>
       </div>
+      
+      <!-- UPDATED FEATURE: PRICE JUMP DETECTOR WITH CUSTOM INTERVAL -->
       <div class="alert-field" style="margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">
-        <span>Δ СПРЕД ≥</span>
-        <input type="number" id="alertDeltaThr" value="5" step="0.05" min="0" style="width:60px"/>
+        <span>СКАЧОК ЦЕНЫ ≥</span>
+        <input type="number" id="alertPriceJumpThr" value="10" step="0.1" min="0" style="width:60px"/>
         <span>%</span>
-        <label class="hint" style="margin-left:4px"><input type="checkbox" id="alertDeltaEnabled"/> РЕЗКИЕ Δ</label>
+        <span style="margin:0 4px">ЗА</span>
+        <input type="number" id="alertPriceJumpMin" value="15" step="1" min="1" style="width:45px"/>
+        <span>МИН</span>
+        <label class="hint" style="margin-left:4px"><input type="checkbox" id="alertPriceJumpEnabled"/> СКАЧОК Δ</label>
       </div>
+      
       <label class="hint chk" style="margin-left:6px"><input type="checkbox" id="alertNotifEnabled"/> УВЕДОМЛЕНИЯ</label>
       <label class="hint chk"><input type="checkbox" id="alertSoundEnabled"/> ЗВУК</label>
     </div>
     <div class="alert-actions">
-      <button class="alert-btn primary" id="alertTestBtn">🔔 ПРОВЕРИТЬ</button>
+      <button class="alert-btn primary" id="alertTestBtn"> ПРОВЕРИТЬ</button>
       <button class="alert-btn danger" id="alertClearBtn">ОЧИСТИТЬ</button>
       <div class="notif-status off" id="notifStatus">
         <span class="ns-dot"></span>
@@ -240,7 +247,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <div class="table-panel">
   <div class="panel-header">
-    <div class="panel-title"><span>📊</span> СПРЕД · ФАНДИНГ · ОБЪЁМЫ</div>
+    <div class="panel-title"><span></span> СПРЕД · ФАНДИНГ · ОБЪЁМЫ</div>
   </div>
   <div class="count-row"><span id="rowCount">…</span></div>
   <div class="table-wrap">
@@ -260,10 +267,14 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
   </div>
 </div>
 
-<footer>Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке</footer>
+<footer>
+  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке
+  <span class="footer-note">️ ДЕТЕКТОР СКАЧКОВ: Сравнивает текущую цену с ценой N минут назад (настраивается). Игнорирует микро-шум, ловит устойчивые тренды/дампы.</span>
+</footer>
 
 <script type="module">
 const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
+
 const LS_KEY="spread-scanner-cache-v17",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3";
 const EXCHANGES=["mexc","binance","bybit"];
 const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
@@ -273,18 +284,19 @@ const errors={binance:null,bybit:null,mexc:null};
 let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
 let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
 
-const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",deltaThr:0.3,deltaEnabled:false,notifEnabled:false,soundEnabled:false,prevSpreads:{},lastAlertTs:{}};
+// Updated Alert State: Added timestamp tracking for dynamic interval
+const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",priceJumpThr:10,priceJumpMin:15,priceJumpEnabled:false,notifEnabled:false,soundEnabled:false,prevPrices:{},prevPriceTimes:{},lastAlertTs:{}};
 let audioCtx=null;
 
-function loadAlerts(){try{const r=localStorage.getItem(LS_ALERTS);if(!r)return;const d=JSON.parse(r);if(typeof d.spreadThr==='number')alertState.spreadThr=d.spreadThr;if(typeof d.spreadDir==='string')alertState.spreadDir=d.spreadDir;if(typeof d.fundingThr==='number')alertState.fundingThr=d.fundingThr;if(typeof d.fundingDir==='string')alertState.fundingDir=d.fundingDir;if(typeof d.deltaThr==='number')alertState.deltaThr=d.deltaThr;if(typeof d.deltaEnabled==='boolean')alertState.deltaEnabled=d.deltaEnabled;if(typeof d.notifEnabled==='boolean')alertState.notifEnabled=d.notifEnabled;if(typeof d.soundEnabled==='boolean')alertState.soundEnabled=d.soundEnabled;if(Array.isArray(d.feed))alertState.feed=d.feed.slice(0,50);if(Array.isArray(d.firedKeys))d.firedKeys.forEach(k=>alertState.firedKeys.add(k));}catch(e){}}
-function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadThr:alertState.spreadThr,spreadDir:alertState.spreadDir,fundingThr:alertState.fundingThr,fundingDir:alertState.fundingDir,deltaThr:alertState.deltaThr,deltaEnabled:alertState.deltaEnabled,notifEnabled:alertState.notifEnabled,soundEnabled:alertState.soundEnabled,feed:alertState.feed.slice(0,50),firedKeys:Array.from(alertState.firedKeys).slice(-200)}));}catch(e){}}
+function loadAlerts(){try{const r=localStorage.getItem(LS_ALERTS);if(!r)return;const d=JSON.parse(r);if(typeof d.spreadThr==='number')alertState.spreadThr=d.spreadThr;if(typeof d.spreadDir==='string')alertState.spreadDir=d.spreadDir;if(typeof d.fundingThr==='number')alertState.fundingThr=d.fundingThr;if(typeof d.fundingDir==='string')alertState.fundingDir=d.fundingDir;if(typeof d.priceJumpThr==='number')alertState.priceJumpThr=d.priceJumpThr;if(typeof d.priceJumpMin==='number')alertState.priceJumpMin=d.priceJumpMin;if(typeof d.priceJumpEnabled==='boolean')alertState.priceJumpEnabled=d.priceJumpEnabled;if(typeof d.notifEnabled==='boolean')alertState.notifEnabled=d.notifEnabled;if(typeof d.soundEnabled==='boolean')alertState.soundEnabled=d.soundEnabled;if(Array.isArray(d.feed))alertState.feed=d.feed.slice(0,50);if(Array.isArray(d.firedKeys))d.firedKeys.forEach(k=>alertState.firedKeys.add(k));}catch(e){}}
+function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadThr:alertState.spreadThr,spreadDir:alertState.spreadDir,fundingThr:alertState.fundingThr,fundingDir:alertState.fundingDir,priceJumpThr:alertState.priceJumpThr,priceJumpMin:alertState.priceJumpMin,priceJumpEnabled:alertState.priceJumpEnabled,notifEnabled:alertState.notifEnabled,soundEnabled:alertState.soundEnabled,feed:alertState.feed.slice(0,50),firedKeys:Array.from(alertState.firedKeys).slice(-200)}));}catch(e){}}
 
 const $=id=>document.getElementById(id);
 const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
 const fSearch=$("fSearch"),fExch=$("fExch"),fVol=$("fVol"),fSpread=$("fSpread"),fMaxSpread=$("fMaxSpread"),fOnlySpot=$("fOnlySpot"),fMaxRows=$("fMaxRows"),fTopFrom=$("fTopFrom"),fTopTo=$("fTopTo");
 const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed");
 const alertSpreadThr=$("alertSpreadThr"),alertSpreadDir=$("alertSpreadDir"),alertFundingThr=$("alertFundingThr"),alertFundingDir=$("alertFundingDir");
-const alertDeltaThr=$("alertDeltaThr"),alertDeltaEnabled=$("alertDeltaEnabled");
+const alertPriceJumpThr=$("alertPriceJumpThr"),alertPriceJumpMin=$("alertPriceJumpMin"),alertPriceJumpEnabled=$("alertPriceJumpEnabled");
 const alertNotifEnabled=$("alertNotifEnabled"),alertSoundEnabled=$("alertSoundEnabled");
 const alertTestBtn=$("alertTestBtn"),alertClearBtn=$("alertClearBtn");
 const notifStatus=$("notifStatus"),notifStatusText=$("notifStatusText");
@@ -320,9 +332,39 @@ function checkAlertCondition(spreadPct,funding){const sThr=alertState.spreadThr,
 
 function fireAlert(type,coin,exchange,spreadPct,funding,delta){const key=type+"|"+coin+"|"+exchange;const lastAlert=alertState.lastAlertTs[key]||0;if(Date.now()-lastAlert<30000)return false;alertState.lastAlertTs[key]=Date.now();alertState.firedKeys.add(key);alertState.feed.unshift({id:key+"|"+Date.now(),type,coin,exchange,spreadPct,funding,delta,time:Date.now()});alertState.feed=alertState.feed.slice(0,50);if(alertState.notifEnabled)sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta);if(alertState.soundEnabled)playAlertSound();saveAlerts();renderAlerts();updateAlertBadge();return true;}
 
-function checkAlerts(rows){try{for(const r of rows){if(r.spreadPct==null||!isFinite(r.spreadPct))continue;if(r.funding==null||!isFinite(r.funding))continue;const key=r.base+"|"+r.exchange;const prevSpread=alertState.prevSpreads[key];if(checkAlertCondition(r.spreadPct,r.funding)){if(!alertState.firedKeys.has("abs|"+key)){fireAlert("abs",r.base,r.exchange,r.spreadPct,r.funding,null);}}if(alertState.deltaEnabled&&prevSpread!=null){const delta=Math.abs(r.spreadPct-prevSpread);if(delta>=alertState.deltaThr){fireAlert("delta",r.base,r.exchange,r.spreadPct,r.funding,delta);}}alertState.prevSpreads[key]=r.spreadPct;}const still=new Set(rows.filter(r=>{if(r.spreadPct==null||!isFinite(r.spreadPct))return false;if(r.funding==null||!isFinite(r.funding))return false;return checkAlertCondition(r.spreadPct,r.funding);}).map(r=>"abs|"+r.base+"|"+r.exchange));for(const k of alertState.firedKeys){if(k.startsWith("abs|")&&!still.has(k))alertState.firedKeys.delete(k);}}catch(e){console.warn("checkAlerts error:",e);}}
+function checkAlerts(rows){try{for(const r of rows){if(r.spreadPct==null||!isFinite(r.spreadPct))continue;if(r.funding==null||!isFinite(r.funding))continue;const key=r.base+"|"+r.exchange;
+  
+  // Check standard Spread/Funding alerts
+  if(checkAlertCondition(r.spreadPct,r.funding)){if(!alertState.firedKeys.has("abs|"+key)){fireAlert("abs",r.base,r.exchange,r.spreadPct,r.funding,null);}}
+  
+  // NEW LOGIC: Check Price Jump with dynamic interval
+  if(alertState.priceJumpEnabled && r.perp > 0){
+    const now = Date.now();
+    const prevTime = alertState.prevPriceTimes[key] || 0;
+    
+    // Calculate interval in ms based on user input (minutes)
+    const intervalMs = (alertState.priceJumpMin || 15) * 60 * 1000;
 
-function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){if(!("Notification"in window))return;if(Notification.permission!=="granted")return;try{const ss=spreadPct<0?"":"+",fs=funding<0?"":"";const deltaStr=delta!=null?` · Δ спред: ${delta.toFixed(2)}%`:"";const body=`Спред: ${ss}${spreadPct.toFixed(2)}% · Фандинг: ${fs}${funding.toFixed(3)}%${deltaStr} · ${exchange.toUpperCase()}`;const n=new Notification(`${type==="delta"?"Δ ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});setTimeout(()=>n.close&&n.close(),10000);}catch(e){}}
+    // If interval has passed since last baseline update, reset baseline
+    if(now - prevTime >= intervalMs){
+       alertState.prevPrices[key] = r.perp;
+       alertState.prevPriceTimes[key] = now;
+    } else {
+       // Compare against the baseline set 'intervalMs' ago
+       const prevPrice = alertState.prevPrices[key];
+       if(prevPrice != null){
+         const pctChange = Math.abs((r.perp - prevPrice) / prevPrice * 100);
+         if(pctChange >= alertState.priceJumpThr){
+           fireAlert("jump",r.base,r.exchange,r.spreadPct,r.funding,pctChange);
+         }
+       }
+    }
+  }
+  
+}
+const still=new Set(rows.filter(r=>{if(r.spreadPct==null||!isFinite(r.spreadPct))return false;if(r.funding==null||!isFinite(r.funding))return false;return checkAlertCondition(r.spreadPct,r.funding);}).map(r=>"abs|"+r.base+"|"+r.exchange));for(const k of alertState.firedKeys){if(k.startsWith("abs|")&&!still.has(k))alertState.firedKeys.delete(k);}}catch(e){console.warn("checkAlerts error:",e);}}
+
+function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){if(!("Notification"in window))return;if(Notification.permission!=="granted")return;try{const ss=spreadPct<0?"":"+",fs=funding<0?"":"";const deltaStr=delta!=null?` · Скачок за ${alertState.priceJumpMin} мин: ${delta.toFixed(2)}%`:"";const body=`Спред: ${ss}${spreadPct.toFixed(2)}% · Фандинг: ${fs}${funding.toFixed(3)}%${deltaStr} · ${exchange.toUpperCase()}`;const n=new Notification(`${type==="jump"?" ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});setTimeout(()=>n.close&&n.close(),10000);}catch(e){}}
 
 // NEW SOUND: Neutral Chime ~3 seconds
 function playAlertSound(){
@@ -370,7 +412,23 @@ function playAlertSound(){
 
 function updateAlertBadge(){const c=alertState.feed.length;alertBadgeText.textContent=c;if(c>0){alertBadge.classList.remove("idle");alertBadge.querySelector(".pulse-dot").style.display="inline-block";}else{alertBadge.classList.add("idle");alertBadge.querySelector(".pulse-dot").style.display="none";}}
 
-function renderAlerts(){if(alertState.feed.length===0){const sd=alertState.spreadDir==="neg"?"< −":alertState.spreadDir==="pos"?"> +":"| | >";const fd=alertState.fundingDir==="pos"?"> +":alertState.fundingDir==="neg"?"< −":"| | >";const deltaStr=alertState.deltaEnabled?` · Δ СПРЕД ≥${alertState.deltaThr}%`:"";alertFeed.innerHTML=`<div class="alert-feed-empty">УСЛОВИЯ НЕ ВЫПОЛНЕНЫ · СПРЕД ${sd}${alertState.spreadThr}% И ФАНДИНГ ${fd}${alertState.fundingThr}%${deltaStr}</div>`;return;}alertFeed.innerHTML=alertState.feed.map(a=>{const t=new Date(a.time),ts=t.toLocaleTimeString();const ec=a.exchange==="binance"?"ex-binance":a.exchange==="bybit"?"ex-bybit":"ex-mexc",el=a.exchange.toUpperCase();const sc=a.spreadPct<0?"spread-val":"spread-val pos",fc=a.funding<0?"funding-val neg":"funding-val";const ss=a.spreadPct<0?"":"+",fs=a.funding<0?"":"";const typeLabel=a.type==="delta"?"Δ ":"";const deltaStr=a.delta!=null?` · Δ${a.delta.toFixed(2)}%`:"";return`<div class="alert-item" data-id="${a.id}"><span class="coin">${typeLabel}${a.coin}</span><span class="exch-cell"><span class="ex ${ec}">${el}</span></span><span class="${sc}">${ss}${a.spreadPct.toFixed(2)}%</span><span class="${fc}">${fs}${a.funding.toFixed(3)}%</span><span class="time">${ts}${deltaStr}</span><button class="dismiss" data-dismiss="${a.id}">✕</button></div>`;}).join("");alertFeed.querySelectorAll(".dismiss").forEach(btn=>{btn.addEventListener("click",()=>{const id=btn.dataset.dismiss;alertState.feed=alertState.feed.filter(a=>a.id!==id);saveAlerts();renderAlerts();updateAlertBadge();});});}
+function renderAlerts(){if(alertState.feed.length===0){
+  // Build informational status string showing current alert filters
+  const sd=alertState.spreadDir==="neg"?"< −":alertState.spreadDir==="pos"?"> +":"| | >";
+  const fd=alertState.fundingDir==="pos"?"> +":alertState.fundingDir==="neg"?"< −":"| | >";
+  
+  const parts = [];
+  parts.push(`СПРЕД ${sd}${alertState.spreadThr}%`);
+  parts.push(`ФАНДИНГ ${fd}${alertState.fundingThr}%`);
+  
+  if(alertState.priceJumpEnabled){
+    parts.push(`СКАЧОК ≥${alertState.priceJumpThr}% ЗА ${alertState.priceJumpMin} МИН`);
+  }
+  
+  alertFeed.innerHTML=`<div class="alert-feed-empty">АЛЕРТЫ: ${parts.join(' · ')}</div>`;
+  return;
+}
+alertFeed.innerHTML=alertState.feed.map(a=>{const t=new Date(a.time),ts=t.toLocaleTimeString();const ec=a.exchange==="binance"?"ex-binance":a.exchange==="bybit"?"ex-bybit":"ex-mexc",el=a.exchange.toUpperCase();const sc=a.spreadPct<0?"spread-val":"spread-val pos",fc=a.funding<0?"funding-val neg":"funding-val";const ss=a.spreadPct<0?"":"+",fs=a.funding<0?"":"";const typeLabel=a.type==="jump"?"⚡ ":"";const deltaStr=a.delta!=null?` · Δ${a.delta.toFixed(2)}%`:"";return`<div class="alert-item" data-id="${a.id}"><span class="coin">${typeLabel}${a.coin}</span><span class="exch-cell"><span class="ex ${ec}">${el}</span></span><span class="${sc}">${ss}${a.spreadPct.toFixed(2)}%</span><span class="${fc}">${fs}${a.funding.toFixed(3)}%</span><span class="time">${ts}${deltaStr}</span><button class="dismiss" data-dismiss="${a.id}">✕</button></div>`;}).join("");alertFeed.querySelectorAll(".dismiss").forEach(btn=>{btn.addEventListener("click",()=>{const id=btn.dataset.dismiss;alertState.feed=alertState.feed.filter(a=>a.id!==id);saveAlerts();renderAlerts();updateAlertBadge();});});}
 
 /* ===== NOTIFICATION STATUS INDICATOR ===== */
 function updateNotifStatus(){
@@ -459,12 +517,16 @@ alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.v
 alertSpreadDir.addEventListener("change",()=>{alertState.spreadDir=alertSpreadDir.value;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();});
 alertFundingThr.addEventListener("input",()=>{const v=parseFloat(alertFundingThr.value);if(!isNaN(v)&&v>=0){alertState.fundingThr=v;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();}});
 alertFundingDir.addEventListener("change",()=>{alertState.fundingDir=alertFundingDir.value;alertState.firedKeys.clear();saveAlerts();renderAlerts();render();});
-alertDeltaThr.addEventListener("input",()=>{const v=parseFloat(alertDeltaThr.value);if(!isNaN(v)&&v>=0){alertState.deltaThr=v;saveAlerts();}});
-alertDeltaEnabled.addEventListener("change",()=>{alertState.deltaEnabled=alertDeltaEnabled.checked;saveAlerts();});
+
+// New Event Listeners for Price Jump
+alertPriceJumpThr.addEventListener("input",()=>{const v=parseFloat(alertPriceJumpThr.value);if(!isNaN(v)&&v>=0){alertState.priceJumpThr=v;saveAlerts();renderAlerts();}});
+alertPriceJumpMin.addEventListener("input",()=>{const v=parseInt(alertPriceJumpMin.value,10);if(!isNaN(v)&&v>=1){alertState.priceJumpMin=v;saveAlerts();renderAlerts();}});
+alertPriceJumpEnabled.addEventListener("change",()=>{alertState.priceJumpEnabled=alertPriceJumpEnabled.checked;saveAlerts();renderAlerts();});
+
 alertNotifEnabled.addEventListener("change",async()=>{if(alertNotifEnabled.checked){const ok=await requestNotifPermission();if(!ok)alertNotifEnabled.checked=false;}alertState.notifEnabled=alertNotifEnabled.checked;saveAlerts();updateNotifStatus();});
 alertSoundEnabled.addEventListener("change",()=>{alertState.soundEnabled=alertSoundEnabled.checked;saveAlerts();});
 alertTestBtn.addEventListener("click",testNotification);
-alertClearBtn.addEventListener("click",()=>{alertState.feed=[];alertState.firedKeys.clear();alertState.prevSpreads={};alertState.lastAlertTs={};saveAlerts();renderAlerts();updateAlertBadge();});
+alertClearBtn.addEventListener("click",()=>{alertState.feed=[];alertState.firedKeys.clear();alertState.prevPrices={};alertState.prevPriceTimes={};alertState.lastAlertTs={};saveAlerts();renderAlerts();updateAlertBadge();});
 refreshBtn.addEventListener("click",()=>{if(busy)return;clearTimeout(fastTimer);try{localStorage.removeItem(LS_KEY);}catch{}apiCycle().catch(e=>console.error("refresh error:",e));});
 
 setInterval(()=>{const left=Math.max(0,Math.ceil((nextAt-Date.now())/1000));elNext.textContent=nextAt?left+"С":"—";elLast.textContent=state.lastApiAt?new Date(state.lastApiAt).toLocaleTimeString():"--:--:--";},500);
@@ -472,7 +534,8 @@ setInterval(()=>{const left=Math.max(0,Math.ceil((nextAt-Date.now())/1000));elNe
 loadAlerts();
 alertSpreadThr.value=alertState.spreadThr;alertSpreadDir.value=alertState.spreadDir;
 alertFundingThr.value=alertState.fundingThr;alertFundingDir.value=alertState.fundingDir;
-alertDeltaThr.value=alertState.deltaThr;alertDeltaEnabled.checked=alertState.deltaEnabled;
+alertPriceJumpThr.value=alertState.priceJumpThr;alertPriceJumpMin.value=alertState.priceJumpMin;
+alertPriceJumpEnabled.checked=alertState.priceJumpEnabled;
 alertNotifEnabled.checked=alertState.notifEnabled;alertSoundEnabled.checked=alertState.soundEnabled;
 updateAlertBadge();renderAlerts();updateNotifStatus();
 syncExchFilterWithEnabled();
