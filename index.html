@@ -268,7 +268,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. ДЕТЕКТОР СКАЧКОВ: Сравнивает текущую цену с ценой N минут назад (настраивается). Игнорирует микро-шум, ловит устойчивые тренды/дампы.
+  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. ДЕТЕКТОР СКАЧКОВ: Сравнивает текущую цену с ценой N минут назад (настраивается). Игнорирует микро-шум, ловит устойчивые тренды/дампы. АНТИ-ФЛУД: 1 алерт на монету до сброса базовой цены.
 </footer>
 
 <script type="module">
@@ -336,7 +336,7 @@ function checkAlerts(rows){try{for(const r of rows){if(r.spreadPct==null||!isFin
   // Check standard Spread/Funding alerts
   if(checkAlertCondition(r.spreadPct,r.funding)){if(!alertState.firedKeys.has("abs|"+key)){fireAlert("abs",r.base,r.exchange,r.spreadPct,r.funding,null);}}
   
-  // NEW LOGIC: Check Price Jump with dynamic interval
+  // NEW LOGIC: Check Price Jump with dynamic interval + ANTI-FLOOD
   if(alertState.priceJumpEnabled && r.perp > 0){
     const now = Date.now();
     const prevTime = alertState.prevPriceTimes[key] || 0;
@@ -352,9 +352,15 @@ function checkAlerts(rows){try{for(const r of rows){if(r.spreadPct==null||!isFin
        // Compare against the baseline set 'intervalMs' ago
        const prevPrice = alertState.prevPrices[key];
        if(prevPrice != null){
-         const pctChange = Math.abs((r.perp - prevPrice) / prevPrice * 100);
-         if(pctChange >= alertState.priceJumpThr){
-           fireAlert("jump",r.base,r.exchange,r.spreadPct,r.funding,pctChange);
+         // SIGNED change: positive = pump, negative = dump
+         const signedChange = ((r.perp - prevPrice) / prevPrice) * 100;
+         if(Math.abs(signedChange) >= alertState.priceJumpThr){
+           // ANTI-FLOOD: check if jump alert for this coin already exists in feed
+           const jumpPrefix = "jump|" + r.base + "|" + r.exchange + "|";
+           const hasJumpInFeed = alertState.feed.some(a => a.id.startsWith(jumpPrefix));
+           if(!hasJumpInFeed){
+             fireAlert("jump", r.base, r.exchange, r.spreadPct, r.funding, signedChange);
+           }
          }
        }
     }
@@ -363,7 +369,11 @@ function checkAlerts(rows){try{for(const r of rows){if(r.spreadPct==null||!isFin
 }
 const still=new Set(rows.filter(r=>{if(r.spreadPct==null||!isFinite(r.spreadPct))return false;if(r.funding==null||!isFinite(r.funding))return false;return checkAlertCondition(r.spreadPct,r.funding);}).map(r=>"abs|"+r.base+"|"+r.exchange));for(const k of alertState.firedKeys){if(k.startsWith("abs|")&&!still.has(k))alertState.firedKeys.delete(k);}}catch(e){console.warn("checkAlerts error:",e);}}
 
-function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){if(!("Notification"in window))return;if(Notification.permission!=="granted")return;try{const ss=spreadPct<0?"":"+",fs=funding<0?"":"";const deltaStr=delta!=null?` · Скачок за ${alertState.priceJumpMin} мин: ${delta.toFixed(2)}%`:"";const body=`Спред: ${ss}${spreadPct.toFixed(2)}% · Фандинг: ${fs}${funding.toFixed(3)}%${deltaStr} · ${exchange.toUpperCase()}`;const n=new Notification(`${type==="jump"?" ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});setTimeout(()=>n.close&&n.close(),10000);}catch(e){}}
+function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){if(!("Notification"in window))return;if(Notification.permission!=="granted")return;try{const ss=spreadPct<0?"":"+",fs=funding<0?"":"";
+  // Show direction: +20% or -20%
+  const deltaStr=delta!=null?` · ${delta>0?'+':''}${delta.toFixed(2)}% за ${alertState.priceJumpMin} мин`:"";
+  const body=`Спред: ${ss}${spreadPct.toFixed(2)}% · Фандинг: ${fs}${funding.toFixed(3)}%${deltaStr} · ${exchange.toUpperCase()}`;
+  const n=new Notification(`${type==="jump"?"⚡ ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});setTimeout(()=>n.close&&n.close(),10000);}catch(e){}}
 
 // NEW SOUND: Neutral Chime ~3 seconds
 function playAlertSound(){
@@ -427,7 +437,18 @@ function renderAlerts(){if(alertState.feed.length===0){
   alertFeed.innerHTML=`<div class="alert-feed-empty">АЛЕРТЫ: ${parts.join(' · ')}</div>`;
   return;
 }
-alertFeed.innerHTML=alertState.feed.map(a=>{const t=new Date(a.time),ts=t.toLocaleTimeString();const ec=a.exchange==="binance"?"ex-binance":a.exchange==="bybit"?"ex-bybit":"ex-mexc",el=a.exchange.toUpperCase();const sc=a.spreadPct<0?"spread-val":"spread-val pos",fc=a.funding<0?"funding-val neg":"funding-val";const ss=a.spreadPct<0?"":"+",fs=a.funding<0?"":"";const typeLabel=a.type==="jump"?"⚡ ":"";const deltaStr=a.delta!=null?` · Δ${a.delta.toFixed(2)}%`:"";return`<div class="alert-item" data-id="${a.id}"><span class="coin">${typeLabel}${a.coin}</span><span class="exch-cell"><span class="ex ${ec}">${el}</span></span><span class="${sc}">${ss}${a.spreadPct.toFixed(2)}%</span><span class="${fc}">${fs}${a.funding.toFixed(3)}%</span><span class="time">${ts}${deltaStr}</span><button class="dismiss" data-dismiss="${a.id}">✕</button></div>`;}).join("");alertFeed.querySelectorAll(".dismiss").forEach(btn=>{btn.addEventListener("click",()=>{const id=btn.dataset.dismiss;alertState.feed=alertState.feed.filter(a=>a.id!==id);saveAlerts();renderAlerts();updateAlertBadge();});});}
+alertFeed.innerHTML=alertState.feed.map(a=>{
+  const t=new Date(a.time),ts=t.toLocaleTimeString();
+  const ec=a.exchange==="binance"?"ex-binance":a.exchange==="bybit"?"ex-bybit":"ex-mexc",el=a.exchange.toUpperCase();
+  const sc=a.spreadPct<0?"spread-val":"spread-val pos",fc=a.funding<0?"funding-val neg":"funding-val";
+  const ss=a.spreadPct<0?"":"+",fs=a.funding<0?"":"";
+  // ⚡ icon AFTER coin name (not before)
+  const typeLabel=a.type==="jump"?" ⚡":"";
+  // Show direction: +20% or -20%
+  const deltaStr=a.delta!=null?` · ${a.delta>0?'+':''}${a.delta.toFixed(2)}%`:"";
+  return`<div class="alert-item" data-id="${a.id}"><span class="coin">${a.coin}${typeLabel}</span><span class="exch-cell"><span class="ex ${ec}">${el}</span></span><span class="${sc}">${ss}${a.spreadPct.toFixed(2)}%</span><span class="${fc}">${fs}${a.funding.toFixed(3)}%</span><span class="time">${ts}${deltaStr}</span><button class="dismiss" data-dismiss="${a.id}">✕</button></div>`;
+}).join("");
+alertFeed.querySelectorAll(".dismiss").forEach(btn=>{btn.addEventListener("click",()=>{const id=btn.dataset.dismiss;alertState.feed=alertState.feed.filter(a=>a.id!==id);saveAlerts();renderAlerts();updateAlertBadge();});});}
 
 /* ===== NOTIFICATION STATUS INDICATOR ===== */
 function updateNotifStatus(){
