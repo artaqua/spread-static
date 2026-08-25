@@ -57,14 +57,88 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .notif-status .ns-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
 .notif-status.on .ns-dot{box-shadow:0 0 6px var(--green);animation:pulse 1.4s ease-in-out infinite}
 
-.alert-feed{border-top:1px solid var(--border);max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel)}.alert-feed::-webkit-scrollbar{width:8px}.alert-feed::-webkit-scrollbar-track{background:transparent}.alert-feed::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:4px;border:2px solid var(--panel)}
-.alert-feed-empty{padding:16px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center}
-.alert-item{display:grid;grid-template-columns:90px 1fr auto auto auto auto;gap:12px;padding:8px 14px;border-bottom:1px solid #1c1d20;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11.5px;animation:alertIn .25s ease-out}@keyframes alertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}.alert-item:last-child{border-bottom:none}
-.alert-item .coin{font-weight:700;color:var(--text)}.alert-item .spread-val{color:var(--red);font-weight:700}.alert-item .spread-val.pos{color:var(--green)}.alert-item .funding-val{color:var(--green);font-weight:700}.alert-item .funding-val.neg{color:var(--red)}.alert-item .time{color:var(--muted);font-size:10px}.alert-item .exch-cell{display:flex;gap:4px}.alert-item .dismiss{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 4px;opacity:.5;transition:opacity .15s}.alert-item .dismiss:hover{opacity:1;color:var(--red)}
+.alert-feed{border-top:1px solid var(--border);max-height:280px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel)}
+.alert-feed::-webkit-scrollbar{width:8px}
+.alert-feed::-webkit-scrollbar-track{background:transparent}
+.alert-feed::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:4px;border:2px solid var(--panel)}
+
+.alert-feed.hidden{display:none}
+
+.alert-item{
+  display:grid;
+  grid-template-columns: 110px 90px 90px 90px 90px 90px 28px;
+  gap: 0;
+  padding: 7px 14px;
+  border-bottom: 1px solid #1c1d20;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  animation: alertIn .25s ease-out;
+}
+@keyframes alertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.alert-item:last-child{border-bottom:none}
+.alert-item:hover{background:rgba(255,255,255,0.02)}
+
+.alert-item .ai-coin{
+  font-weight:700;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.alert-item .ai-coin .jump-icon{
+  color:var(--amber);
+  font-size:12px;
+}
+.alert-item .ai-exch{
+  display:flex;
+  align-items:center;
+}
+.alert-item .ai-spread{
+  font-weight:700;
+  text-align:right;
+}
+.alert-item .ai-funding{
+  font-weight:700;
+  text-align:right;
+}
+.alert-item .ai-time{
+  color:var(--muted);
+  font-size:10.5px;
+  text-align:right;
+}
+.alert-item .ai-jump{
+  font-weight:700;
+  color:var(--text);
+  text-align:right;
+}
+.alert-item .ai-dismiss{
+  background:transparent;
+  border:none;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:13px;
+  padding:0 4px;
+  opacity:.5;
+  transition:opacity .15s;
+  text-align:center;
+}
+.alert-item .ai-dismiss:hover{opacity:1;color:var(--red)}
+
+.spread-neg{color:var(--red)}
+.spread-pos{color:var(--green)}
+.funding-pos{color:var(--green)}
+.funding-neg{color:var(--red)}
+
+.ex{padding:3px 8px;border-radius:3px;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1;vertical-align:middle}
+.ex-binance{background:rgba(240,185,11,.15);color:var(--binance)}
+.ex-bybit{background:rgba(247,166,0,.15);color:var(--bybit)}
+.ex-mexc{background:rgba(22,119,255,.15);color:var(--mexc)}
+.binance-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--binance);line-height:1}
+.bybit-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.03em;color:var(--text);line-height:1}.bybit-word i{font-style:normal;color:var(--bybit)}
+.mexc-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--mexc);line-height:1}
 
 .table-panel{margin:14px 14px 14px;border:1px solid var(--border);border-radius:6px;background:var(--panel-gray);overflow:hidden}
-.table-panel .panel-header{background:var(--panel-gray-header);border-bottom:1px solid var(--border-light);padding:10px 14px;display:flex;align-items:center}
-.table-panel .panel-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px}
 .table-panel .count-row{padding:8px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15)}
 .table-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel-gray)}.table-wrap::-webkit-scrollbar{width:10px;height:10px}.table-wrap::-webkit-scrollbar-track{background:transparent}.table-wrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--panel-gray)}.table-wrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
 table{width:100%;border-collapse:collapse;min-width:1080px}
@@ -76,11 +150,6 @@ tbody tr{transition:background .1s ease}tbody tr:hover{background:rgba(255,255,2
 tbody tr.alert-row{background:var(--amber-glow)}
 .sym-cell{font-weight:700;color:var(--text)}.pos{color:var(--green)}.neg{color:var(--red)}.muted-cell{color:var(--muted)}
 .spread-cell{font-weight:700;padding:2px 8px;border-radius:3px;display:inline-block;min-width:76px;text-align:center}.spread-pos{color:var(--green)}.spread-neg{color:var(--red)}
-.ex{padding:3px 8px;border-radius:3px;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1;vertical-align:middle}
-.ex-binance{background:rgba(240,185,11,.15);color:var(--binance)}.ex-bybit{background:rgba(247,166,0,.15);color:var(--bybit)}.ex-mexc{background:rgba(22,119,255,.15);color:var(--mexc)}
-.binance-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--binance);line-height:1}
-.bybit-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.03em;color:var(--text);line-height:1}.bybit-word i{font-style:normal;color:var(--bybit)}
-.mexc-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--mexc);line-height:1}
 .empty{text-align:center;color:var(--muted);padding:24px;text-transform:uppercase}
 
 .sortable{cursor:pointer;user-select:none;transition:color .15s}.sortable:hover{color:var(--amber)}.sortable .sort-arrow{margin-left:4px;font-size:9px;opacity:0.5}.sortable.active{color:var(--amber)}.sortable.active .sort-arrow{opacity:1}
@@ -89,8 +158,27 @@ tbody tr.alert-row{background:var(--amber-glow)}
 
 footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.4}
 
-@media(max-width:900px){.alert-body{flex-direction:column;align-items:stretch}.alert-actions{margin-left:0;justify-content:flex-start}.alert-item{grid-template-columns:80px 1fr;gap:6px}.time-row{justify-content:space-between;}}
-@media(max-width:720px){header{padding:20px}.controls{padding:12px 20px}.alert-panel,.table-panel{margin:14px 20px 0}h1{font-size:20px}}
+@media(max-width:900px){
+  .alert-body{flex-direction:column;align-items:stretch}
+  .alert-actions{margin-left:0;justify-content:flex-start}
+  .alert-item{
+    grid-template-columns: 90px 80px 75px 75px 75px 75px 24px;
+    font-size:10.5px;
+    padding:6px 10px;
+  }
+  .time-row{justify-content:space-between;}
+}
+@media(max-width:720px){
+  header{padding:20px}
+  .controls{padding:12px 20px}
+  .alert-panel,.table-panel{margin:14px 20px 0}
+  h1{font-size:20px}
+  .alert-item{
+    grid-template-columns: 80px 70px 65px 65px 65px 65px 22px;
+    font-size:10px;
+    padding:5px 8px;
+  }
+}
 </style>
 </head>
 <body>
@@ -206,7 +294,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
       <label class="hint chk"><input type="checkbox" id="alertSoundEnabled"/><span>ЗВУК</span></label>
     </div>
     <div class="alert-actions">
-      <button class="alert-btn primary" id="alertTestBtn"> ПРОВЕРИТЬ</button>
+      <button class="alert-btn primary" id="alertTestBtn">ПРОВЕРИТЬ</button>
       <button class="alert-btn danger" id="alertClearBtn">ОЧИСТИТЬ</button>
       <div class="notif-status off" id="notifStatus">
         <span class="ns-dot"></span>
@@ -214,15 +302,10 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
       </div>
     </div>
   </div>
-  <div class="alert-feed" id="alertFeed">
-    <div class="alert-feed-empty">УСЛОВИЯ НЕ ВЫПОЛНЕНЫ</div>
-  </div>
+  <div class="alert-feed hidden" id="alertFeed"></div>
 </div>
 
 <div class="table-panel">
-  <div class="panel-header">
-    <div class="panel-title"><span></span> СПРЕД · ФАНДИНГ · ОБЪЁМЫ</div>
-  </div>
   <div class="count-row"><span id="rowCount">…</span></div>
   <div class="table-wrap">
     <table>
@@ -266,7 +349,7 @@ function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadT
 const $=id=>document.getElementById(id);
 const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
 const fSearch=$("fSearch"),fExch=$("fExch"),fVol=$("fVol"),fSpread=$("fSpread"),fMaxSpread=$("fMaxSpread"),fOnlySpot=$("fOnlySpot"),fMaxRows=$("fMaxRows"),fTopFrom=$("fTopFrom"),fTopTo=$("fTopTo");
-const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed");
+const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed"),alertPanel=$("alertPanel");
 const alertSpreadThr=$("alertSpreadThr"),alertSpreadDir=$("alertSpreadDir"),alertFundingThr=$("alertFundingThr"),alertFundingDir=$("alertFundingDir");
 const alertPriceJumpThr=$("alertPriceJumpThr"),alertPriceJumpMin=$("alertPriceJumpMin"),alertPriceJumpEnabled=$("alertPriceJumpEnabled");
 const alertNotifEnabled=$("alertNotifEnabled"),alertSoundEnabled=$("alertSoundEnabled");
@@ -302,18 +385,13 @@ function saveEnabled(){try{localStorage.setItem(LS_EXCH,JSON.stringify(enabled))
 
 function checkAlertCondition(spreadPct,funding){const sThr=alertState.spreadThr,fThr=alertState.fundingThr,sDir=alertState.spreadDir,fDir=alertState.fundingDir;let sOk=false;if(sDir==="neg")sOk=spreadPct<-sThr;else if(sDir==="pos")sOk=spreadPct>sThr;else if(sDir==="abs")sOk=Math.abs(spreadPct)>sThr;let fOk=false;if(fDir==="pos")fOk=funding>fThr;else if(fDir==="neg")fOk=funding<-fThr;else if(fDir==="abs")fOk=Math.abs(funding)>fThr;return sOk&&fOk;}
 
-// fireAlert: type="abs" (spread/funding) — NO cooldown, NO anti-flood
-//            type="jump" (price jump) — has cooldown + anti-flood via feed check
 function fireAlert(type,coin,exchange,spreadPct,funding,delta){
   const key=type+"|"+coin+"|"+exchange;
-  
-  // For spread/funding alerts ("abs"): skip cooldown, fire every time condition met
   if(type !== "abs"){
     const lastAlert=alertState.lastAlertTs[key]||0;
     if(Date.now()-lastAlert<30000) return false;
     alertState.lastAlertTs[key]=Date.now();
   }
-  
   alertState.firedKeys.add(key);
   alertState.feed.unshift({id:key+"|"+Date.now(),type,coin,exchange,spreadPct,funding,delta,time:Date.now()});
   alertState.feed=alertState.feed.slice(0,50);
@@ -331,18 +409,13 @@ function checkAlerts(rows){
       if(r.spreadPct==null||!isFinite(r.spreadPct)) continue;
       if(r.funding==null||!isFinite(r.funding)) continue;
       const key=r.base+"|"+r.exchange;
-      
-      // SPREAD/FUNDING alerts: NO time restrictions, fire every cycle if condition met
       if(checkAlertCondition(r.spreadPct,r.funding)){
         fireAlert("abs",r.base,r.exchange,r.spreadPct,r.funding,null);
       }
-      
-      // PRICE JUMP alerts: with anti-flood (1 alert per coin until baseline resets)
       if(alertState.priceJumpEnabled && r.perp > 0){
         const now = Date.now();
         const prevTime = alertState.prevPriceTimes[key] || 0;
         const intervalMs = (alertState.priceJumpMin || 15) * 60 * 1000;
-
         if(now - prevTime >= intervalMs){
           alertState.prevPrices[key] = r.perp;
           alertState.prevPriceTimes[key] = now;
@@ -371,7 +444,7 @@ function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){
     const ss=spreadPct<0?"":"+", fs=funding<0?"":"";
     const deltaStr = delta!=null ? ` · ${delta>0?'+':''}${delta.toFixed(2)}% за ${alertState.priceJumpMin} мин` : "";
     const body = `Спред: ${ss}${spreadPct.toFixed(2)}% · Фандинг: ${fs}${funding.toFixed(3)}%${deltaStr} · ${exchange.toUpperCase()}`;
-    const n = new Notification(`${type==="jump"?"⚡ ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});
+    const n = new Notification(`${type==="jump"?" ":""}SPREAD · ${coin}`,{body,tag:"spread-"+coin+"-"+exchange,requireInteraction:false,silent:false});
     setTimeout(()=>n.close&&n.close(),10000);
   }catch(e){}
 }
@@ -408,29 +481,60 @@ function playAlertSound(){
 
 function updateAlertBadge(){const c=alertState.feed.length;alertBadgeText.textContent=c;if(c>0){alertBadge.classList.remove("idle");alertBadge.querySelector(".pulse-dot").style.display="inline-block";}else{alertBadge.classList.add("idle");alertBadge.querySelector(".pulse-dot").style.display="none";}}
 
+const LOGO_BINANCE=`<b class="binance-word">BINANCE</b>`,LOGO_BYBIT=`<b class="bybit-word">BYB<i>I</i>T</b>`,LOGO_MEXC=`<b class="mexc-word">MEXC</b>`;
+function exBadgeHtml(ex){
+  if(!ex) return `<span class="muted-cell">—</span>`;
+  if(ex==="binance") return `<span class="ex ex-binance">${LOGO_BINANCE}</span>`;
+  if(ex==="bybit") return `<span class="ex ex-bybit">${LOGO_BYBIT}</span>`;
+  if(ex==="mexc") return `<span class="ex ex-mexc">${LOGO_MEXC}</span>`;
+  return `<span class="ex">${ex.toUpperCase()}</span>`;
+}
+
 function renderAlerts(){
-  if(alertState.feed.length===0){
-    const sd=alertState.spreadDir==="neg"?"< −":alertState.spreadDir==="pos"?"> +":"| | >";
-    const fd=alertState.fundingDir==="pos"?"> +":alertState.fundingDir==="neg"?"< −":"| | >";
-    const parts = [];
-    parts.push(`СПРЕД ${sd}${alertState.spreadThr}%`);
-    parts.push(`ФАНДИНГ ${fd}${alertState.fundingThr}%`);
-    if(alertState.priceJumpEnabled){
-      parts.push(`СКАЧОК ≥${alertState.priceJumpThr}% ЗА ${alertState.priceJumpMin} МИН`);
-    }
-    alertFeed.innerHTML=`<div class="alert-feed-empty">АЛЕРТЫ: ${parts.join(' · ')}</div>`;
+  if(alertState.feed.length === 0){
+    alertFeed.classList.add('hidden');
+    alertFeed.innerHTML = '';
     return;
   }
-  alertFeed.innerHTML=alertState.feed.map(a=>{
-    const t=new Date(a.time),ts=t.toLocaleTimeString();
-    const ec=a.exchange==="binance"?"ex-binance":a.exchange==="bybit"?"ex-bybit":"ex-mexc",el=a.exchange.toUpperCase();
-    const sc=a.spreadPct<0?"spread-val":"spread-val pos",fc=a.funding<0?"funding-val neg":"funding-val";
-    const ss=a.spreadPct<0?"":"+",fs=a.funding<0?"":"";
-    const typeLabel=a.type==="jump"?" ⚡":"";
-    const deltaStr=a.delta!=null?` · ${a.delta>0?'+':''}${a.delta.toFixed(2)}%`:"";
-    return`<div class="alert-item" data-id="${a.id}"><span class="coin">${a.coin}${typeLabel}</span><span class="exch-cell"><span class="ex ${ec}">${el}</span></span><span class="${sc}">${ss}${a.spreadPct.toFixed(2)}%</span><span class="${fc}">${fs}${a.funding.toFixed(3)}%</span><span class="time">${ts}${deltaStr}</span><button class="dismiss" data-dismiss="${a.id}">✕</button></div>`;
+  alertFeed.classList.remove('hidden');
+
+  alertFeed.innerHTML = alertState.feed.map(a => {
+    const t = new Date(a.time);
+    const ts = t.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const exchBadge = exBadgeHtml(a.exchange);
+    
+    const spSign = a.spreadPct < 0 ? "" : "+";
+    const spClass = a.spreadPct < 0 ? "spread-neg" : "spread-pos";
+    const spVal = `${spSign}${a.spreadPct.toFixed(2)}%`;
+    
+    const fuSign = a.funding < 0 ? "" : "+";
+    const fuClass = a.funding < 0 ? "funding-neg" : "funding-pos";
+    const fuVal = `${fuSign}${a.funding.toFixed(3)}%`;
+    
+    // ⚡ icon AFTER coin name ONLY for jump alerts
+    const jumpIcon = a.type === "jump" ? `<span class="jump-icon">⚡</span>` : "";
+    const jumpVal = a.delta != null ? `${a.delta>0?'+':''}${a.delta.toFixed(2)}%` : "—";
+    
+    return `<div class="alert-item" data-id="${a.id}">
+      <span class="ai-coin">${a.coin}${jumpIcon}</span>
+      <span class="ai-exch">${exchBadge}</span>
+      <span class="ai-spread ${spClass}" title="СПРЕД">${spVal}</span>
+      <span class="ai-funding ${fuClass}" title="ФАНДИНГ">${fuVal}</span>
+      <span class="ai-jump" title="СКАЧОК">${jumpVal}</span>
+      <span class="ai-time" title="ВРЕМЯ">${ts}</span>
+      <button class="ai-dismiss" data-dismiss="${a.id}" title="УДАЛИТЬ">✕</button>
+    </div>`;
   }).join("");
-  alertFeed.querySelectorAll(".dismiss").forEach(btn=>{btn.addEventListener("click",()=>{const id=btn.dataset.dismiss;alertState.feed=alertState.feed.filter(a=>a.id!==id);saveAlerts();renderAlerts();updateAlertBadge();});});
+  
+  alertFeed.querySelectorAll(".ai-dismiss").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.dismiss;
+      alertState.feed = alertState.feed.filter(a => a.id !== id);
+      saveAlerts();
+      renderAlerts();
+      updateAlertBadge();
+    });
+  });
 }
 
 function updateNotifStatus(){
@@ -474,8 +578,6 @@ function setBadge(kind){state.badge=kind;const map={api:["LIVE · API","ok"],loc
 
 function updateExButtons(){for(const n of EXCHANGES){const btn=$("ex-"+n);if(!enabled[n]){btn.textContent=n+" off";btn.className="exbtn off";btn.title="БИРЖА ВЫКЛЮЧЕНА · КЛИК, ЧТОБЫ ВКЛЮЧИТЬ";continue;}const s=state.status[n];const et=(s===false&&errors[n])?" · "+shortErr(errors[n]):"";btn.textContent=n+(s===true?" ✓":s===false?" "+et:" …");btn.className="exbtn "+(s===true?"ok":s===false?"err":"");btn.title=(errors[n]||(s===true?"OK":""))+" · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";}}
 
-const LOGO_BINANCE=`<b class="binance-word">BINANCE</b>`,LOGO_BYBIT=`<b class="bybit-word">BYB<i>I</i>T</b>`,LOGO_MEXC=`<b class="mexc-word">MEXC</b>`;
-function exBadge(ex){if(!ex)return`<span class="muted-cell">—</span>`;if(ex==="binance")return`<span class="ex ex-binance">${LOGO_BINANCE}</span>`;if(ex==="bybit")return`<span class="ex ex-bybit">${LOGO_BYBIT}</span>`;if(ex==="mexc")return`<span class="ex ex-mexc">${LOGO_MEXC}</span>`;return`<span class="ex">${ex}</span>`;}
 function fmtPrice(p){if(p==null||!isFinite(p))return"—";const a=Math.abs(p);if(a>=1000)return p.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});if(a>=1)return p.toFixed(4);if(a>=0.01)return p.toFixed(6);return p.toPrecision(4);}
 function fmtPct(x,d=3){if(x==null||!isFinite(x))return"—";return(x>0?"+":"")+x.toFixed(d)+"%";}
 function fmtVol(v){if(!v||!isFinite(v))return"—";if(v>=1e9)return(v/1e9).toFixed(2)+"B";if(v>=1e6)return(v/1e6).toFixed(2)+"M";if(v>=1e3)return(v/1e3).toFixed(1)+"K";return v.toFixed(0);}
@@ -485,7 +587,7 @@ function maxRows(){const v=parseInt(fMaxRows.value,10);return(isNaN(v)||v<=0)?In
 
 function getFilteredRows(){const q=fSearch.value.trim().toUpperCase(),exch=fExch.value,minVol=parseFloat(fVol.value)||0,minSp=parseFloat(fSpread.value)||0,maxSp=parseFloat(fMaxSpread.value)||0,onlySpot=fOnlySpot.checked,[tf,tt]=topRange();let rows=computeRows().filter(r=>{if(q&&!r.base.includes(q))return false;if(exch!=="all"&&r.exchange!==exch)return false;if(onlySpot&&r.spot==null)return false;if(minVol&&!(r.volume>=minVol))return false;if(minSp&&!(Math.abs(r.spreadPct??0)>=minSp))return false;if(maxSp&&!(Math.abs(r.spreadPct??0)<=maxSp))return false;if(tf!=null){const rk=topRank(r.base);if(rk>=tf&&rk<=tt)return false;}return true;});if(spreadMode==="pos")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct>0);else if(spreadMode==="neg")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct<0);if(fundingMode==="pos")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding>0);else if(fundingMode==="neg")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding<0);if(chg24hMode==="pos")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h>0);else if(chg24hMode==="neg")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h<0);const dims=[{key:"spread",mode:spreadMode,field:"spreadPct"},{key:"funding",mode:fundingMode,field:"funding"},{key:"chg24h",mode:chg24hMode,field:"chg24h"}];const ad=dims.filter(d=>d.mode!=="abs");if(ad.length>=2){const so=r=>{let s=0;for(const d of ad){const v=r[d.field];if(v!=null&&isFinite(v))s+=d.mode==="neg"?-v:v;}return s;};rows.sort((a,b)=>so(b)-so(a));}else if(ad.length===1){const{mode,field}=ad[0];rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return mode==="pos"?bv-av:av-bv;});}else{const field=activeSort==="funding"?"funding":activeSort==="chg24h"?"chg24h":"spreadPct";rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return Math.abs(bv)-Math.abs(av);});}return rows;}
 
-function render(){try{const rows=getFilteredRows(),shown=rows.slice(0,maxRows()),noneEnabled=EXCHANGES.every(n=>!enabled[n]);tbody.innerHTML=shown.length?shown.map(r=>{const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");const t24=r.src24?` title="Источник 24ч: ${r.src24}"`:"";const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${exBadge(r.spotSource)}</td><td>${exBadge(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;}).join(""):`<tr><td colspan="10" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;const ac=[spreadMode,fundingMode,chg24hMode].filter(m=>m!=="abs").length;const ch=ac>=2?` · КОМБО: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`:"";elCount.textContent=`ПОКАЗАНО ${shown.length} ИЗ ${rows.length}${ch}`;updateExButtons();updateSortIndicators();checkAlerts(computeRows());}catch(e){console.error("render error:",e);}}
+function render(){try{const rows=getFilteredRows(),shown=rows.slice(0,maxRows()),noneEnabled=EXCHANGES.every(n=>!enabled[n]);tbody.innerHTML=shown.length?shown.map(r=>{const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");const t24=r.src24?` title="Источник 24ч: ${r.src24}"`:"";const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${exBadgeHtml(r.spotSource)}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;}).join(""):`<tr><td colspan="10" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;const ac=[spreadMode,fundingMode,chg24hMode].filter(m=>m!=="abs").length;const ch=ac>=2?` · КОМБО: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`:"";elCount.textContent=`ПОКАЗАНО ${shown.length} ИЗ ${rows.length}${ch}`;updateExButtons();updateSortIndicators();checkAlerts(computeRows());}catch(e){console.error("render error:",e);}}
 
 function updateSortIndicators(){const st=document.querySelector("th.spread-sort");if(st){st.classList.toggle("mode-neg",spreadMode==="neg");st.classList.toggle("mode-pos",spreadMode==="pos");const a=st.querySelector(".sort-arrow");if(spreadMode==="abs")a.textContent="± ▼";else if(spreadMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}const ft=document.querySelector("th.funding-sort");if(ft){ft.classList.toggle("mode-neg",fundingMode==="neg");ft.classList.toggle("mode-pos",fundingMode==="pos");const a=ft.querySelector(".sort-arrow");if(fundingMode==="abs")a.textContent="± ▼";else if(fundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}}
 
