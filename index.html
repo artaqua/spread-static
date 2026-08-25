@@ -325,7 +325,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: алерт каждый цикл без ограничений. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается).
+  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: кулдаун 5 мин на монету. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается).
 </footer>
 
 <script type="module">
@@ -387,11 +387,15 @@ function checkAlertCondition(spreadPct,funding){const sThr=alertState.spreadThr,
 
 function fireAlert(type,coin,exchange,spreadPct,funding,delta){
   const key=type+"|"+coin+"|"+exchange;
-  if(type !== "abs"){
-    const lastAlert=alertState.lastAlertTs[key]||0;
-    if(Date.now()-lastAlert<30000) return false;
-    alertState.lastAlertTs[key]=Date.now();
-  }
+  const lastAlert=alertState.lastAlertTs[key]||0;
+  
+  // Anti-flood cooldowns:
+  // "abs" (spread/funding) — 5 minutes per coin+exchange
+  // "jump" (price jump) — 30 seconds per coin+exchange
+  const cooldownMs = (type === "abs") ? 5 * 60 * 1000 : 30000;
+  if(Date.now() - lastAlert < cooldownMs) return false;
+  
+  alertState.lastAlertTs[key]=Date.now();
   alertState.firedKeys.add(key);
   alertState.feed.unshift({id:key+"|"+Date.now(),type,coin,exchange,spreadPct,funding,delta,time:Date.now()});
   alertState.feed=alertState.feed.slice(0,50);
@@ -511,7 +515,6 @@ function renderAlerts(){
     const fuClass = a.funding < 0 ? "funding-neg" : "funding-pos";
     const fuVal = `${fuSign}${a.funding.toFixed(3)}%`;
     
-    // ⚡ icon AFTER coin name ONLY for jump alerts
     const jumpIcon = a.type === "jump" ? `<span class="jump-icon">⚡</span>` : "";
     const jumpVal = a.delta != null ? `${a.delta>0?'+':''}${a.delta.toFixed(2)}%` : "—";
     
