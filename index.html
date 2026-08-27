@@ -372,14 +372,9 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
   Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: кулдаун 5 мин на монету. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается). Список rugpull синхронизируется через Firebase Realtime Database.
 </footer>
 
-<!-- Firebase Realtime Database SDK -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
 // ============================================================
 // 🔧 НАСТРОЙКА FIREBASE (ОПЦИОНАЛЬНО)
-// Если не заполнить - приложение будет работать как статика
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAiHdO09Z9mupCEXAAe99MWRYrEX69duW4",
@@ -392,10 +387,11 @@ const firebaseConfig = {
 };
 
 // ============================================================
-// ОСНОВНОЙ КОД ПРИЛОЖЕНИЯ
+// УТИЛИТЫ И DOM (ОБЪЯВЛЯЕМ СРАЗУ)
 // ============================================================
-const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
+const $ = id => document.getElementById(id);
 
+const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
 const LS_KEY="spread-scanner-cache-v17",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
 const EXCHANGES=["mexc","binance","bybit"];
 const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
@@ -407,17 +403,27 @@ let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
 
 const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",priceJumpThr:10,priceJumpMin:15,priceJumpEnabled:false,notifEnabled:false,soundEnabled:false,prevPrices:{},prevPriceTimes:{},lastAlertTs:{}};
 let audioCtx=null;
-
 let rugpullCoins=[];
 
+// DOM элементы
+const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
+const fSearch=$("fSearch"),fExch=$("fExch"),fVol=$("fVol"),fSpread=$("fSpread"),fMaxSpread=$("fMaxSpread"),fOnlySpot=$("fOnlySpot"),fMaxRows=$("fMaxRows"),fTopFrom=$("fTopFrom"),fTopTo=$("fTopTo");
+const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed"),alertPanel=$("alertPanel");
+const alertSpreadThr=$("alertSpreadThr"),alertSpreadDir=$("alertSpreadDir"),alertFundingThr=$("alertFundingThr"),alertFundingDir=$("alertFundingDir");
+const alertPriceJumpThr=$("alertPriceJumpThr"),alertPriceJumpMin=$("alertPriceJumpMin"),alertPriceJumpEnabled=$("alertPriceJumpEnabled");
+const alertNotifEnabled=$("alertNotifEnabled"),alertSoundEnabled=$("alertSoundEnabled");
+const alertTestBtn=$("alertTestBtn"),alertClearBtn=$("alertClearBtn");
+const notifStatus=$("notifStatus"),notifStatusText=$("notifStatusText");
+const refreshBtn=$("refreshBtn");
+const rugpullTbody=$("rugpullTbody"),rugpullSearch=$("rugpullSearch"),rugpullAddBtn=$("rugpullAddBtn"),rugpullSuggestions=$("rugpullSuggestions"),rugpullCount=$("rugpullCount"),rugpullClearAll=$("rugpullClearAll");
+const rpFilterSearch=$("rpFilterSearch"),rpFilterExch=$("rpFilterExch");
+const fbSyncIndicator=$("fbSyncIndicator"),fbSyncText=$("fbSyncText");
+
 // ============================================================
-// FIREBASE REALTIME DATABASE SYNC (ОПЦИОНАЛЬНО)
+// FIREBASE REALTIME DATABASE SYNC
 // ============================================================
 let fbApp=null, fbDb=null, fbRef=null;
 let fbConnected=false, fbInitialized=false, fbSaveTimeout=null;
-
-const fbSyncIndicator=$("fbSyncIndicator");
-const fbSyncText=$("fbSyncText");
 
 function setFbStatus(status, text){
   fbSyncIndicator.className="fb-sync-indicator "+status;
@@ -435,27 +441,28 @@ function isFirebaseConfigured(){
 async function initFirebase(){
   if(!isFirebaseConfigured()){
     setFbStatus("local","FB: OFF");
-    console.log("🔸 Firebase не настроен - приложение работает в режиме статики (localStorage)");
+    console.log(" Firebase не настроен - приложение работает в режиме статики (localStorage)");
     return;
   }
   
   try{
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const { getDatabase, ref, set, onValue } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    
     fbApp=initializeApp(firebaseConfig);
     fbDb=getDatabase(fbApp);
     fbRef=ref(fbDb,"spreads/rugpull-coins");
     
     setFbStatus("syncing","FB: CONNECTING…");
     
-    // Подписываемся на изменения в реальном времени
     onValue(fbRef,(snapshot)=>{
       const data=snapshot.val();
       if(data && Array.isArray(data.coins)){
         const remoteCoins=data.coins.map(s=>String(s).toUpperCase()).filter(s=>s.length>0);
-        
         const localStr=JSON.stringify([...rugpullCoins].sort());
         const remoteStr=JSON.stringify([...remoteCoins].sort());
         if(localStr!==remoteStr){
-          console.log("🔄 Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
+          console.log(" Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
           rugpullCoins=remoteCoins;
           saveRugpullLocal();
           renderRugpull();
@@ -475,19 +482,18 @@ async function initFirebase(){
     
     console.log("✅ Firebase RTDB initialized");
   }catch(e){
-    console.error("❌ Firebase init failed:",e);
+    console.error(" Firebase init failed:",e);
     setFbStatus("local","FB: OFF");
   }
 }
 
 async function saveToFirebase(){
-  if(!fbRef || !fbInitialized){
-    return;
-  }
+  if(!fbRef || !fbInitialized) return;
   
   clearTimeout(fbSaveTimeout);
   fbSaveTimeout=setTimeout(async ()=>{
     try{
+      const { set } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
       setFbStatus("syncing","FB: SAVING…");
       await set(fbRef,{
         coins:rugpullCoins,
@@ -504,7 +510,7 @@ async function saveToFirebase(){
 }
 
 // ============================================================
-// LOCALSTORAGE (ВСЕГДА РАБОТАЕТ)
+// LOCALSTORAGE
 // ============================================================
 function loadAlerts(){try{const r=localStorage.getItem(LS_ALERTS);if(!r)return;const d=JSON.parse(r);if(typeof d.spreadThr==='number')alertState.spreadThr=d.spreadThr;if(typeof d.spreadDir==='string')alertState.spreadDir=d.spreadDir;if(typeof d.fundingThr==='number')alertState.fundingThr=d.fundingThr;if(typeof d.fundingDir==='string')alertState.fundingDir=d.fundingDir;if(typeof d.priceJumpThr==='number')alertState.priceJumpThr=d.priceJumpThr;if(typeof d.priceJumpMin==='number')alertState.priceJumpMin=d.priceJumpMin;if(typeof d.priceJumpEnabled==='boolean')alertState.priceJumpEnabled=d.priceJumpEnabled;if(typeof d.notifEnabled==='boolean')alertState.notifEnabled=d.notifEnabled;if(typeof d.soundEnabled==='boolean')alertState.soundEnabled=d.soundEnabled;if(Array.isArray(d.feed))alertState.feed=d.feed.slice(0,50);if(Array.isArray(d.firedKeys))d.firedKeys.forEach(k=>alertState.firedKeys.add(k));}catch(e){}}
 function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadThr:alertState.spreadThr,spreadDir:alertState.spreadDir,fundingThr:alertState.fundingThr,fundingDir:alertState.fundingDir,priceJumpThr:alertState.priceJumpThr,priceJumpMin:alertState.priceJumpMin,priceJumpEnabled:alertState.priceJumpEnabled,notifEnabled:alertState.notifEnabled,soundEnabled:alertState.soundEnabled,feed:alertState.feed.slice(0,50),firedKeys:Array.from(alertState.firedKeys).slice(-200)}));}catch(e){}}
@@ -517,19 +523,6 @@ function saveRugpull(){
     saveToFirebase();
   }
 }
-
-const $=id=>document.getElementById(id);
-const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
-const fSearch=$("fSearch"),fExch=$("fExch"),fVol=$("fVol"),fSpread=$("fSpread"),fMaxSpread=$("fMaxSpread"),fOnlySpot=$("fOnlySpot"),fMaxRows=$("fMaxRows"),fTopFrom=$("fTopFrom"),fTopTo=$("fTopTo");
-const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed"),alertPanel=$("alertPanel");
-const alertSpreadThr=$("alertSpreadThr"),alertSpreadDir=$("alertSpreadDir"),alertFundingThr=$("alertFundingThr"),alertFundingDir=$("alertFundingDir");
-const alertPriceJumpThr=$("alertPriceJumpThr"),alertPriceJumpMin=$("alertPriceJumpMin"),alertPriceJumpEnabled=$("alertPriceJumpEnabled");
-const alertNotifEnabled=$("alertNotifEnabled"),alertSoundEnabled=$("alertSoundEnabled");
-const alertTestBtn=$("alertTestBtn"),alertClearBtn=$("alertClearBtn");
-const notifStatus=$("notifStatus"),notifStatusText=$("notifStatusText");
-const refreshBtn=$("refreshBtn");
-const rugpullTbody=$("rugpullTbody"),rugpullSearch=$("rugpullSearch"),rugpullAddBtn=$("rugpullAddBtn"),rugpullSuggestions=$("rugpullSuggestions"),rugpullCount=$("rugpullCount"),rugpullClearAll=$("rugpullClearAll");
-const rpFilterSearch=$("rpFilterSearch"),rpFilterExch=$("rpFilterExch");
 
 function syncExchFilterWithEnabled(){if(fExch.value!=="all"&&!enabled[fExch.value])fExch.value="all";}
 
@@ -717,7 +710,7 @@ function testNotification(){
     try{
       const n1=new Notification("📊 СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
       setTimeout(()=>n1.close&&n1.close(),6000);
-      setTimeout(()=>{const n2=new Notification("⚡ СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
+      setTimeout(()=>{const n2=new Notification(" СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
     }catch(e){alert("Не удалось показать уведомление: "+e.message);}
   };
   if(Notification.permission==="granted")trySend();
@@ -818,15 +811,11 @@ function getRugpullRows(){
   const allRows=computeRows();
   const rpSet=new Set(rugpullCoins);
   let rows=allRows.filter(r=>rpSet.has(r.base));
-  
   const rpQ=rpFilterSearch.value.trim().toUpperCase();
   const rpExch=rpFilterExch.value;
-  
   if(rpQ)rows=rows.filter(r=>r.base.includes(rpQ));
   if(rpExch!=="all")rows=rows.filter(r=>r.exchange===rpExch);
-  
   rows.sort((a,b)=>a.base.localeCompare(b.base));
-  
   return rows;
 }
 
@@ -834,16 +823,13 @@ function renderRugpull(){
   try{
     const rows=getRugpullRows();
     rugpullCount.textContent=`· МОНЕТ: ${rugpullCoins.length} · ПОКАЗАНО: ${rows.length}`;
-    
     if(rugpullCoins.length===0){
       rugpullTbody.innerHTML=`<tr><td colspan="10" class="empty">ДОБАВЬТЕ МОНЕТЫ ДЛЯ ОТСЛЕЖИВАНИЯ</td></tr>`;
       return;
     }
-    
     const shownCoins=new Set(rows.map(r=>r.base));
     const missingCoins=rugpullCoins.filter(c=>!shownCoins.has(c));
     let html='';
-    
     if(rows.length>0){
       html=rows.map(r=>{
         const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
@@ -865,7 +851,6 @@ function renderRugpull(){
         </tr>`;
       }).join("");
     }
-    
     if(missingCoins.length>0){
       html+=missingCoins.map(coin=>{
         return`<tr>
@@ -875,14 +860,9 @@ function renderRugpull(){
         </tr>`;
       }).join("");
     }
-    
     rugpullTbody.innerHTML=html||`<tr><td colspan="10" class="empty">НЕТ ДАННЫХ ДЛЯ ОТСЛЕЖИВАЕМЫХ МОНЕТ</td></tr>`;
-    
     rugpullTbody.querySelectorAll(".rp-remove-btn").forEach(btn=>{
-      btn.addEventListener("click",(e)=>{
-        e.stopPropagation();
-        removeRugpullCoin(btn.dataset.remove);
-      });
+      btn.addEventListener("click",(e)=>{e.stopPropagation();removeRugpullCoin(btn.dataset.remove);});
     });
   }catch(e){console.error("renderRugpull error:",e);}
 }
@@ -910,38 +890,25 @@ function showSuggestions(query){
   const allRows=computeRows();
   const rowMap=new Map(allRows.map(r=>[r.base,r]));
   const allCoins=new Set([...allRows.map(r=>r.base),...Object.keys(state.spotBook)]);
-  let matches=[...allCoins]
-    .filter(c=>c.includes(q)&&!rugpullCoins.includes(c))
-    .sort((a,b)=>{const aStart=a.startsWith(q)?0:1;const bStart=b.startsWith(q)?0:1;if(aStart!==bStart)return aStart-bStart;return a.localeCompare(b);})
-    .slice(0,20);
+  let matches=[...allCoins].filter(c=>c.includes(q)&&!rugpullCoins.includes(c)).sort((a,b)=>{const aStart=a.startsWith(q)?0:1;const bStart=b.startsWith(q)?0:1;if(aStart!==bStart)return aStart-bStart;return a.localeCompare(b);}).slice(0,20);
   if(matches.length===0){hideSuggestions();return;}
-  rugpullSuggestions.innerHTML=matches.map(coin=>{
-    const row=rowMap.get(coin);
-    const info=row?`${row.exchange.toUpperCase()} · ${fmtPct(row.spreadPct,2)}`:'нет данных';
-    return`<div class="rugpull-suggestion" data-coin="${coin}"><span class="rs-coin">${coin}</span><span class="rs-info">${info}</span></div>`;
-  }).join("");
+  rugpullSuggestions.innerHTML=matches.map(coin=>{const row=rowMap.get(coin);const info=row?`${row.exchange.toUpperCase()} · ${fmtPct(row.spreadPct,2)}`:'нет данных';return`<div class="rugpull-suggestion" data-coin="${coin}"><span class="rs-coin">${coin}</span><span class="rs-info">${info}</span></div>`;}).join("");
   rugpullSuggestions.style.display='block';
-  rugpullSuggestions.querySelectorAll('.rugpull-suggestion').forEach(el=>{
-    el.addEventListener('click',()=>{addRugpullCoin(el.dataset.coin);});
-  });
+  rugpullSuggestions.querySelectorAll('.rugpull-suggestion').forEach(el=>{el.addEventListener('click',()=>{addRugpullCoin(el.dataset.coin);});});
 }
 
 function hideSuggestions(){rugpullSuggestions.style.display='none';rugpullSuggestions.innerHTML='';}
 
 rugpullSearch.addEventListener('input',()=>{showSuggestions(rugpullSearch.value);});
-rugpullSearch.addEventListener('keydown',(e)=>{
-  if(e.key==='Enter'){e.preventDefault();const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);}
-  if(e.key==='Escape'){hideSuggestions();rugpullSearch.blur();}
-});
+rugpullSearch.addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.preventDefault();const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);}if(e.key==='Escape'){hideSuggestions();rugpullSearch.blur();}});
 rugpullSearch.addEventListener('focus',()=>{if(rugpullSearch.value.trim())showSuggestions(rugpullSearch.value);});
 rugpullSearch.addEventListener('blur',()=>{setTimeout(hideSuggestions,200);});
 rugpullAddBtn.addEventListener('click',()=>{const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);else rugpullSearch.focus();});
 rugpullClearAll.addEventListener('click',()=>{if(rugpullCoins.length===0)return;rugpullCoins=[];saveRugpull();renderRugpull();});
-
 rpFilterSearch.addEventListener('input',()=>{renderRugpull();});
 rpFilterExch.addEventListener('change',()=>{renderRugpull();});
 
-// ===================== END RUGPULL =====================
+// ===================== EVENT LISTENERS =====================
 
 [fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input",render));
 document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
@@ -964,6 +931,8 @@ refreshBtn.addEventListener("click",()=>{if(busy)return;clearTimeout(fastTimer);
 
 setInterval(()=>{const left=Math.max(0,Math.ceil((nextAt-Date.now())/1000));elNext.textContent=nextAt?left+"С":"—";elLast.textContent=state.lastApiAt?new Date(state.lastApiAt).toLocaleTimeString():"--:--:--";},500);
 
+// ===================== INIT =====================
+
 loadAlerts();loadRugpull();
 alertSpreadThr.value=alertState.spreadThr;alertSpreadDir.value=alertState.spreadDir;
 alertFundingThr.value=alertState.fundingThr;alertFundingDir.value=alertState.fundingDir;
@@ -974,7 +943,6 @@ updateAlertBadge();renderAlerts();updateNotifStatus();
 syncExchFilterWithEnabled();
 renderRugpull();
 
-// Инициализация Firebase (опционально)
 initFirebase();
 
 const cache=loadCache();
