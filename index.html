@@ -6,7 +6,7 @@
 <title>SPREAD // Spot-Perp Scanner — static</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-:root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF;--purple:#A855F7;--purple-dim:#3B1F5E;--purple-glow:rgba(168,85,247,0.10);--purple-header:#221a2e;--fb-connected:#3ED888;--fb-disconnected:#FF5B5B;--fb-syncing:#FFB300}
+:root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF;--purple:#A855F7;--purple-dim:#3B1F5E;--purple-glow:rgba(168,85,247,0.10);--purple-header:#221a2e}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{background:var(--void);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
@@ -20,7 +20,7 @@ h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:
 @media(max-width:1200px){.status-line{justify-content:flex-start}}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s ease-in-out infinite}.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase;margin-right: 8px;}.badge-txt.ok{color:var(--green)}.badge-txt.local{color:var(--amber)}.badge-txt.busy{color:var(--muted)}.badge-txt.err{color:var(--red)}
+.badge-txt{font-size:12px;font-weight:600;text-transform:uppercase;margin-right:8px}.badge-txt.ok{color:var(--green)}.badge-txt.local{color:var(--amber)}.badge-txt.busy{color:var(--muted)}.badge-txt.err{color:var(--red)}
 .time-row{margin-top:10px;display:flex;align-items:center;justify-content:right;gap:8px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .time-row b{color:var(--text);font-weight:600}.time-row .clock{font-size:12px;color:var(--text);font-weight:700;letter-spacing:.05em}
 .slash{color:var(--amber);font-weight:700}
@@ -33,7 +33,7 @@ h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:
 select,input{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase}
 select:focus,input:focus{outline:1px solid var(--amber-dim)}
 input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;border:1px solid var(--border);border-radius:2px;accent-color:var(--amber);cursor:pointer}
-.hint{display:flex;justify-content: center;align-items: center;gap:6px;color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
+.hint{display:flex;justify-content:center;align-items:center;gap:6px;color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
 .chk{display:flex;align-items:center;gap:6px;cursor:pointer}.gap-left{margin-left:14px}
 
 .alert-panel,.table-panel,.rugpull-panel{margin:14px 14px 0;border:1px solid var(--border);border-radius:6px;background:var(--panel);overflow:hidden}
@@ -61,90 +61,28 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .alert-feed::-webkit-scrollbar{width:8px}
 .alert-feed::-webkit-scrollbar-track{background:transparent}
 .alert-feed::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:4px;border:2px solid var(--panel)}
-
 .alert-feed.hidden{display:none}
 
-.alert-item{
-  display:grid;
-  grid-template-columns: 40px 110px 90px 90px 90px 90px 90px 28px;
-  gap: 0;
-  padding: 7px 14px;
-  border-bottom: 1px solid #1c1d20;
-  align-items: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11.5px;
-  animation: alertIn .25s ease-out;
-}
+.alert-item{display:grid;grid-template-columns:40px 110px 90px 90px 90px 90px 90px 28px;gap:0;padding:7px 14px;border-bottom:1px solid #1c1d20;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11.5px;animation:alertIn .25s ease-out}
 @keyframes alertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .alert-item:last-child{border-bottom:none}
 .alert-item:hover{background:rgba(255,255,255,0.02)}
 .alert-item.type-spread{border-left:3px solid var(--amber)}
 .alert-item.type-jump{border-left:3px solid var(--red)}
-
-.alert-item .ai-type-badge{
-  font-size:9px;
-  font-weight:700;
-  padding:2px 5px;
-  border-radius:3px;
-  text-transform:uppercase;
-  letter-spacing:.04em;
-  text-align:center;
-  line-height:1.3;
-}
+.alert-item .ai-type-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em;text-align:center;line-height:1.3}
 .ai-type-badge.spread-badge{background:rgba(255,179,0,0.15);color:var(--amber)}
 .ai-type-badge.jump-badge{background:rgba(255,91,91,0.15);color:var(--red)}
-
-.alert-item .ai-coin{
-  font-weight:700;
-  color:var(--text);
-  display:flex;
-  align-items:center;
-  gap:5px;
-}
-.alert-item .ai-coin .jump-icon{
-  color:var(--amber);
-  font-size:12px;
-}
-.alert-item .ai-exch{
-  display:flex;
-  align-items:center;
-}
-.alert-item .ai-spread{
-  font-weight:700;
-  text-align:right;
-}
-.alert-item .ai-funding{
-  font-weight:700;
-  text-align:right;
-}
-.alert-item .ai-time{
-  color:var(--muted);
-  font-size:10.5px;
-  text-align:right;
-}
-.alert-item .ai-jump{
-  font-weight:700;
-  color:var(--text);
-  text-align:right;
-}
-.alert-item .ai-dismiss{
-  background:transparent;
-  border:none;
-  color:var(--muted);
-  cursor:pointer;
-  font-size:13px;
-  padding:0 4px;
-  opacity:.5;
-  transition:opacity .15s;
-  text-align:center;
-}
+.alert-item .ai-coin{font-weight:700;color:var(--text);display:flex;align-items:center;gap:5px}
+.alert-item .ai-coin .jump-icon{color:var(--amber);font-size:12px}
+.alert-item .ai-exch{display:flex;align-items:center}
+.alert-item .ai-spread{font-weight:700;text-align:right}
+.alert-item .ai-funding{font-weight:700;text-align:right}
+.alert-item .ai-time{color:var(--muted);font-size:10.5px;text-align:right}
+.alert-item .ai-jump{font-weight:700;color:var(--text);text-align:right}
+.alert-item .ai-dismiss{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 4px;opacity:.5;transition:opacity .15s;text-align:center}
 .alert-item .ai-dismiss:hover{opacity:1;color:var(--red)}
 
-.spread-neg{color:var(--red)}
-.spread-pos{color:var(--green)}
-.funding-pos{color:var(--green)}
-.funding-neg{color:var(--red)}
-
+.spread-neg{color:var(--red)}.spread-pos{color:var(--green)}.funding-pos{color:var(--green)}.funding-neg{color:var(--red)}
 .ex{padding:3px 8px;border-radius:3px;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1;vertical-align:middle}
 .ex-binance{background:rgba(240,185,11,.15);color:var(--binance)}
 .ex-bybit{background:rgba(247,166,0,.15);color:var(--bybit)}
@@ -216,30 +154,11 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .rp-coin-cell .rp-remove-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px;opacity:.4;transition:all .15s;margin-left:4px}
 .rp-coin-cell .rp-remove-btn:hover{opacity:1;color:var(--red)}
 
-/* Firebase sync status indicator */
-.fb-sync-indicator{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-family:'JetBrains Mono',monospace;
-  font-size:10px;
-  padding:3px 8px;
-  border-radius:3px;
-  border:1px solid var(--border);
-  background:var(--panel);
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.06em;
-  transition:all .2s;
-}
-.fb-sync-indicator .fb-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--fb-disconnected);
-  transition:background .3s;
-}
-.fb-sync-indicator.connected .fb-dot{background:var(--fb-connected);box-shadow:0 0 6px var(--fb-connected);animation:pulse 1.4s ease-in-out infinite}
-.fb-sync-indicator.syncing .fb-dot{background:var(--fb-syncing);box-shadow:0 0 6px var(--fb-syncing)}
-.fb-sync-indicator.error .fb-dot{background:var(--fb-disconnected)}
+.fb-sync-indicator{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border);background:var(--panel);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;transition:all .2s}
+.fb-sync-indicator .fb-dot{width:7px;height:7px;border-radius:50%;background:var(--red);transition:background .3s}
+.fb-sync-indicator.connected .fb-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 1.4s ease-in-out infinite}
+.fb-sync-indicator.syncing .fb-dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.fb-sync-indicator.error .fb-dot{background:var(--red)}
 .fb-sync-indicator.local .fb-dot{background:var(--amber)}
 
 footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.4}
@@ -450,28 +369,26 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: кулдаун 5 мин на монету. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается). Список rugpull синхронизируется через Firebase.
+  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: кулдаун 5 мин на монету. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается). Список rugpull синхронизируется через Firebase Realtime Database.
 </footer>
 
-<!-- Firebase SDK -->
+<!-- Firebase Realtime Database SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // ============================================================
-// ⚠️ ЗАМЕНИ НА СВОИ FIREBASE CREDENTIALS
-// 1. Создай проект на https://console.firebase.google.com
-// 2. Добавь Web App → скопируй firebaseConfig
-// 3. В Firestore Database создай базу (test mode)
-// 4. Вставь конфиг ниже:
+// 🔧 НАСТРОЙКА FIREBASE (ОПЦИОНАЛЬНО)
+// Если не заполнить - приложение будет работать как статика
 // ============================================================
 const firebaseConfig = {
-  apiKey: "ВСТАВЬ_API_KEY",
-  authDomain: "ВСТАВЬ_AUTH_DOMAIN",
-  projectId: "ВСТАВЬ_PROJECT_ID",
-  storageBucket: "ВСТАВЬ_STORAGE_BUCKET",
-  messagingSenderId: "ВСТАВЬ_SENDER_ID",
-  appId: "ВСТАВЬ_APP_ID"
+  apiKey: "", // Вставь API_KEY или оставь пустым для работы без Firebase
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
 };
 
 // ============================================================
@@ -494,12 +411,10 @@ let audioCtx=null;
 let rugpullCoins=[];
 
 // ============================================================
-// FIREBASE SYNC
+// FIREBASE REALTIME DATABASE SYNC (ОПЦИОНАЛЬНО)
 // ============================================================
-let fbApp=null, fbDb=null, fbDocRef=null;
-let fbConnected=false, fbSubscribed=false;
-let fbSaveTimeout=null;
-const FB_DOC_ID="spread-scanner-rugpull";
+let fbApp=null, fbDb=null, fbRef=null;
+let fbConnected=false, fbInitialized=false, fbSaveTimeout=null;
 
 const fbSyncIndicator=$("fbSyncIndicator");
 const fbSyncText=$("fbSyncText");
@@ -509,92 +424,98 @@ function setFbStatus(status, text){
   fbSyncText.textContent=text;
 }
 
+function isFirebaseConfigured(){
+  return firebaseConfig.apiKey && 
+         firebaseConfig.apiKey !== "" && 
+         !firebaseConfig.apiKey.includes("ВСТАВЬ") &&
+         firebaseConfig.databaseURL && 
+         firebaseConfig.databaseURL !== "";
+}
+
 async function initFirebase(){
+  if(!isFirebaseConfigured()){
+    setFbStatus("local","FB: OFF");
+    console.log("🔸 Firebase не настроен - приложение работает в режиме статики (localStorage)");
+    return;
+  }
+  
   try{
-    // Проверяем что конфиг валидный (не placeholder)
-    if(!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("ВСТАВЬ")){
-      setFbStatus("local","FB: LOCAL ONLY");
-      console.log("Firebase не сконфигурирован — используется только localStorage");
-      return;
-    }
-    
     fbApp=initializeApp(firebaseConfig);
-    fbDb=getFirestore(fbApp);
-    fbDocRef=doc(fbDb,"scanner","rugpull-coins");
+    fbDb=getDatabase(fbApp);
+    fbRef=ref(fbDb,"spreads/rugpull-coins");
     
     setFbStatus("syncing","FB: CONNECTING…");
     
     // Подписываемся на изменения в реальном времени
-    onSnapshot(fbDocRef,(snapshot)=>{
-      if(snapshot.exists()){
-        const data=snapshot.data();
-        const remoteCoins=Array.isArray(data.coins)?data.coins.map(s=>String(s).toUpperCase()).filter(s=>s.length>0):[];
+    onValue(fbRef,(snapshot)=>{
+      const data=snapshot.val();
+      if(data && Array.isArray(data.coins)){
+        const remoteCoins=data.coins.map(s=>String(s).toUpperCase()).filter(s=>s.length>0);
         
-        // Если данные с сервера отличаются от локальных — обновляем локальные
         const localStr=JSON.stringify([...rugpullCoins].sort());
         const remoteStr=JSON.stringify([...remoteCoins].sort());
         if(localStr!==remoteStr){
-          console.log("Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
+          console.log("🔄 Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
           rugpullCoins=remoteCoins;
-          saveRugpull(); // сохраняем в localStorage как кэш
+          saveRugpullLocal();
           renderRugpull();
         }
-      }else{
-        // Документ не существует — создаём с текущими локальными данными
-        console.log("Firebase: документ не найден, создаём с локальными данными");
       }
       if(!fbConnected){
         fbConnected=true;
+        fbInitialized=true;
         setFbStatus("connected","FB: SYNCED");
+        console.log("✅ Firebase подключен и синхронизирован");
       }
     },(err)=>{
-      console.error("Firebase snapshot error:",err);
+      console.error("❌ Firebase RTDB error:",err);
       fbConnected=false;
       setFbStatus("error","FB: ERROR");
     });
     
-    fbSubscribed=true;
-    console.log("Firebase initialized successfully");
+    console.log("✅ Firebase RTDB initialized");
   }catch(e){
-    console.error("Firebase init failed:",e);
-    setFbStatus("error","FB: OFFLINE");
+    console.error("❌ Firebase init failed:",e);
+    setFbStatus("local","FB: OFF");
   }
 }
 
 async function saveToFirebase(){
-  if(!fbDocRef){
-    setFbStatus("local","FB: LOCAL ONLY");
+  if(!fbRef || !fbInitialized){
     return;
   }
   
-  // Debounce — не сохранять чаще чем раз в 500мс
   clearTimeout(fbSaveTimeout);
   fbSaveTimeout=setTimeout(async ()=>{
     try{
       setFbStatus("syncing","FB: SAVING…");
-      await setDoc(fbDocRef,{
+      await set(fbRef,{
         coins:rugpullCoins,
         updatedAt:Date.now(),
         updatedAtStr:new Date().toISOString()
-      },{merge:true});
+      });
       if(fbConnected)setFbStatus("connected","FB: SYNCED");
+      console.log("💾 Данные сохранены в Firebase");
     }catch(e){
-      console.error("Firebase save error:",e);
+      console.error("❌ Firebase save error:",e);
       setFbStatus("error","FB: SAVE FAIL");
     }
   },500);
 }
 
 // ============================================================
-// LOCALSTORAGE (fallback)
+// LOCALSTORAGE (ВСЕГДА РАБОТАЕТ)
 // ============================================================
 function loadAlerts(){try{const r=localStorage.getItem(LS_ALERTS);if(!r)return;const d=JSON.parse(r);if(typeof d.spreadThr==='number')alertState.spreadThr=d.spreadThr;if(typeof d.spreadDir==='string')alertState.spreadDir=d.spreadDir;if(typeof d.fundingThr==='number')alertState.fundingThr=d.fundingThr;if(typeof d.fundingDir==='string')alertState.fundingDir=d.fundingDir;if(typeof d.priceJumpThr==='number')alertState.priceJumpThr=d.priceJumpThr;if(typeof d.priceJumpMin==='number')alertState.priceJumpMin=d.priceJumpMin;if(typeof d.priceJumpEnabled==='boolean')alertState.priceJumpEnabled=d.priceJumpEnabled;if(typeof d.notifEnabled==='boolean')alertState.notifEnabled=d.notifEnabled;if(typeof d.soundEnabled==='boolean')alertState.soundEnabled=d.soundEnabled;if(Array.isArray(d.feed))alertState.feed=d.feed.slice(0,50);if(Array.isArray(d.firedKeys))d.firedKeys.forEach(k=>alertState.firedKeys.add(k));}catch(e){}}
 function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadThr:alertState.spreadThr,spreadDir:alertState.spreadDir,fundingThr:alertState.fundingThr,fundingDir:alertState.fundingDir,priceJumpThr:alertState.priceJumpThr,priceJumpMin:alertState.priceJumpMin,priceJumpEnabled:alertState.priceJumpEnabled,notifEnabled:alertState.notifEnabled,soundEnabled:alertState.soundEnabled,feed:alertState.feed.slice(0,50),firedKeys:Array.from(alertState.firedKeys).slice(-200)}));}catch(e){}}
 
 function loadRugpull(){try{const r=localStorage.getItem(LS_RUGPULL);if(!r)return;const d=JSON.parse(r);if(Array.isArray(d))rugpullCoins=d.map(s=>s.toUpperCase()).filter(s=>s.length>0);}catch(e){}}
+function saveRugpullLocal(){try{localStorage.setItem(LS_RUGPULL,JSON.stringify(rugpullCoins));}catch(e){}}
 function saveRugpull(){
-  try{localStorage.setItem(LS_RUGPULL,JSON.stringify(rugpullCoins));}catch(e){}
-  saveToFirebase(); // сохраняем и в Firebase
+  saveRugpullLocal();
+  if(isFirebaseConfigured()){
+    saveToFirebase();
+  }
 }
 
 const $=id=>document.getElementById(id);
@@ -757,7 +678,7 @@ function renderAlerts(){
     const spSign=a.spreadPct<0?"":"+",spClass=a.spreadPct<0?"spread-neg":"spread-pos",spVal=`${spSign}${a.spreadPct.toFixed(2)}%`;
     const fuSign=a.funding<0?"":"+",fuClass=a.funding<0?"funding-neg":"funding-pos",fuVal=`${fuSign}${a.funding.toFixed(3)}%`;
     const typeClass=a.type==="jump"?"type-jump":"type-spread";
-    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ"></span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ"></span>`;
+    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ">⚡</span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ"></span>`;
     const jumpVal=a.delta!=null?`${a.delta>0?'+':''}${a.delta.toFixed(2)}%`:"—";
     return`<div class="alert-item ${typeClass}" data-id="${a.id}">
       <span>${typeBadgeHtml}</span>
@@ -796,7 +717,7 @@ function testNotification(){
     try{
       const n1=new Notification("📊 СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
       setTimeout(()=>n1.close&&n1.close(),6000);
-      setTimeout(()=>{const n2=new Notification(" СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
+      setTimeout(()=>{const n2=new Notification("⚡ СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
     }catch(e){alert("Не удалось показать уведомление: "+e.message);}
   };
   if(Notification.permission==="granted")trySend();
@@ -971,7 +892,7 @@ function addRugpullCoin(coin){
   if(!c||c.length<1)return;
   if(rugpullCoins.includes(c))return;
   rugpullCoins.push(c);
-  saveRugpull(); // сохраняет и в localStorage и в Firebase
+  saveRugpull();
   renderRugpull();
   rugpullSearch.value='';
   hideSuggestions();
@@ -979,7 +900,7 @@ function addRugpullCoin(coin){
 
 function removeRugpullCoin(coin){
   rugpullCoins=rugpullCoins.filter(c=>c!==coin);
-  saveRugpull(); // сохраняет и в localStorage и в Firebase
+  saveRugpull();
   renderRugpull();
 }
 
@@ -1053,7 +974,7 @@ updateAlertBadge();renderAlerts();updateNotifStatus();
 syncExchFilterWithEnabled();
 renderRugpull();
 
-// Инициализация Firebase
+// Инициализация Firebase (опционально)
 initFirebase();
 
 const cache=loadCache();
