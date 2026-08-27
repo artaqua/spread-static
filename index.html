@@ -6,7 +6,7 @@
 <title>SPREAD // Spot-Perp Scanner — static</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-:root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF;--purple:#A855F7;--purple-dim:#3B1F5E;--purple-glow:rgba(168,85,247,0.10);--purple-header:#221a2e}
+:root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF;--purple:#A855F7;--purple-dim:#3B1F5E;--purple-glow:rgba(168,85,247,0.10);--purple-header:#221a2e;--fb-connected:#3ED888;--fb-disconnected:#FF5B5B;--fb-syncing:#FFB300}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{background:var(--void);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
@@ -216,6 +216,32 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .rp-coin-cell .rp-remove-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px;opacity:.4;transition:all .15s;margin-left:4px}
 .rp-coin-cell .rp-remove-btn:hover{opacity:1;color:var(--red)}
 
+/* Firebase sync status indicator */
+.fb-sync-indicator{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  padding:3px 8px;
+  border-radius:3px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  transition:all .2s;
+}
+.fb-sync-indicator .fb-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--fb-disconnected);
+  transition:background .3s;
+}
+.fb-sync-indicator.connected .fb-dot{background:var(--fb-connected);box-shadow:0 0 6px var(--fb-connected);animation:pulse 1.4s ease-in-out infinite}
+.fb-sync-indicator.syncing .fb-dot{background:var(--fb-syncing);box-shadow:0 0 6px var(--fb-syncing)}
+.fb-sync-indicator.error .fb-dot{background:var(--fb-disconnected)}
+.fb-sync-indicator.local .fb-dot{background:var(--amber)}
+
 footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.4}
 
 @media(max-width:900px){
@@ -250,6 +276,10 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
       <button class="exbtn" id="ex-mexc" aria-pressed="true">mexc …</button>
       <button class="exbtn" id="ex-binance" aria-pressed="true">binance …</button>
       <button class="exbtn" id="ex-bybit" aria-pressed="true">bybit …</button>
+      <div class="fb-sync-indicator" id="fbSyncIndicator" title="Статус синхронизации Firebase">
+        <span class="fb-dot"></span>
+        <span id="fbSyncText">FB: OFF</span>
+      </div>
     </div>
     <div class="time-row">
       <span>NEXT UPDATE: <b id="nextUpd">—</b></span>
@@ -389,9 +419,9 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
         <tr>
           <th>Монета</th><th>Спот-биржа</th><th>Перп-биржа</th><th>Спот</th><th>Перп</th>
           <th>Спред (абс.)</th>
-          <th class="sortable rp-spread-sort">Спред % <span class="sort-arrow">▼</span></th>
-          <th class="sortable rp-funding-sort">Фандинг % <span class="sort-arrow">▼</span></th>
-          <th class="sortable rp-chg24h-sort">24ч Δ % <span class="sort-arrow">▼</span></th>
+          <th>Спред %</th>
+          <th>Фандинг %</th>
+          <th>24ч Δ %</th>
           <th>Объём 24ч</th>
         </tr>
       </thead>
@@ -420,10 +450,33 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: кулдаун 5 мин на монету. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается).
+  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: кулдаун 5 мин на монету. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается). Список rugpull синхронизируется через Firebase.
 </footer>
 
+<!-- Firebase SDK -->
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ============================================================
+// ⚠️ ЗАМЕНИ НА СВОИ FIREBASE CREDENTIALS
+// 1. Создай проект на https://console.firebase.google.com
+// 2. Добавь Web App → скопируй firebaseConfig
+// 3. В Firestore Database создай базу (test mode)
+// 4. Вставь конфиг ниже:
+// ============================================================
+const firebaseConfig = {
+  apiKey: "ВСТАВЬ_API_KEY",
+  authDomain: "ВСТАВЬ_AUTH_DOMAIN",
+  projectId: "ВСТАВЬ_PROJECT_ID",
+  storageBucket: "ВСТАВЬ_STORAGE_BUCKET",
+  messagingSenderId: "ВСТАВЬ_SENDER_ID",
+  appId: "ВСТАВЬ_APP_ID"
+};
+
+// ============================================================
+// ОСНОВНОЙ КОД ПРИЛОЖЕНИЯ
+// ============================================================
 const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
 
 const LS_KEY="spread-scanner-cache-v17",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
@@ -434,18 +487,115 @@ const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],las
 const errors={binance:null,bybit:null,mexc:null};
 let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
 let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
-let rpSpreadMode="abs",rpFundingMode="abs",rpChg24hMode="abs";
 
 const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",priceJumpThr:10,priceJumpMin:15,priceJumpEnabled:false,notifEnabled:false,soundEnabled:false,prevPrices:{},prevPriceTimes:{},lastAlertTs:{}};
 let audioCtx=null;
 
 let rugpullCoins=[];
 
+// ============================================================
+// FIREBASE SYNC
+// ============================================================
+let fbApp=null, fbDb=null, fbDocRef=null;
+let fbConnected=false, fbSubscribed=false;
+let fbSaveTimeout=null;
+const FB_DOC_ID="spread-scanner-rugpull";
+
+const fbSyncIndicator=$("fbSyncIndicator");
+const fbSyncText=$("fbSyncText");
+
+function setFbStatus(status, text){
+  fbSyncIndicator.className="fb-sync-indicator "+status;
+  fbSyncText.textContent=text;
+}
+
+async function initFirebase(){
+  try{
+    // Проверяем что конфиг валидный (не placeholder)
+    if(!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("ВСТАВЬ")){
+      setFbStatus("local","FB: LOCAL ONLY");
+      console.log("Firebase не сконфигурирован — используется только localStorage");
+      return;
+    }
+    
+    fbApp=initializeApp(firebaseConfig);
+    fbDb=getFirestore(fbApp);
+    fbDocRef=doc(fbDb,"scanner","rugpull-coins");
+    
+    setFbStatus("syncing","FB: CONNECTING…");
+    
+    // Подписываемся на изменения в реальном времени
+    onSnapshot(fbDocRef,(snapshot)=>{
+      if(snapshot.exists()){
+        const data=snapshot.data();
+        const remoteCoins=Array.isArray(data.coins)?data.coins.map(s=>String(s).toUpperCase()).filter(s=>s.length>0):[];
+        
+        // Если данные с сервера отличаются от локальных — обновляем локальные
+        const localStr=JSON.stringify([...rugpullCoins].sort());
+        const remoteStr=JSON.stringify([...remoteCoins].sort());
+        if(localStr!==remoteStr){
+          console.log("Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
+          rugpullCoins=remoteCoins;
+          saveRugpull(); // сохраняем в localStorage как кэш
+          renderRugpull();
+        }
+      }else{
+        // Документ не существует — создаём с текущими локальными данными
+        console.log("Firebase: документ не найден, создаём с локальными данными");
+      }
+      if(!fbConnected){
+        fbConnected=true;
+        setFbStatus("connected","FB: SYNCED");
+      }
+    },(err)=>{
+      console.error("Firebase snapshot error:",err);
+      fbConnected=false;
+      setFbStatus("error","FB: ERROR");
+    });
+    
+    fbSubscribed=true;
+    console.log("Firebase initialized successfully");
+  }catch(e){
+    console.error("Firebase init failed:",e);
+    setFbStatus("error","FB: OFFLINE");
+  }
+}
+
+async function saveToFirebase(){
+  if(!fbDocRef){
+    setFbStatus("local","FB: LOCAL ONLY");
+    return;
+  }
+  
+  // Debounce — не сохранять чаще чем раз в 500мс
+  clearTimeout(fbSaveTimeout);
+  fbSaveTimeout=setTimeout(async ()=>{
+    try{
+      setFbStatus("syncing","FB: SAVING…");
+      await setDoc(fbDocRef,{
+        coins:rugpullCoins,
+        updatedAt:Date.now(),
+        updatedAtStr:new Date().toISOString()
+      },{merge:true});
+      if(fbConnected)setFbStatus("connected","FB: SYNCED");
+    }catch(e){
+      console.error("Firebase save error:",e);
+      setFbStatus("error","FB: SAVE FAIL");
+    }
+  },500);
+}
+
+// ============================================================
+// LOCALSTORAGE (fallback)
+// ============================================================
 function loadAlerts(){try{const r=localStorage.getItem(LS_ALERTS);if(!r)return;const d=JSON.parse(r);if(typeof d.spreadThr==='number')alertState.spreadThr=d.spreadThr;if(typeof d.spreadDir==='string')alertState.spreadDir=d.spreadDir;if(typeof d.fundingThr==='number')alertState.fundingThr=d.fundingThr;if(typeof d.fundingDir==='string')alertState.fundingDir=d.fundingDir;if(typeof d.priceJumpThr==='number')alertState.priceJumpThr=d.priceJumpThr;if(typeof d.priceJumpMin==='number')alertState.priceJumpMin=d.priceJumpMin;if(typeof d.priceJumpEnabled==='boolean')alertState.priceJumpEnabled=d.priceJumpEnabled;if(typeof d.notifEnabled==='boolean')alertState.notifEnabled=d.notifEnabled;if(typeof d.soundEnabled==='boolean')alertState.soundEnabled=d.soundEnabled;if(Array.isArray(d.feed))alertState.feed=d.feed.slice(0,50);if(Array.isArray(d.firedKeys))d.firedKeys.forEach(k=>alertState.firedKeys.add(k));}catch(e){}}
 function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadThr:alertState.spreadThr,spreadDir:alertState.spreadDir,fundingThr:alertState.fundingThr,fundingDir:alertState.fundingDir,priceJumpThr:alertState.priceJumpThr,priceJumpMin:alertState.priceJumpMin,priceJumpEnabled:alertState.priceJumpEnabled,notifEnabled:alertState.notifEnabled,soundEnabled:alertState.soundEnabled,feed:alertState.feed.slice(0,50),firedKeys:Array.from(alertState.firedKeys).slice(-200)}));}catch(e){}}
 
 function loadRugpull(){try{const r=localStorage.getItem(LS_RUGPULL);if(!r)return;const d=JSON.parse(r);if(Array.isArray(d))rugpullCoins=d.map(s=>s.toUpperCase()).filter(s=>s.length>0);}catch(e){}}
-function saveRugpull(){try{localStorage.setItem(LS_RUGPULL,JSON.stringify(rugpullCoins));}catch(e){}}
+function saveRugpull(){
+  try{localStorage.setItem(LS_RUGPULL,JSON.stringify(rugpullCoins));}catch(e){}
+  saveToFirebase(); // сохраняем и в Firebase
+}
 
 const $=id=>document.getElementById(id);
 const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
@@ -607,7 +757,7 @@ function renderAlerts(){
     const spSign=a.spreadPct<0?"":"+",spClass=a.spreadPct<0?"spread-neg":"spread-pos",spVal=`${spSign}${a.spreadPct.toFixed(2)}%`;
     const fuSign=a.funding<0?"":"+",fuClass=a.funding<0?"funding-neg":"funding-pos",fuVal=`${fuSign}${a.funding.toFixed(3)}%`;
     const typeClass=a.type==="jump"?"type-jump":"type-spread";
-    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ">⚡</span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ"></span>`;
+    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ"></span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ"></span>`;
     const jumpVal=a.delta!=null?`${a.delta>0?'+':''}${a.delta.toFixed(2)}%`:"—";
     return`<div class="alert-item ${typeClass}" data-id="${a.id}">
       <span>${typeBadgeHtml}</span>
@@ -646,7 +796,7 @@ function testNotification(){
     try{
       const n1=new Notification("📊 СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
       setTimeout(()=>n1.close&&n1.close(),6000);
-      setTimeout(()=>{const n2=new Notification("⚡ СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
+      setTimeout(()=>{const n2=new Notification(" СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
     }catch(e){alert("Не удалось показать уведомление: "+e.message);}
   };
   if(Notification.permission==="granted")trySend();
@@ -739,54 +889,22 @@ function updateSortIndicators(){
   const st=document.querySelector("th.spread-sort");if(st){st.classList.toggle("mode-neg",spreadMode==="neg");st.classList.toggle("mode-pos",spreadMode==="pos");const a=st.querySelector(".sort-arrow");if(spreadMode==="abs")a.textContent="± ▼";else if(spreadMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
   const ft=document.querySelector("th.funding-sort");if(ft){ft.classList.toggle("mode-neg",fundingMode==="neg");ft.classList.toggle("mode-pos",fundingMode==="pos");const a=ft.querySelector(".sort-arrow");if(fundingMode==="abs")a.textContent="± ▼";else if(fundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
   const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const rst=document.querySelector("th.rp-spread-sort");if(rst){rst.classList.toggle("mode-neg",rpSpreadMode==="neg");rst.classList.toggle("mode-pos",rpSpreadMode==="pos");const a=rst.querySelector(".sort-arrow");if(rpSpreadMode==="abs")a.textContent="± ▼";else if(rpSpreadMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const rft=document.querySelector("th.rp-funding-sort");if(rft){rft.classList.toggle("mode-neg",rpFundingMode==="neg");rft.classList.toggle("mode-pos",rpFundingMode==="pos");const a=rft.querySelector(".sort-arrow");if(rpFundingMode==="abs")a.textContent="± ▼";else if(rpFundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const rct=document.querySelector("th.rp-chg24h-sort");if(rct){rct.classList.toggle("mode-neg",rpChg24hMode==="neg");rct.classList.toggle("mode-pos",rpChg24hMode==="pos");const a=rct.querySelector(".sort-arrow");if(rpChg24hMode==="abs")a.textContent="± ▼";else if(rpChg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
 }
 
-// ===================== RUGPULL TABLE (independent filters) =====================
+// ===================== RUGPULL TABLE =====================
 
 function getRugpullRows(){
   const allRows=computeRows();
   const rpSet=new Set(rugpullCoins);
   let rows=allRows.filter(r=>rpSet.has(r.base));
   
-  // === RUGPULL-ONLY FILTERS (не зависят от основной таблицы) ===
   const rpQ=rpFilterSearch.value.trim().toUpperCase();
   const rpExch=rpFilterExch.value;
   
   if(rpQ)rows=rows.filter(r=>r.base.includes(rpQ));
   if(rpExch!=="all")rows=rows.filter(r=>r.exchange===rpExch);
   
-  // Сортировки rugpull таблицы
-  if(rpSpreadMode==="pos")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct>0);
-  else if(rpSpreadMode==="neg")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct<0);
-  if(rpFundingMode==="pos")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding>0);
-  else if(rpFundingMode==="neg")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding<0);
-  if(rpChg24hMode==="pos")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h>0);
-  else if(rpChg24hMode==="neg")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h<0);
-  
-  const dims=[{key:"spread",mode:rpSpreadMode,field:"spreadPct"},{key:"funding",mode:rpFundingMode,field:"funding"},{key:"chg24h",mode:rpChg24hMode,field:"chg24h"}];
-  const ad=dims.filter(d=>d.mode!=="abs");
-  if(ad.length>=2){
-    const so=r=>{let s=0;for(const d of ad){const v=r[d.field];if(v!=null&&isFinite(v))s+=d.mode==="neg"?-v:v;}return s;};
-    rows.sort((a,b)=>so(b)-so(a));
-  }else if(ad.length===1){
-    const{mode,field}=ad[0];
-    rows.sort((a,b)=>{
-      const av=a[field],bv=b[field];
-      const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);
-      if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;
-      return mode==="pos"?bv-av:av-bv;
-    });
-  }else{
-    rows.sort((a,b)=>{
-      const av=a.spreadPct,bv=b.spreadPct;
-      const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);
-      if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;
-      return Math.abs(bv)-Math.abs(av);
-    });
-  }
+  rows.sort((a,b)=>a.base.localeCompare(b.base));
   
   return rows;
 }
@@ -830,7 +948,7 @@ function renderRugpull(){
     if(missingCoins.length>0){
       html+=missingCoins.map(coin=>{
         return`<tr>
-          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull">💀</span>${coin}<button class="rp-remove-btn" data-remove="${coin}" title="УБРАТЬ">✕</button></span></td>
+          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${coin}<button class="rp-remove-btn" data-remove="${coin}" title="УБРАТЬ">✕</button></span></td>
           <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
           <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
         </tr>`;
@@ -853,7 +971,7 @@ function addRugpullCoin(coin){
   if(!c||c.length<1)return;
   if(rugpullCoins.includes(c))return;
   rugpullCoins.push(c);
-  saveRugpull();
+  saveRugpull(); // сохраняет и в localStorage и в Firebase
   renderRugpull();
   rugpullSearch.value='';
   hideSuggestions();
@@ -861,7 +979,7 @@ function addRugpullCoin(coin){
 
 function removeRugpullCoin(coin){
   rugpullCoins=rugpullCoins.filter(c=>c!==coin);
-  saveRugpull();
+  saveRugpull(); // сохраняет и в localStorage и в Firebase
   renderRugpull();
 }
 
@@ -899,13 +1017,8 @@ rugpullSearch.addEventListener('blur',()=>{setTimeout(hideSuggestions,200);});
 rugpullAddBtn.addEventListener('click',()=>{const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);else rugpullSearch.focus();});
 rugpullClearAll.addEventListener('click',()=>{if(rugpullCoins.length===0)return;rugpullCoins=[];saveRugpull();renderRugpull();});
 
-// === RUGPULL-ONLY FILTERS (не влияют на основную таблицу) ===
 rpFilterSearch.addEventListener('input',()=>{renderRugpull();});
 rpFilterExch.addEventListener('change',()=>{renderRugpull();});
-
-document.querySelector("th.rp-spread-sort")?.addEventListener("click",()=>{rpSpreadMode=rpSpreadMode==="neg"?"abs":rpSpreadMode==="abs"?"pos":"neg";renderRugpull();updateSortIndicators();});
-document.querySelector("th.rp-funding-sort")?.addEventListener("click",()=>{rpFundingMode=rpFundingMode==="abs"?"pos":rpFundingMode==="pos"?"neg":"abs";renderRugpull();updateSortIndicators();});
-document.querySelector("th.rp-chg24h-sort")?.addEventListener("click",()=>{rpChg24hMode=rpChg24hMode==="abs"?"pos":rpChg24hMode==="pos"?"neg":"abs";renderRugpull();updateSortIndicators();});
 
 // ===================== END RUGPULL =====================
 
@@ -939,6 +1052,9 @@ alertNotifEnabled.checked=alertState.notifEnabled;alertSoundEnabled.checked=aler
 updateAlertBadge();renderAlerts();updateNotifStatus();
 syncExchFilterWithEnabled();
 renderRugpull();
+
+// Инициализация Firebase
+initFirebase();
 
 const cache=loadCache();
 if(cache){applyCache(cache);render();renderRugpull();const age=Date.now()-cache.savedAt;if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}}
