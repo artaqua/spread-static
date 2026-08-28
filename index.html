@@ -14,6 +14,9 @@ html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
 
 header{padding:18px 14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
 .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;color:var(--amber-dim);text-transform:uppercase;margin:0 0 8px}
+.eyebrow .spot-priority{color:var(--green);font-weight:700}
+.eyebrow .spot-priority.mexc{color:var(--mexc)}
+.eyebrow .spot-priority.binance{color:var(--binance)}
 h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin:0;letter-spacing:-0.01em}h1 span{color:var(--amber)}
 .status-block{text-align:right;font-family:'JetBrains Mono',monospace}
 .status-line{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12px;color:var(--muted);flex-wrap:wrap}
@@ -185,7 +188,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <header>
   <div>
-    <p class="eyebrow">Static edition · без сервера · ваш IP · объёмы/Δ24ч: Binance → MEXC (fallback: перп)</p>
+    <p class="eyebrow">Static edition · без сервера · ваш IP · СПОТ ПРИОРИТЕТ: <span class="spot-priority binance" id="spotPriorityLabel">BINANCE</span> <span id="spotPriorityFallback" style="display:none;color:var(--muted)">· MEXC FALLBACK</span></p>
     <h1>SPREAD <span>//</span> SPOT-PERP SCANNER</h1>
   </div>
   <div class="status-block">
@@ -220,7 +223,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
     <option value="bybit">BYBIT</option>
   </select>
   <select id="fVol">
-    <option value="0">ОБЪЁМ 24Ч (BNC→MEXC): БЕЗ ФИЛЬТРА</option>
+    <option value="0">ОБЪЁМ 24Ч: БЕЗ ФИЛЬТРА</option>
     <option value="100000">&gt; 100K</option>
     <option value="500000">&gt; 500K</option>
     <option value="1000000">&gt; 1M</option>
@@ -369,7 +372,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · уведомления работают даже в скрытой вкладке. СПРЕД/ФАНДИНГ: кулдаун 5 мин на монету. СКАЧОК: 1 алерт на монету до сброса базовой цены (интервал настраивается). Список rugpull синхронизируется через Firebase Realtime Database.
+  Static edition · polling каждые 30 сек · BINANCE — основной спот источник · MEXC — приоритет при успешной загрузке · fallback на перп если нет спота.
 </footer>
 
 <script type="module">
@@ -387,7 +390,7 @@ const firebaseConfig = {
 };
 
 // ============================================================
-// УТИЛИТЫ И DOM (ОБЪЯВЛЯЕМ СРАЗУ)
+// УТИЛИТЫ И DOM
 // ============================================================
 const $ = id => document.getElementById(id);
 
@@ -400,6 +403,14 @@ const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],las
 const errors={binance:null,bybit:null,mexc:null};
 let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
 let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
+
+// ============================================================
+// 🎯 ПРИОРИТЕТ СПОТ-БИРЖИ
+// По умолчанию: BINANCE
+// Если MEXC загрузился успешно: переключаемся на MEXC
+// Если MEXC отвалился: возвращаемся на BINANCE
+// ============================================================
+let primarySpotSource = 'binance';
 
 const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",priceJumpThr:10,priceJumpMin:15,priceJumpEnabled:false,notifEnabled:false,soundEnabled:false,prevPrices:{},prevPriceTimes:{},lastAlertTs:{}};
 let audioCtx=null;
@@ -418,6 +429,7 @@ const refreshBtn=$("refreshBtn");
 const rugpullTbody=$("rugpullTbody"),rugpullSearch=$("rugpullSearch"),rugpullAddBtn=$("rugpullAddBtn"),rugpullSuggestions=$("rugpullSuggestions"),rugpullCount=$("rugpullCount"),rugpullClearAll=$("rugpullClearAll");
 const rpFilterSearch=$("rpFilterSearch"),rpFilterExch=$("rpFilterExch");
 const fbSyncIndicator=$("fbSyncIndicator"),fbSyncText=$("fbSyncText");
+const spotPriorityLabel=$("spotPriorityLabel"),spotPriorityFallback=$("spotPriorityFallback");
 
 // ============================================================
 // FIREBASE REALTIME DATABASE SYNC
@@ -544,7 +556,98 @@ function merge24(exch,arr){for(const s of arr){if(!s?.base)continue;const b=stat
 function mergePerp24(exch,arr){for(const s of arr){if(!s?.base)continue;const p=state.perps.find(x=>x.base===s.base&&x.exchange===exch);if(p){p.volume=s.vol||0;p.chg24h=s.chg??null;p.perpSource24=exch;}}}
 function replacePerps(exch,arr){const keep=state.perps.filter(p=>p.exchange!==exch);const add=arr.filter(p=>p?.base&&isFinite(p.perp)).map(p=>({base:p.base,exchange:exch,perp:p.perp,funding:p.funding??0,volume:0,chg24h:null,perpSource24:null}));state.perps=keep.concat(add);}
 
-function pickSpot(base,perpExch){const e=state.spotBook[base];if(!e)return null;if(enabled[perpExch]&&e[perpExch]?.price)return{...e[perpExch],source:perpExch};for(const ex of EXCHANGES)if(enabled[ex]&&e[ex]?.price)return{...e[ex],source:ex};return null;}
+// ============================================================
+// 🎯 НОВАЯ ЛОГИКА ПРИОРИТЕТА СПОТА
+// ============================================================
+
+// Обновляет приоритет спот-биржи на основе статуса загрузки
+function updateSpotPriority(){
+  const mexcOk = enabled.mexc && state.status.mexc === true;
+  const binanceOk = enabled.binance && state.status.binance === true;
+  
+  if(mexcOk){
+    // MEXC загрузился — он в приоритете
+    if(primarySpotSource !== 'mexc'){
+      console.log("🔄 Приоритет спота: MEXC (успешная загрузка)");
+    }
+    primarySpotSource = 'mexc';
+  } else {
+    // MEXC недоступен — fallback на Binance
+    if(primarySpotSource !== 'binance'){
+      console.log("⚠️ MEXC недоступен — переключаемся на BINANCE");
+    }
+    primarySpotSource = 'binance';
+  }
+  
+  // Обновляем UI
+  spotPriorityLabel.textContent = primarySpotSource.toUpperCase();
+  spotPriorityLabel.className = 'spot-priority ' + primarySpotSource;
+  
+  if(primarySpotSource === 'mexc'){
+    spotPriorityFallback.style.display = 'inline';
+    spotPriorityFallback.textContent = '· BINANCE FALLBACK';
+  } else {
+    if(!mexcOk && enabled.mexc){
+      spotPriorityFallback.style.display = 'inline';
+      spotPriorityFallback.textContent = '· MEXC UNAVAILABLE (CORS/ERROR)';
+      spotPriorityFallback.style.color = 'var(--red)';
+    } else if(!enabled.mexc){
+      spotPriorityFallback.style.display = 'inline';
+      spotPriorityFallback.textContent = '· MEXC DISABLED';
+      spotPriorityFallback.style.color = 'var(--muted)';
+    } else {
+      spotPriorityFallback.style.display = 'none';
+    }
+  }
+}
+
+// Выбирает спот с учётом приоритета
+function pickSpot(base, perpExch){
+  const e = state.spotBook[base];
+  if(!e) return null;
+  
+  // 1. Приоритетная биржа (MEXC если загрузился, иначе Binance)
+  if(enabled[primarySpotSource] && e[primarySpotSource]?.price){
+    return {...e[primarySpotSource], source: primarySpotSource};
+  }
+  
+  // 2. Биржа перпа (если там есть спот)
+  if(enabled[perpExch] && perpExch !== primarySpotSource && e[perpExch]?.price){
+    return {...e[perpExch], source: perpExch};
+  }
+  
+  // 3. Любая другая доступная биржа
+  for(const ex of EXCHANGES){
+    if(enabled[ex] && ex !== primarySpotSource && ex !== perpExch && e[ex]?.price){
+      return {...e[ex], source: ex};
+    }
+  }
+  
+  return null;
+}
+
+// Получает данные 24ч (vol, chg) с приоритетом
+function getSpot24Data(base){
+  const book = state.spotBook[base];
+  if(!book) return {chg:null, vol:0, src:null};
+  
+  // 1. Приоритетная биржа
+  const primary = book[primarySpotSource];
+  if(primary && (primary.chg != null || primary.vol)){
+    return {chg: primary.chg ?? null, vol: primary.vol || 0, src: primarySpotSource};
+  }
+  
+  // 2. Fallback на любую другую биржу с данными
+  for(const ex of EXCHANGES){
+    if(ex === primarySpotSource) continue;
+    const d = book[ex];
+    if(d && (d.chg != null || d.vol)){
+      return {chg: d.chg ?? null, vol: d.vol || 0, src: ex};
+    }
+  }
+  
+  return {chg:null, vol:0, src:null};
+}
 
 function computeRows(){
   const out=[];
@@ -554,26 +657,41 @@ function computeRows(){
     const sp=spot?.price??null;
     const sa=sp!=null?p.perp-sp:null;
     const spc=sp!=null?(sa/sp)*100:null;
-    const b=state.spotBook[p.base]?.binance;
-    const m=state.spotBook[p.base]?.mexc;
-    const spotChg=(b?.chg??null)??(m?.chg??null);
-    const spotVol=(b?.vol?b.vol:(m?.vol||0));
-    const spotSrc=(b&&(b.chg!=null||b.vol))?"binance":(m&&(m.chg!=null||m.vol))?"mexc":null;
+    
+    // Получаем 24ч данные с приоритетом
+    const spot24 = getSpot24Data(p.base);
+    
+    // Fallback на перп данные если нет спотовых 24ч
     const perpChg=p.chg24h??null;
     const perpVol=p.volume||0;
     const perpSrc=p.perpSource24||null;
-    const hasSpotData=spotSrc!=null&&(spotVol>0||spotChg!=null);
-    const chg=hasSpotData?spotChg:perpChg;
-    const vol=hasSpotData?spotVol:perpVol;
-    const src=hasSpotData?spotSrc:perpSrc;
-    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,spreadAbs:sa,spreadPct:spc,funding:p.funding,chg24h:chg,volume:vol,src24:src,hasSpotData});
+    
+    const hasSpotData = spot24.src != null && (spot24.vol > 0 || spot24.chg != null);
+    const chg = hasSpotData ? spot24.chg : perpChg;
+    const vol = hasSpotData ? spot24.vol : perpVol;
+    const src = hasSpotData ? spot24.src : perpSrc;
+    
+    out.push({
+      base:p.base,
+      exchange:p.exchange,
+      spot:sp,
+      spotSource:spot?.source??null,
+      perp:p.perp,
+      spreadAbs:sa,
+      spreadPct:spc,
+      funding:p.funding,
+      chg24h:chg,
+      volume:vol,
+      src24:src,
+      hasSpotData
+    });
   }
   return out;
 }
 
-function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt}));}catch(e){}}
+function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt,primarySpotSource}));}catch(e){}}
 function loadCache(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null;}catch{return null;}}
-function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;}
+function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;if(c.primarySpotSource)primarySpotSource=c.primarySpotSource;}
 function loadEnabled(){const d={binance:true,bybit:true,mexc:true};try{const r=localStorage.getItem(LS_EXCH);if(r)return{...d,...JSON.parse(r)};}catch{}return d;}
 function saveEnabled(){try{localStorage.setItem(LS_EXCH,JSON.stringify(enabled));}catch{}}
 
@@ -710,7 +828,7 @@ function testNotification(){
     try{
       const n1=new Notification("📊 СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
       setTimeout(()=>n1.close&&n1.close(),6000);
-      setTimeout(()=>{const n2=new Notification(" СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
+      setTimeout(()=>{const n2=new Notification("⚡ СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
     }catch(e){alert("Не удалось показать уведомление: "+e.message);}
   };
   if(Notification.permission==="granted")trySend();
@@ -725,7 +843,7 @@ async function apiCycle(){
   busy=true;
   try{
     const c=loadCache();
-    if(c&&Date.now()-c.savedAt<MIN_GAP_MS){applyCache(c);render();renderRugpull();setBadge("local");scheduleNext(MIN_GAP_MS-(Date.now()-c.savedAt));return;}
+    if(c&&Date.now()-c.savedAt<MIN_GAP_MS){applyCache(c);updateSpotPriority();render();renderRugpull();setBadge("local");scheduleNext(MIN_GAP_MS-(Date.now()-c.savedAt));return;}
     setBadge("loading");cycleReqs=0;const now=Date.now();
     const fl={mexc:mexcFast,binance:binanceFast,bybit:bybitFast};
     const names=EXCHANGES.filter(n=>enabled[n]);
@@ -733,6 +851,10 @@ async function apiCycle(){
       const settled=await Promise.allSettled(names.map(n=>fl[n]()));
       names.forEach((n,i)=>{const s=settled[i];if(s.status==="fulfilled"){state.status[n]=true;errors[n]=null;mergeSpot(n,s.value.spot);replacePerps(n,s.value.perp);}else{state.status[n]=false;errors[n]=describeErr(s.reason);console.warn(n+" failed:",errors[n]);}});
     }
+    
+    // 🎯 Обновляем приоритет спота после загрузки
+    updateSpotPriority();
+    
     const sn=[];if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
     if(sn.length&&now-state.lastSlowAt>=SLOW_MS){const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));let ok=false;ss.forEach((s,i)=>{if(s.status!=="fulfilled")return;ok=true;const[nm]=sn[i];if(nm==="binanceSpot")merge24("binance",s.value);else if(nm==="mexcSpot")merge24("mexc",s.value);});if(ok)state.lastSlowAt=now;}
     const pn=[];if(enabled.binance)pn.push(["binancePerp",binancePerpSlow]);if(enabled.bybit)pn.push(["bybitPerp",bybitPerpSlow]);if(enabled.mexc)pn.push(["mexcPerp",mexcPerpSlow]);
@@ -914,7 +1036,7 @@ rpFilterExch.addEventListener('change',()=>{renderRugpull();});
 document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
 document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeSort="funding";fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";render();});
 document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
-for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));render();renderRugpull();});}
+for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));updateSpotPriority();render();renderRugpull();});}
 
 alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;saveAlerts();renderAlerts();render();}});
 alertSpreadDir.addEventListener("change",()=>{alertState.spreadDir=alertSpreadDir.value;saveAlerts();renderAlerts();render();});
@@ -941,12 +1063,13 @@ alertPriceJumpEnabled.checked=alertState.priceJumpEnabled;
 alertNotifEnabled.checked=alertState.notifEnabled;alertSoundEnabled.checked=alertState.soundEnabled;
 updateAlertBadge();renderAlerts();updateNotifStatus();
 syncExchFilterWithEnabled();
+updateSpotPriority();
 renderRugpull();
 
 initFirebase();
 
 const cache=loadCache();
-if(cache){applyCache(cache);render();renderRugpull();const age=Date.now()-cache.savedAt;if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}}
+if(cache){applyCache(cache);updateSpotPriority();render();renderRugpull();const age=Date.now()-cache.savedAt;if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}}
 else{setBadge("init");scheduleNext(FIRST_LOAD_DELAY_MS);}
 </script>
 </body>
