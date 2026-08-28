@@ -91,7 +91,6 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .ex-bybit{background:rgba(247,166,0,.15);color:var(--bybit)}
 .ex-mexc{background:rgba(22,119,255,.15);color:var(--mexc)}
 
-/* 🚫 Иконка биржи без спота — красная, перечёркнутая */
 .ex-no-spot{
   position:relative;
   opacity:0.55;
@@ -119,16 +118,56 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 
 .table-panel{margin:14px 14px 14px;border:1px solid var(--border);border-radius:6px;background:var(--panel-gray);overflow:hidden}
 .table-panel .count-row{padding:8px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15)}
-.table-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel-gray)}.table-wrap::-webkit-scrollbar{width:10px;height:10px}.table-wrap::-webkit-scrollbar-track{background:transparent}.table-wrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--panel-gray)}.table-wrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
-table{width:100%;border-collapse:collapse;min-width:1080px}
-thead th{text-align:right;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border-light);white-space:nowrap;position:sticky;top:0;background:var(--panel-gray-header);z-index:2}
+
+.table-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:#2c2d31 var(--panel-gray);
+  max-width:100%;
+}
+.table-wrap::-webkit-scrollbar{width:10px;height:10px}
+.table-wrap::-webkit-scrollbar-track{background:transparent}
+.table-wrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--panel-gray)}
+.table-wrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1100px;
+  table-layout:auto;
+}
+
+thead th{
+  text-align:right;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  padding:10px 10px;
+  border-bottom:1px solid var(--border-light);
+  white-space:nowrap;
+  position:sticky;
+  top:0;
+  background:var(--panel-gray-header);
+  z-index:2;
+}
 thead th:nth-child(-n+3){text-align:left}
-tbody td{padding:9px 14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;border-bottom:1px solid #2a2d31;white-space:nowrap}
+tbody td{
+  width: 10%;
+  padding:9px 10px;
+  text-align:right;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  border-bottom:1px solid #2a2d31;
+  white-space:nowrap;
+}
 tbody td:nth-child(-n+3){text-align:left}
 tbody tr{transition:background .1s ease}tbody tr:hover{background:rgba(255,255,255,0.03)}
 tbody tr.alert-row{background:var(--amber-glow)}
 .sym-cell{font-weight:700;color:var(--text)}.pos{color:var(--green)}.neg{color:var(--red)}.muted-cell{color:var(--muted)}
-.spread-cell{font-weight:700;padding:2px 8px;border-radius:3px;display:inline-block;min-width:76px;text-align:center}.spread-pos{color:var(--green)}.spread-neg{color:var(--red)}
+.spread-cell{font-weight:700;padding:2px 6px;border-radius:3px;display:inline-block;min-width:60px;text-align:center}.spread-pos{color:var(--green)}.spread-neg{color:var(--red)}
 .empty{text-align:center;color:var(--muted);padding:24px;text-transform:uppercase}
 
 .sortable{cursor:pointer;user-select:none;transition:color .15s}.sortable:hover{color:var(--amber)}.sortable .sort-arrow{margin-left:4px;font-size:9px;opacity:0.5}.sortable.active{color:var(--amber)}.sortable.active .sort-arrow{opacity:1}
@@ -164,21 +203,49 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .rugpull-suggestion .rs-coin{font-weight:700}
 .rugpull-suggestion .rs-info{font-size:9px;color:var(--muted)}
 
-.rugpull-table-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel-gray)}
+.rugpull-table-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:#2c2d31 var(--panel-gray);
+  max-width:100%;
+}
 .rugpull-table-wrap::-webkit-scrollbar{width:10px;height:10px}
 .rugpull-table-wrap::-webkit-scrollbar-track{background:transparent}
 .rugpull-table-wrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--panel-gray)}
 .rugpull-table-wrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
-.rugpull-table-wrap table{min-width:1080px}
 .rugpull-table-wrap thead th{background:var(--purple-header);border-bottom:1px solid var(--purple-dim)}
 .rugpull-table-wrap thead th:first-child{color:var(--purple)}
 .rugpull-table-wrap tbody tr:hover{background:rgba(168,85,247,0.04)}
 .rugpull-table-wrap tbody tr.alert-row{background:var(--purple-glow)}
 
-.rp-coin-cell{display:flex;align-items:center;gap:6px}
-.rp-coin-cell .rp-skull{color:var(--purple);font-size:11px}
-.rp-coin-cell .rp-remove-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px;opacity:.4;transition:all .15s;margin-left:4px}
-.rp-coin-cell .rp-remove-btn:hover{opacity:1;color:var(--red)}
+/* 🎯 RP-COIN-CELL: крестик абсолютно позиционирован справа от монеты */
+.rp-coin-cell{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  position:relative;
+  padding-right:22px; /* место под крестик */
+}
+.rp-coin-cell .rp-skull{color:var(--purple);font-size:11px;flex-shrink:0}
+.rp-coin-cell .rp-remove-btn{
+  position:absolute;
+  right:0;
+  top:50%;
+  transform:translateY(-50%);
+  background:transparent;
+  border:none;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:12px;
+  padding:2px 4px;
+  opacity:0;
+  transition:all .15s;
+  line-height:1;
+  border-radius:3px;
+}
+.rp-coin-cell:hover .rp-remove-btn{opacity:0.6}
+.rp-coin-cell .rp-remove-btn:hover{opacity:1 !important;color:var(--red);background:rgba(255,91,91,0.1)}
 
 .fb-sync-indicator{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border);background:var(--panel);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;transition:all .2s}
 .fb-sync-indicator .fb-dot{width:7px;height:7px;border-radius:50%;background:var(--red);transition:background .3s}
@@ -338,7 +405,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 <div class="rugpull-panel" id="rugpullPanel">
   <div class="count-row">
     <div class="rp-left">
-      <span class="rp-skull-icon">💀</span>
+      <span class="rp-skull-icon"></span>
       <span class="rp-title-text">CANDIDATES RUGPULL</span>
       <span id="rugpullCount">· МОНЕТ: 0</span>
     </div>
@@ -399,9 +466,6 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </footer>
 
 <script type="module">
-// ============================================================
-// 🔧 НАСТРОЙКА FIREBASE (ОПЦИОНАЛЬНО)
-// ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAiHdO09Z9mupCEXAAe99MWRYrEX69duW4",
   authDomain: "spread-static.firebaseapp.com",
@@ -412,9 +476,6 @@ const firebaseConfig = {
   appId: "1:479744077737:web:e35b08d00f9c6e68cc1eb8"
 };
 
-// ============================================================
-// УТИЛИТЫ И DOM
-// ============================================================
 const $ = id => document.getElementById(id);
 
 const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
@@ -427,16 +488,12 @@ const errors={binance:null,bybit:null,mexc:null};
 let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
 let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
 
-// ============================================================
-// 🎯 ПРИОРИТЕТ СПОТ-БИРЖИ
-// ============================================================
 let primarySpotSource = 'binance';
 
 const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundingThr:0.5,fundingDir:"pos",priceJumpThr:10,priceJumpMin:15,priceJumpEnabled:false,notifEnabled:false,soundEnabled:false,prevPrices:{},prevPriceTimes:{},lastAlertTs:{}};
 let audioCtx=null;
 let rugpullCoins=[];
 
-// DOM элементы
 const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
 const fSearch=$("fSearch"),fExch=$("fExch"),fVol=$("fVol"),fSpread=$("fSpread"),fMaxSpread=$("fMaxSpread"),fOnlySpot=$("fOnlySpot"),fMaxRows=$("fMaxRows"),fTopFrom=$("fTopFrom"),fTopTo=$("fTopTo");
 const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed"),alertPanel=$("alertPanel");
@@ -451,9 +508,6 @@ const rpFilterSearch=$("rpFilterSearch"),rpFilterExch=$("rpFilterExch");
 const fbSyncIndicator=$("fbSyncIndicator"),fbSyncText=$("fbSyncText");
 const spotPriorityLabel=$("spotPriorityLabel"),spotPriorityFallback=$("spotPriorityFallback");
 
-// ============================================================
-// FIREBASE REALTIME DATABASE SYNC
-// ============================================================
 let fbApp=null, fbDb=null, fbRef=null;
 let fbConnected=false, fbInitialized=false, fbSaveTimeout=null;
 
@@ -463,30 +517,21 @@ function setFbStatus(status, text){
 }
 
 function isFirebaseConfigured(){
-  return firebaseConfig.apiKey && 
-         firebaseConfig.apiKey !== "" && 
-         !firebaseConfig.apiKey.includes("ВСТАВЬ") &&
-         firebaseConfig.databaseURL && 
-         firebaseConfig.databaseURL !== "";
+  return firebaseConfig.apiKey && firebaseConfig.apiKey !== "" && !firebaseConfig.apiKey.includes("ВСТАВЬ") && firebaseConfig.databaseURL && firebaseConfig.databaseURL !== "";
 }
 
 async function initFirebase(){
   if(!isFirebaseConfigured()){
     setFbStatus("local","FB: OFF");
-    console.log(" Firebase не настроен - приложение работает в режиме статики (localStorage)");
     return;
   }
-  
   try{
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
     const { getDatabase, ref, set, onValue } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
-    
     fbApp=initializeApp(firebaseConfig);
     fbDb=getDatabase(fbApp);
     fbRef=ref(fbDb,"spreads/rugpull-coins");
-    
     setFbStatus("syncing","FB: CONNECTING…");
-    
     onValue(fbRef,(snapshot)=>{
       const data=snapshot.val();
       if(data && Array.isArray(data.coins)){
@@ -494,67 +539,35 @@ async function initFirebase(){
         const localStr=JSON.stringify([...rugpullCoins].sort());
         const remoteStr=JSON.stringify([...remoteCoins].sort());
         if(localStr!==remoteStr){
-          console.log("🔄 Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
           rugpullCoins=remoteCoins;
           saveRugpullLocal();
           renderRugpull();
         }
       }
-      if(!fbConnected){
-        fbConnected=true;
-        fbInitialized=true;
-        setFbStatus("connected","FB: SYNCED");
-        console.log("✅ Firebase подключен и синхронизирован");
-      }
-    },(err)=>{
-      console.error("❌ Firebase RTDB error:",err);
-      fbConnected=false;
-      setFbStatus("error","FB: ERROR");
-    });
-    
-    console.log("✅ Firebase RTDB initialized");
-  }catch(e){
-    console.error("❌ Firebase init failed:",e);
-    setFbStatus("local","FB: OFF");
-  }
+      if(!fbConnected){fbConnected=true;fbInitialized=true;setFbStatus("connected","FB: SYNCED");}
+    },(err)=>{console.error("Firebase RTDB error:",err);fbConnected=false;setFbStatus("error","FB: ERROR");});
+  }catch(e){console.error("Firebase init failed:",e);setFbStatus("local","FB: OFF");}
 }
 
 async function saveToFirebase(){
   if(!fbRef || !fbInitialized) return;
-  
   clearTimeout(fbSaveTimeout);
   fbSaveTimeout=setTimeout(async ()=>{
     try{
       const { set } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
       setFbStatus("syncing","FB: SAVING…");
-      await set(fbRef,{
-        coins:rugpullCoins,
-        updatedAt:Date.now(),
-        updatedAtStr:new Date().toISOString()
-      });
+      await set(fbRef,{coins:rugpullCoins,updatedAt:Date.now(),updatedAtStr:new Date().toISOString()});
       if(fbConnected)setFbStatus("connected","FB: SYNCED");
-      console.log("💾 Данные сохранены в Firebase");
-    }catch(e){
-      console.error("❌ Firebase save error:",e);
-      setFbStatus("error","FB: SAVE FAIL");
-    }
+    }catch(e){console.error("Firebase save error:",e);setFbStatus("error","FB: SAVE FAIL");}
   },500);
 }
 
-// ============================================================
-// LOCALSTORAGE
-// ============================================================
 function loadAlerts(){try{const r=localStorage.getItem(LS_ALERTS);if(!r)return;const d=JSON.parse(r);if(typeof d.spreadThr==='number')alertState.spreadThr=d.spreadThr;if(typeof d.spreadDir==='string')alertState.spreadDir=d.spreadDir;if(typeof d.fundingThr==='number')alertState.fundingThr=d.fundingThr;if(typeof d.fundingDir==='string')alertState.fundingDir=d.fundingDir;if(typeof d.priceJumpThr==='number')alertState.priceJumpThr=d.priceJumpThr;if(typeof d.priceJumpMin==='number')alertState.priceJumpMin=d.priceJumpMin;if(typeof d.priceJumpEnabled==='boolean')alertState.priceJumpEnabled=d.priceJumpEnabled;if(typeof d.notifEnabled==='boolean')alertState.notifEnabled=d.notifEnabled;if(typeof d.soundEnabled==='boolean')alertState.soundEnabled=d.soundEnabled;if(Array.isArray(d.feed))alertState.feed=d.feed.slice(0,50);if(Array.isArray(d.firedKeys))d.firedKeys.forEach(k=>alertState.firedKeys.add(k));}catch(e){}}
 function saveAlerts(){try{localStorage.setItem(LS_ALERTS,JSON.stringify({spreadThr:alertState.spreadThr,spreadDir:alertState.spreadDir,fundingThr:alertState.fundingThr,fundingDir:alertState.fundingDir,priceJumpThr:alertState.priceJumpThr,priceJumpMin:alertState.priceJumpMin,priceJumpEnabled:alertState.priceJumpEnabled,notifEnabled:alertState.notifEnabled,soundEnabled:alertState.soundEnabled,feed:alertState.feed.slice(0,50),firedKeys:Array.from(alertState.firedKeys).slice(-200)}));}catch(e){}}
 
 function loadRugpull(){try{const r=localStorage.getItem(LS_RUGPULL);if(!r)return;const d=JSON.parse(r);if(Array.isArray(d))rugpullCoins=d.map(s=>s.toUpperCase()).filter(s=>s.length>0);}catch(e){}}
 function saveRugpullLocal(){try{localStorage.setItem(LS_RUGPULL,JSON.stringify(rugpullCoins));}catch(e){}}
-function saveRugpull(){
-  saveRugpullLocal();
-  if(isFirebaseConfigured()){
-    saveToFirebase();
-  }
-}
+function saveRugpull(){saveRugpullLocal();if(isFirebaseConfigured())saveToFirebase();}
 
 function syncExchFilterWithEnabled(){if(fExch.value!=="all"&&!enabled[fExch.value])fExch.value="all";}
 
@@ -576,23 +589,12 @@ function merge24(exch,arr){for(const s of arr){if(!s?.base)continue;const b=stat
 function mergePerp24(exch,arr){for(const s of arr){if(!s?.base)continue;const p=state.perps.find(x=>x.base===s.base&&x.exchange===exch);if(p){p.volume=s.vol||0;p.chg24h=s.chg??null;p.perpSource24=exch;}}}
 function replacePerps(exch,arr){const keep=state.perps.filter(p=>p.exchange!==exch);const add=arr.filter(p=>p?.base&&isFinite(p.perp)).map(p=>({base:p.base,exchange:exch,perp:p.perp,funding:p.funding??0,volume:0,chg24h:null,perpSource24:null}));state.perps=keep.concat(add);}
 
-// ============================================================
-// 🎯 ЛОГИКА ПРИОРИТЕТА СПОТА
-// ============================================================
-
 function updateSpotPriority(){
   const mexcOk = enabled.mexc && state.status.mexc === true;
-  const binanceOk = enabled.binance && state.status.binance === true;
-  
-  if(mexcOk){
-    primarySpotSource = 'mexc';
-  } else {
-    primarySpotSource = 'binance';
-  }
-  
+  if(mexcOk) primarySpotSource = 'mexc';
+  else primarySpotSource = 'binance';
   spotPriorityLabel.textContent = primarySpotSource.toUpperCase();
   spotPriorityLabel.className = 'spot-priority ' + primarySpotSource;
-  
   if(primarySpotSource === 'mexc'){
     spotPriorityFallback.style.display = 'inline';
     spotPriorityFallback.textContent = '· BINANCE FALLBACK';
@@ -615,41 +617,24 @@ function updateSpotPriority(){
 function pickSpot(base, perpExch){
   const e = state.spotBook[base];
   if(!e) return null;
-  
-  if(enabled[primarySpotSource] && e[primarySpotSource]?.price){
-    return {...e[primarySpotSource], source: primarySpotSource};
-  }
-  
-  if(enabled[perpExch] && perpExch !== primarySpotSource && e[perpExch]?.price){
-    return {...e[perpExch], source: perpExch};
-  }
-  
+  if(enabled[primarySpotSource] && e[primarySpotSource]?.price) return {...e[primarySpotSource], source: primarySpotSource};
+  if(enabled[perpExch] && perpExch !== primarySpotSource && e[perpExch]?.price) return {...e[perpExch], source: perpExch};
   for(const ex of EXCHANGES){
-    if(enabled[ex] && ex !== primarySpotSource && ex !== perpExch && e[ex]?.price){
-      return {...e[ex], source: ex};
-    }
+    if(enabled[ex] && ex !== primarySpotSource && ex !== perpExch && e[ex]?.price) return {...e[ex], source: ex};
   }
-  
   return null;
 }
 
 function getSpot24Data(base){
   const book = state.spotBook[base];
   if(!book) return {chg:null, vol:0, src:null};
-  
   const primary = book[primarySpotSource];
-  if(primary && (primary.chg != null || primary.vol)){
-    return {chg: primary.chg ?? null, vol: primary.vol || 0, src: primarySpotSource};
-  }
-  
+  if(primary && (primary.chg != null || primary.vol)) return {chg: primary.chg ?? null, vol: primary.vol || 0, src: primarySpotSource};
   for(const ex of EXCHANGES){
     if(ex === primarySpotSource) continue;
     const d = book[ex];
-    if(d && (d.chg != null || d.vol)){
-      return {chg: d.chg ?? null, vol: d.vol || 0, src: ex};
-    }
+    if(d && (d.chg != null || d.vol)) return {chg: d.chg ?? null, vol: d.vol || 0, src: ex};
   }
-  
   return {chg:null, vol:0, src:null};
 }
 
@@ -661,32 +646,15 @@ function computeRows(){
     const sp=spot?.price??null;
     const sa=sp!=null?p.perp-sp:null;
     const spc=sp!=null?(sa/sp)*100:null;
-    
     const spot24 = getSpot24Data(p.base);
-    
     const perpChg=p.chg24h??null;
     const perpVol=p.volume||0;
     const perpSrc=p.perpSource24||null;
-    
     const hasSpotData = spot24.src != null && (spot24.vol > 0 || spot24.chg != null);
     const chg = hasSpotData ? spot24.chg : perpChg;
     const vol = hasSpotData ? spot24.vol : perpVol;
     const src = hasSpotData ? spot24.src : perpSrc;
-    
-    out.push({
-      base:p.base,
-      exchange:p.exchange,
-      spot:sp,
-      spotSource:spot?.source??null,
-      perp:p.perp,
-      spreadAbs:sa,
-      spreadPct:spc,
-      funding:p.funding,
-      chg24h:chg,
-      volume:vol,
-      src24:src,
-      hasSpotData
-    });
+    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,spreadAbs:sa,spreadPct:spc,funding:p.funding,chg24h:chg,volume:vol,src24:src,hasSpotData});
   }
   return out;
 }
@@ -774,11 +742,7 @@ function updateAlertBadge(){const c=alertState.feed.length;alertBadgeText.textCo
 
 const LOGO_BINANCE=`<b class="binance-word">BINANCE</b>`,LOGO_BYBIT=`<b class="bybit-word">BYB<i>I</i>T</b>`,LOGO_MEXC=`<b class="mexc-word">MEXC</b>`;
 
-// ============================================================
-// 🚫 НОВАЯ ФУНКЦИЯ: иконка биржи БЕЗ спота (перечёркнутая красная)
-// ============================================================
 function noSpotBadgeHtml(exchange){
-  // exchange — биржа, на которой НЕТ спота (обычно primarySpotSource)
   const ex = exchange || primarySpotSource;
   let inner = '';
   if(ex==='binance') inner = LOGO_BINANCE;
@@ -868,9 +832,7 @@ async function apiCycle(){
       const settled=await Promise.allSettled(names.map(n=>fl[n]()));
       names.forEach((n,i)=>{const s=settled[i];if(s.status==="fulfilled"){state.status[n]=true;errors[n]=null;mergeSpot(n,s.value.spot);replacePerps(n,s.value.perp);}else{state.status[n]=false;errors[n]=describeErr(s.reason);console.warn(n+" failed:",errors[n]);}});
     }
-    
     updateSpotPriority();
-    
     const sn=[];if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
     if(sn.length&&now-state.lastSlowAt>=SLOW_MS){const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));let ok=false;ss.forEach((s,i)=>{if(s.status!=="fulfilled")return;ok=true;const[nm]=sn[i];if(nm==="binanceSpot")merge24("binance",s.value);else if(nm==="mexcSpot")merge24("mexc",s.value);});if(ok)state.lastSlowAt=now;}
     const pn=[];if(enabled.binance)pn.push(["binancePerp",binancePerpSlow]);if(enabled.bybit)pn.push(["bybitPerp",bybitPerpSlow]);if(enabled.mexc)pn.push(["mexcPerp",mexcPerpSlow]);
@@ -928,12 +890,7 @@ function render(){
       const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
       const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
       const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
-      
-      // 🚫 Вместо прочерка — перечёркнутая иконка приоритетной биржи
-      const spotCell = r.spotSource 
-        ? exBadgeHtml(r.spotSource) 
-        : noSpotBadgeHtml(primarySpotSource);
-      
+      const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
       return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${spotCell}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
     }).join(""):`<tr><td colspan="10" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;
     const ac=[spreadMode,fundingMode,chg24hMode].filter(m=>m!=="abs").length;
@@ -948,8 +905,6 @@ function updateSortIndicators(){
   const ft=document.querySelector("th.funding-sort");if(ft){ft.classList.toggle("mode-neg",fundingMode==="neg");ft.classList.toggle("mode-pos",fundingMode==="pos");const a=ft.querySelector(".sort-arrow");if(fundingMode==="abs")a.textContent="± ▼";else if(fundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
   const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
 }
-
-// ===================== RUGPULL TABLE =====================
 
 function getRugpullRows(){
   const allRows=computeRows();
@@ -981,12 +936,7 @@ function renderRugpull(){
         const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
         const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
         const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
-        
-        // 🚫 Вместо прочерка — перечёркнутая иконка приоритетной биржи
-        const spotCell = r.spotSource 
-          ? exBadgeHtml(r.spotSource) 
-          : noSpotBadgeHtml(primarySpotSource);
-        
+        const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
         return`<tr${isAlert?' class="alert-row"':''}>
           <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${r.base}<button class="rp-remove-btn" data-remove="${r.base}" title="УБРАТЬ">✕</button></span></td>
           <td>${spotCell}</td>
@@ -1004,7 +954,7 @@ function renderRugpull(){
     if(missingCoins.length>0){
       html+=missingCoins.map(coin=>{
         return`<tr>
-          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${coin}<button class="rp-remove-btn" data-remove="${coin}" title="УБРАТЬ"></button></span></td>
+          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${coin}<button class="rp-remove-btn" data-remove="${coin}" title="УБРАТЬ">✕</button></span></td>
           <td>${noSpotBadgeHtml(primarySpotSource)}</td>
           <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
           <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
@@ -1059,8 +1009,6 @@ rugpullClearAll.addEventListener('click',()=>{if(rugpullCoins.length===0)return;
 rpFilterSearch.addEventListener('input',()=>{renderRugpull();});
 rpFilterExch.addEventListener('change',()=>{renderRugpull();});
 
-// ===================== EVENT LISTENERS =====================
-
 [fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input",render));
 document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
 document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeSort="funding";fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";render();});
@@ -1081,8 +1029,6 @@ alertClearBtn.addEventListener("click",()=>{alertState.feed=[];alertState.firedK
 refreshBtn.addEventListener("click",()=>{if(busy)return;clearTimeout(fastTimer);try{localStorage.removeItem(LS_KEY);}catch{}apiCycle().catch(e=>console.error("refresh error:",e));});
 
 setInterval(()=>{const left=Math.max(0,Math.ceil((nextAt-Date.now())/1000));elNext.textContent=nextAt?left+"С":"—";elLast.textContent=state.lastApiAt?new Date(state.lastApiAt).toLocaleTimeString():"--:--:--";},500);
-
-// ===================== INIT =====================
 
 loadAlerts();loadRugpull();
 alertSpreadThr.value=alertState.spreadThr;alertSpreadDir.value=alertState.spreadDir;
