@@ -90,6 +90,29 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .ex-binance{background:rgba(240,185,11,.15);color:var(--binance)}
 .ex-bybit{background:rgba(247,166,0,.15);color:var(--bybit)}
 .ex-mexc{background:rgba(22,119,255,.15);color:var(--mexc)}
+
+/* 🚫 Иконка биржи без спота — красная, перечёркнутая */
+.ex-no-spot{
+  position:relative;
+  opacity:0.55;
+  filter:grayscale(0.3);
+}
+.ex-no-spot::after{
+  content:'';
+  position:absolute;
+  left:10%;
+  right:10%;
+  top:50%;
+  height:2px;
+  background:var(--red);
+  transform:rotate(-20deg);
+  box-shadow:0 0 4px var(--red);
+  pointer-events:none;
+}
+.ex-no-spot.ex-binance{background:rgba(255,91,91,.12);color:var(--red)}
+.ex-no-spot.ex-mexc{background:rgba(255,91,91,.12);color:var(--red)}
+.ex-no-spot.ex-bybit{background:rgba(255,91,91,.12);color:var(--red)}
+
 .binance-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--binance);line-height:1}
 .bybit-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.03em;color:var(--text);line-height:1}.bybit-word i{font-style:normal;color:var(--bybit)}
 .mexc-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--mexc);line-height:1}
@@ -406,9 +429,6 @@ let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
 
 // ============================================================
 // 🎯 ПРИОРИТЕТ СПОТ-БИРЖИ
-// По умолчанию: BINANCE
-// Если MEXC загрузился успешно: переключаемся на MEXC
-// Если MEXC отвалился: возвращаемся на BINANCE
 // ============================================================
 let primarySpotSource = 'binance';
 
@@ -474,7 +494,7 @@ async function initFirebase(){
         const localStr=JSON.stringify([...rugpullCoins].sort());
         const remoteStr=JSON.stringify([...remoteCoins].sort());
         if(localStr!==remoteStr){
-          console.log(" Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
+          console.log("🔄 Firebase sync: получены данные с сервера",remoteCoins.length,"монет");
           rugpullCoins=remoteCoins;
           saveRugpullLocal();
           renderRugpull();
@@ -494,7 +514,7 @@ async function initFirebase(){
     
     console.log("✅ Firebase RTDB initialized");
   }catch(e){
-    console.error(" Firebase init failed:",e);
+    console.error("❌ Firebase init failed:",e);
     setFbStatus("local","FB: OFF");
   }
 }
@@ -557,35 +577,26 @@ function mergePerp24(exch,arr){for(const s of arr){if(!s?.base)continue;const p=
 function replacePerps(exch,arr){const keep=state.perps.filter(p=>p.exchange!==exch);const add=arr.filter(p=>p?.base&&isFinite(p.perp)).map(p=>({base:p.base,exchange:exch,perp:p.perp,funding:p.funding??0,volume:0,chg24h:null,perpSource24:null}));state.perps=keep.concat(add);}
 
 // ============================================================
-// 🎯 НОВАЯ ЛОГИКА ПРИОРИТЕТА СПОТА
+// 🎯 ЛОГИКА ПРИОРИТЕТА СПОТА
 // ============================================================
 
-// Обновляет приоритет спот-биржи на основе статуса загрузки
 function updateSpotPriority(){
   const mexcOk = enabled.mexc && state.status.mexc === true;
   const binanceOk = enabled.binance && state.status.binance === true;
   
   if(mexcOk){
-    // MEXC загрузился — он в приоритете
-    if(primarySpotSource !== 'mexc'){
-      console.log("🔄 Приоритет спота: MEXC (успешная загрузка)");
-    }
     primarySpotSource = 'mexc';
   } else {
-    // MEXC недоступен — fallback на Binance
-    if(primarySpotSource !== 'binance'){
-      console.log("⚠️ MEXC недоступен — переключаемся на BINANCE");
-    }
     primarySpotSource = 'binance';
   }
   
-  // Обновляем UI
   spotPriorityLabel.textContent = primarySpotSource.toUpperCase();
   spotPriorityLabel.className = 'spot-priority ' + primarySpotSource;
   
   if(primarySpotSource === 'mexc'){
     spotPriorityFallback.style.display = 'inline';
     spotPriorityFallback.textContent = '· BINANCE FALLBACK';
+    spotPriorityFallback.style.color = 'var(--muted)';
   } else {
     if(!mexcOk && enabled.mexc){
       spotPriorityFallback.style.display = 'inline';
@@ -601,22 +612,18 @@ function updateSpotPriority(){
   }
 }
 
-// Выбирает спот с учётом приоритета
 function pickSpot(base, perpExch){
   const e = state.spotBook[base];
   if(!e) return null;
   
-  // 1. Приоритетная биржа (MEXC если загрузился, иначе Binance)
   if(enabled[primarySpotSource] && e[primarySpotSource]?.price){
     return {...e[primarySpotSource], source: primarySpotSource};
   }
   
-  // 2. Биржа перпа (если там есть спот)
   if(enabled[perpExch] && perpExch !== primarySpotSource && e[perpExch]?.price){
     return {...e[perpExch], source: perpExch};
   }
   
-  // 3. Любая другая доступная биржа
   for(const ex of EXCHANGES){
     if(enabled[ex] && ex !== primarySpotSource && ex !== perpExch && e[ex]?.price){
       return {...e[ex], source: ex};
@@ -626,18 +633,15 @@ function pickSpot(base, perpExch){
   return null;
 }
 
-// Получает данные 24ч (vol, chg) с приоритетом
 function getSpot24Data(base){
   const book = state.spotBook[base];
   if(!book) return {chg:null, vol:0, src:null};
   
-  // 1. Приоритетная биржа
   const primary = book[primarySpotSource];
   if(primary && (primary.chg != null || primary.vol)){
     return {chg: primary.chg ?? null, vol: primary.vol || 0, src: primarySpotSource};
   }
   
-  // 2. Fallback на любую другую биржу с данными
   for(const ex of EXCHANGES){
     if(ex === primarySpotSource) continue;
     const d = book[ex];
@@ -658,10 +662,8 @@ function computeRows(){
     const sa=sp!=null?p.perp-sp:null;
     const spc=sp!=null?(sa/sp)*100:null;
     
-    // Получаем 24ч данные с приоритетом
     const spot24 = getSpot24Data(p.base);
     
-    // Fallback на перп данные если нет спотовых 24ч
     const perpChg=p.chg24h??null;
     const perpVol=p.volume||0;
     const perpSrc=p.perpSource24||null;
@@ -771,6 +773,21 @@ function playAlertSound(){
 function updateAlertBadge(){const c=alertState.feed.length;alertBadgeText.textContent=c;if(c>0){alertBadge.classList.remove("idle");alertBadge.querySelector(".pulse-dot").style.display="inline-block";}else{alertBadge.classList.add("idle");alertBadge.querySelector(".pulse-dot").style.display="none";}}
 
 const LOGO_BINANCE=`<b class="binance-word">BINANCE</b>`,LOGO_BYBIT=`<b class="bybit-word">BYB<i>I</i>T</b>`,LOGO_MEXC=`<b class="mexc-word">MEXC</b>`;
+
+// ============================================================
+// 🚫 НОВАЯ ФУНКЦИЯ: иконка биржи БЕЗ спота (перечёркнутая красная)
+// ============================================================
+function noSpotBadgeHtml(exchange){
+  // exchange — биржа, на которой НЕТ спота (обычно primarySpotSource)
+  const ex = exchange || primarySpotSource;
+  let inner = '';
+  if(ex==='binance') inner = LOGO_BINANCE;
+  else if(ex==='bybit') inner = LOGO_BYBIT;
+  else if(ex==='mexc') inner = LOGO_MEXC;
+  else inner = ex.toUpperCase();
+  return `<span class="ex ex-${ex} ex-no-spot" title="Нет спота на ${ex.toUpperCase()}">${inner}</span>`;
+}
+
 function exBadgeHtml(ex){
   if(!ex)return`<span class="muted-cell">—</span>`;
   if(ex==="binance")return`<span class="ex ex-binance">${LOGO_BINANCE}</span>`;
@@ -852,7 +869,6 @@ async function apiCycle(){
       names.forEach((n,i)=>{const s=settled[i];if(s.status==="fulfilled"){state.status[n]=true;errors[n]=null;mergeSpot(n,s.value.spot);replacePerps(n,s.value.perp);}else{state.status[n]=false;errors[n]=describeErr(s.reason);console.warn(n+" failed:",errors[n]);}});
     }
     
-    // 🎯 Обновляем приоритет спота после загрузки
     updateSpotPriority();
     
     const sn=[];if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
@@ -912,7 +928,13 @@ function render(){
       const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
       const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
       const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
-      return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${exBadgeHtml(r.spotSource)}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
+      
+      // 🚫 Вместо прочерка — перечёркнутая иконка приоритетной биржи
+      const spotCell = r.spotSource 
+        ? exBadgeHtml(r.spotSource) 
+        : noSpotBadgeHtml(primarySpotSource);
+      
+      return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${spotCell}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
     }).join(""):`<tr><td colspan="10" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;
     const ac=[spreadMode,fundingMode,chg24hMode].filter(m=>m!=="abs").length;
     const ch=ac>=2?` · КОМБО: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`:"";
@@ -959,9 +981,15 @@ function renderRugpull(){
         const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
         const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
         const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
+        
+        // 🚫 Вместо прочерка — перечёркнутая иконка приоритетной биржи
+        const spotCell = r.spotSource 
+          ? exBadgeHtml(r.spotSource) 
+          : noSpotBadgeHtml(primarySpotSource);
+        
         return`<tr${isAlert?' class="alert-row"':''}>
-          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull">💀</span>${r.base}<button class="rp-remove-btn" data-remove="${r.base}" title="УБРАТЬ">✕</button></span></td>
-          <td>${exBadgeHtml(r.spotSource)}</td>
+          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${r.base}<button class="rp-remove-btn" data-remove="${r.base}" title="УБРАТЬ">✕</button></span></td>
+          <td>${spotCell}</td>
           <td>${exBadgeHtml(r.exchange)}</td>
           <td>${fmtPrice(r.spot)}</td>
           <td>${fmtPrice(r.perp)}</td>
@@ -976,8 +1004,9 @@ function renderRugpull(){
     if(missingCoins.length>0){
       html+=missingCoins.map(coin=>{
         return`<tr>
-          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${coin}<button class="rp-remove-btn" data-remove="${coin}" title="УБРАТЬ">✕</button></span></td>
-          <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
+          <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${coin}<button class="rp-remove-btn" data-remove="${coin}" title="УБРАТЬ"></button></span></td>
+          <td>${noSpotBadgeHtml(primarySpotSource)}</td>
+          <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
           <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
         </tr>`;
       }).join("");
