@@ -6,7 +6,7 @@
 <title>SPREAD // Spot-Perp Scanner — static</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-:root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF;--purple:#A855F7;--purple-dim:#3B1F5E;--purple-glow:rgba(168,85,247,0.10);--purple-header:#221a2e}
+:root{--void:#0A0A0B;--panel:#141517;--panel-raised:#1B1D20;--panel-gray:#1E2023;--panel-gray-header:#25282C;--border:#28292C;--border-light:#33363A;--amber:#FFB300;--amber-dim:#8C6A1F;--amber-glow:rgba(255,179,0,0.12);--text:#E8E6E1;--muted:#83898F;--green:#3ED888;--green-dim:#1B4A32;--red:#FF5B5B;--red-dim:#4A1F1F;--bybit:#F7A600;--binance:#F0B90B;--mexc:#1677FF;--purple:#A855F7;--purple-dim:#3B1F5E;--purple-glow:rgba(168,85,247,0.10);--purple-header:#221a2e;--graphite:#4B5563;--graphite-dim:#2D3748;--graphite-header:#1F2937}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{background:var(--void);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 html{scrollbar-width:thin;scrollbar-color:#2c2d31 var(--void)}
@@ -117,7 +117,43 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .mexc-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--mexc);line-height:1}
 
 .table-panel{margin:14px 14px 14px;border:1px solid var(--border);border-radius:6px;background:var(--panel-gray);overflow:hidden}
-.table-panel .count-row{padding:8px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15)}
+.table-panel .count-row{
+  padding:12px 14px;
+  border-bottom:1px solid var(--border-light);
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  background:rgba(0,0,0,0.15);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.table-panel .count-row .tp-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.table-panel .count-row .tp-left .tp-title-text{
+  padding-left: 8px;
+  font-size:11px;
+  color:var(--graphite);
+  font-weight:700;
+  letter-spacing:.08em;
+}
+.table-panel .count-row .tp-left .tp-title-text .tp-dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--graphite);
+  margin-right:4px;
+  vertical-align:middle;
+}
 
 .table-wrap{
   overflow-x:auto;
@@ -139,6 +175,7 @@ table{
 }
 
 thead th{
+  width: 10%;
   text-align:right;
   font-family:'JetBrains Mono',monospace;
   font-size:10.5px;
@@ -155,7 +192,6 @@ thead th{
 }
 thead th:nth-child(-n+3){text-align:left}
 tbody td{
-  width: 10%;
   padding:9px 14px;
   text-align:right;
   font-family:'JetBrains Mono',monospace;
@@ -175,7 +211,7 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .spread-sort.mode-pos,.funding-sort.mode-pos,.chg24h-sort.mode-pos{color:var(--green)}.spread-sort.mode-pos .sort-arrow,.funding-sort.mode-pos .sort-arrow,.chg24h-sort.mode-pos .sort-arrow{opacity:1}
 
 .rugpull-panel{margin:14px 14px 0;border:1px solid var(--purple-dim);border-radius:6px;background:var(--panel-gray);overflow:hidden}
-.rugpull-panel .count-row{padding:8px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.rugpull-panel .count-row{padding:6px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .rugpull-panel .count-row .rp-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .rugpull-panel .count-row .rp-left .rp-skull-icon{color:var(--purple);font-size:12px}
 .rugpull-panel .count-row .rp-left .rp-title-text{font-size:11px;color:var(--purple);font-weight:700;letter-spacing:.08em}
@@ -219,12 +255,11 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .rugpull-table-wrap tbody tr:hover{background:rgba(168,85,247,0.04)}
 .rugpull-table-wrap tbody tr.alert-row{background:var(--purple-glow)}
 
-/* 🎯 RP-COIN-CELL: крестик абсолютно позиционирован справа от монеты */
 .rp-coin-cell{
   display:inline-flex;
   align-items:center;
   position:relative;
-  padding-right:22px; /* место под крестик */
+  padding-right:22px;
 }
 .rp-coin-cell .rp-skull{color:var(--purple);font-size:11px;flex-shrink:0}
 .rp-coin-cell .rp-remove-btn{
@@ -277,7 +312,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <header>
   <div>
-    <p class="eyebrow">Static edition · без сервера · ваш IP · СПОТ ПРИОРИТЕТ: <span class="spot-priority binance" id="spotPriorityLabel">BINANCE</span> <span id="spotPriorityFallback" style="display:none;color:var(--muted)">· MEXC FALLBACK</span></p>
+    <p class="eyebrow">Static edition · ваш IP · FirebaseDB · СПОТ ПРИОРИТЕТ: <span class="spot-priority binance" id="spotPriorityLabel">BINANCE</span> <span id="spotPriorityFallback" style="display:none;color:var(--muted)">· MEXC FALLBACK</span></p>
     <h1>SPREAD <span>//</span> SPOT-PERP SCANNER</h1>
   </div>
   <div class="status-block">
@@ -341,8 +376,8 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
   <input id="fTopTo" type="number" min="1" value="10" placeholder="10" style="width:52px"/>
   <span class="hint gap-left">МАКС. СТРОК:</span>
   <select id="fMaxRows">
-    <option value="100">100</option>
-    <option value="250" selected>250</option>
+    <option value="100" selected>100</option>
+    <option value="250">250</option>
     <option value="500">500</option>
     <option value="1000">1000</option>
     <option value="2500">2500</option>
@@ -442,7 +477,12 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <div class="table-panel">
-  <div class="count-row"><span id="rowCount">…</span></div>
+  <div class="count-row">
+    <div class="tp-left">
+      <span class="tp-title-text">ALL MONETS</span>
+      <span id="tpCount">· МОНЕТ: 0 · ПОКАЗАНО: 0</span>
+    </div>
+  </div>
   <div class="table-wrap">
     <table>
       <thead>
@@ -493,7 +533,8 @@ const alertState={feed:[],firedKeys:new Set(),spreadThr:5,spreadDir:"neg",fundin
 let audioCtx=null;
 let rugpullCoins=[];
 
-const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elCount=$("rowCount"),elReqs=$("reqStat"),elDot=$("dot");
+const tbody=$("tbody"),elBadge=$("srcBadge"),elLast=$("lastUpd"),elNext=$("nextUpd"),elReqs=$("reqStat"),elDot=$("dot");
+const tpCount=$("tpCount");
 const fSearch=$("fSearch"),fExch=$("fExch"),fVol=$("fVol"),fSpread=$("fSpread"),fMaxSpread=$("fMaxSpread"),fOnlySpot=$("fOnlySpot"),fMaxRows=$("fMaxRows"),fTopFrom=$("fTopFrom"),fTopTo=$("fTopTo");
 const alertBadge=$("alertBadge"),alertBadgeText=$("alertBadgeText"),alertFeed=$("alertFeed"),alertPanel=$("alertPanel");
 const alertSpreadThr=$("alertSpreadThr"),alertSpreadDir=$("alertSpreadDir"),alertFundingThr=$("alertFundingThr"),alertFundingDir=$("alertFundingDir");
@@ -806,7 +847,7 @@ function testNotification(){
   if(!("Notification"in window)){alert("Ваш браузер не поддерживает уведомления");return;}
   const trySend=()=>{
     try{
-      const n1=new Notification("📊 СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
+      const n1=new Notification(" СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
       setTimeout(()=>n1.close&&n1.close(),6000);
       setTimeout(()=>{const n2=new Notification("⚡ СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
     }catch(e){alert("Не удалось показать уведомление: "+e.message);}
@@ -894,7 +935,7 @@ function render(){
     }).join(""):`<tr><td colspan="10" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;
     const ac=[spreadMode,fundingMode,chg24hMode].filter(m=>m!=="abs").length;
     const ch=ac>=2?` · КОМБО: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`:"";
-    elCount.textContent=`ПОКАЗАНО ${shown.length} ИЗ ${rows.length}${ch}`;
+    tpCount.textContent=`· МОНЕТ: ${rows.length} · ПОКАЗАНО: ${shown.length}`;
     updateExButtons();updateSortIndicators();checkAlerts(computeRows());
   }catch(e){console.error("render error:",e);}
 }
