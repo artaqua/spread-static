@@ -74,7 +74,7 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .alert-item.type-jump{border-left:3px solid var(--amber-dim)}
 .alert-item .ai-type-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em;text-align:center;line-height:1.3}
 .ai-type-badge.spread-badge{background:var(--purple-header);color:var(--amber)}
-.ai-type-badge.jump-badge{background:var(--text);color:var(--red)}
+.ai-type-badge.jump-badge{background:#473917;color:var(--red)}
 .alert-item .ai-coin{font-weight:700;color:var(--text);display:flex;align-items:center;gap:5px}
 .alert-item .ai-coin .jump-icon{color:var(--amber);font-size:12px}
 .alert-item .ai-exch{display:flex;align-items:center}
@@ -288,6 +288,23 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .fb-sync-indicator.error .fb-dot{background:var(--red)}
 .fb-sync-indicator.local .fb-dot{background:var(--amber)}
 
+.jump-rugpull-hint{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:3px 8px;
+  border-radius:3px;
+  background:var(--purple-glow);
+  border:1px solid var(--purple-dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;
+  color:var(--purple);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  font-weight:600;
+}
+.jump-rugpull-hint .jrh-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:pulse 1.6s ease-in-out infinite}
+
 footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.4}
 
 @media(max-width:900px){
@@ -419,7 +436,8 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
         <span style="margin:0 4px">ЗА</span>
         <input type="number" id="alertPriceJumpMin" value="10" step="1" min="1" style="width:45px"/>
         <span>МИН</span>
-        <label class="hint" style="margin-left:4px"><input type="checkbox" id="alertPriceJumpEnabled"/><span>СКАЧЕК</span></label>
+        <label class="hint" style="margin-left:4px"><input type="checkbox" id="alertPriceJumpEnabled"/><span>СКАЧОК</span></label>
+        <span class="jump-rugpull-hint" id="jumpRugpullHint" title="Скачки отслеживаются только для монет из списка RUGPULL"><span class="jrh-dot"></span>ТОЛЬКО RUGPULL: <b id="jumpRugpullCount">0</b></span>
       </div>
       <label class="hint chk" style="margin-left:6px"><input type="checkbox" id="alertNotifEnabled"/><span>УВЕДОМЛЕНИЯ</span></label>
       <label class="hint chk"><input type="checkbox" id="alertSoundEnabled"/><span>ЗВУК</span></label>
@@ -501,7 +519,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · BINANCE — основной спот источник · MEXC — приоритет при успешной загрузке · fallback на перп если нет спота.
+  Static edition · polling каждые 30 сек · BINANCE — основной спот источник · MEXC — приоритет при успешной загрузке · fallback на перп если нет спота · Скачки цен отслеживаются только для монет из списка RUGPULL.
 </footer>
 
 <script type="module">
@@ -547,6 +565,7 @@ const rugpullTbody=$("rugpullTbody"),rugpullSearch=$("rugpullSearch"),rugpullAdd
 const rpFilterSearch=$("rpFilterSearch"),rpFilterExch=$("rpFilterExch");
 const fbSyncIndicator=$("fbSyncIndicator"),fbSyncText=$("fbSyncText");
 const spotPriorityLabel=$("spotPriorityLabel"),spotPriorityFallback=$("spotPriorityFallback");
+const jumpRugpullCount=$("jumpRugpullCount");
 
 let fbApp=null, fbDb=null, fbRef=null;
 let fbConnected=false, fbInitialized=false, fbSaveTimeout=null;
@@ -582,6 +601,7 @@ async function initFirebase(){
           rugpullCoins=remoteCoins;
           saveRugpullLocal();
           renderRugpull();
+          updateJumpRugpullHint();
         }
       }
       if(!fbConnected){fbConnected=true;fbInitialized=true;setFbStatus("connected","FB: SYNCED");}
@@ -610,6 +630,10 @@ function saveRugpullLocal(){try{localStorage.setItem(LS_RUGPULL,JSON.stringify(r
 function saveRugpull(){saveRugpullLocal();if(isFirebaseConfigured())saveToFirebase();}
 
 function syncExchFilterWithEnabled(){if(fExch.value!=="all"&&!enabled[fExch.value])fExch.value="all";}
+
+function updateJumpRugpullHint(){
+  if(jumpRugpullCount) jumpRugpullCount.textContent = rugpullCoins.length;
+}
 
 async function fetchJSON(url,timeoutMs=15000){const c=new AbortController();const t=setTimeout(()=>c.abort(),timeoutMs);try{cycleReqs++;const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json();}finally{clearTimeout(t);}}
 function describeErr(e){const m=(e&&e.message)?e.message:String(e);if(/Failed to fetch|Load failed|NetworkError|terminated/i.test(m))return m+" — CORS или сеть";if(/abort/i.test(m))return m+" — таймаут";return m;}
@@ -694,7 +718,7 @@ function computeRows(){
     const chg = hasSpotData ? spot24.chg : perpChg;
     const vol = hasSpotData ? spot24.vol : perpVol;
     const src = hasSpotData ? spot24.src : perpSrc;
-    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,spreadAbs:sa,spreadPct:spc,funding:p.funding,chg24h:chg,volume:vol,src24:src,hasSpotData});
+    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,funding:p.funding,spreadAbs:sa,spreadPct:spc,chg24h:chg,volume:vol,src24:src,hasSpotData});
   }
   return out;
 }
@@ -724,12 +748,14 @@ function fireAlert(type,coin,exchange,spreadPct,funding,delta){
 
 function checkAlerts(rows){
   try{
+    const rugpullSet = new Set(rugpullCoins);
     for(const r of rows){
       if(r.spreadPct==null||!isFinite(r.spreadPct))continue;
       if(r.funding==null||!isFinite(r.funding))continue;
       const key=r.base+"|"+r.exchange;
       if(checkAlertCondition(r.spreadPct,r.funding))fireAlert("abs",r.base,r.exchange,r.spreadPct,r.funding,null);
-      if(alertState.priceJumpEnabled&&r.perp>0){
+      // Скачки цены отслеживаются ТОЛЬКО для монет из списка RUGPULL
+      if(alertState.priceJumpEnabled && rugpullSet.has(r.base) && r.perp>0){
         const now=Date.now();
         const prevTime=alertState.prevPriceTimes[key]||0;
         const intervalMs=(alertState.priceJumpMin||15)*60*1000;
@@ -810,7 +836,7 @@ function renderAlerts(){
     const spSign=a.spreadPct<0?"":"+",spClass=a.spreadPct<0?"spread-neg":"spread-pos",spVal=`${spSign}${a.spreadPct.toFixed(2)}%`;
     const fuSign=a.funding<0?"":"+",fuClass=a.funding<0?"funding-neg":"funding-pos",fuVal=`${fuSign}${a.funding.toFixed(3)}%`;
     const typeClass=a.type==="jump"?"type-jump":"type-spread";
-    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ">⚡</span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ">🔻</span>`;
+    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ (RUGPULL)">⚡</span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ">🔻</span>`;
     const jumpVal=a.delta!=null?`${a.delta>0?'+':''}${a.delta.toFixed(2)}%`:"—";
     return`<div class="alert-item ${typeClass}" data-id="${a.id}">
       <span>${typeBadgeHtml}</span>
@@ -962,6 +988,7 @@ function renderRugpull(){
   try{
     const rows=getRugpullRows();
     rugpullCount.textContent=`· МОНЕТ: ${rugpullCoins.length} · ПОКАЗАНО: ${rows.length}`;
+    updateJumpRugpullHint();
     if(rugpullCoins.length===0){
       rugpullTbody.innerHTML=`<tr><td colspan="10" class="empty">ДОБАВЬТЕ МОНЕТЫ ДЛЯ ОТСЛЕЖИВАНИЯ</td></tr>`;
       return;
@@ -1015,14 +1042,26 @@ function addRugpullCoin(coin){
   rugpullCoins.push(c);
   saveRugpull();
   renderRugpull();
+  updateJumpRugpullHint();
+  // Инициализируем prevPrice для новой монеты при следующем цикле
   rugpullSearch.value='';
   hideSuggestions();
 }
 
 function removeRugpullCoin(coin){
   rugpullCoins=rugpullCoins.filter(c=>c!==coin);
+  // Очищаем данные отслеживания скачков для удалённой монеты
+  const keysToRemove = [];
+  for(const key of Object.keys(alertState.prevPrices)){
+    if(key.startsWith(coin+"|")) keysToRemove.push(key);
+  }
+  for(const key of keysToRemove){
+    delete alertState.prevPrices[key];
+    delete alertState.prevPriceTimes[key];
+  }
   saveRugpull();
   renderRugpull();
+  updateJumpRugpullHint();
 }
 
 function showSuggestions(query){
@@ -1045,7 +1084,16 @@ rugpullSearch.addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.preventDefa
 rugpullSearch.addEventListener('focus',()=>{if(rugpullSearch.value.trim())showSuggestions(rugpullSearch.value);});
 rugpullSearch.addEventListener('blur',()=>{setTimeout(hideSuggestions,200);});
 rugpullAddBtn.addEventListener('click',()=>{const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);else rugpullSearch.focus();});
-rugpullClearAll.addEventListener('click',()=>{if(rugpullCoins.length===0)return;rugpullCoins=[];saveRugpull();renderRugpull();});
+rugpullClearAll.addEventListener('click',()=>{
+  if(rugpullCoins.length===0)return;
+  // Очищаем все данные отслеживания скачков
+  alertState.prevPrices={};
+  alertState.prevPriceTimes={};
+  rugpullCoins=[];
+  saveRugpull();
+  renderRugpull();
+  updateJumpRugpullHint();
+});
 rpFilterSearch.addEventListener('input',()=>{renderRugpull();});
 rpFilterExch.addEventListener('change',()=>{renderRugpull();});
 
@@ -1079,12 +1127,13 @@ alertNotifEnabled.checked=alertState.notifEnabled;alertSoundEnabled.checked=aler
 updateAlertBadge();renderAlerts();updateNotifStatus();
 syncExchFilterWithEnabled();
 updateSpotPriority();
+updateJumpRugpullHint();
 renderRugpull();
 
 initFirebase();
 
 const cache=loadCache();
-if(cache){applyCache(cache);updateSpotPriority();render();renderRugpull();const age=Date.now()-cache.savedAt;if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}}
+if(cache){applyCache(cache);updateSpotPriority();render();renderRugpull();updateJumpRugpullHint();const age=Date.now()-cache.savedAt;if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}}
 else{setBadge("init");scheduleNext(FIRST_LOAD_DELAY_MS);}
 </script>
 </body>
