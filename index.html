@@ -73,7 +73,7 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .alert-item.type-spread{border-left:3px solid var(--amber)}
 .alert-item.type-jump{border-left:3px solid var(--red)}
 .alert-item .ai-type-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em;text-align:center;line-height:1.3}
-.ai-type-badge.spread-badge{background:rgba(255,179,0,0.15);color:var(--amber)}
+.ai-type-badge.spread-badge{background:#2b1c1c;color:var(--amber)}
 .ai-type-badge.jump-badge{background:rgba(255,91,91,0.15);color:var(--red)}
 .alert-item .ai-coin{font-weight:700;color:var(--text);display:flex;align-items:center;gap:5px}
 .alert-item .ai-coin .jump-icon{color:var(--amber);font-size:12px}
@@ -810,7 +810,7 @@ function renderAlerts(){
     const spSign=a.spreadPct<0?"":"+",spClass=a.spreadPct<0?"spread-neg":"spread-pos",spVal=`${spSign}${a.spreadPct.toFixed(2)}%`;
     const fuSign=a.funding<0?"":"+",fuClass=a.funding<0?"funding-neg":"funding-pos",fuVal=`${fuSign}${a.funding.toFixed(3)}%`;
     const typeClass=a.type==="jump"?"type-jump":"type-spread";
-    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ">⚡</span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ"></span>`;
+    const typeBadgeHtml=a.type==="jump"?`<span class="ai-type-badge jump-badge" title="СКАЧОК ЦЕНЫ">⚡</span>`:`<span class="ai-type-badge spread-badge" title="СПРЕД АЛЕРТ">🔻</span>`;
     const jumpVal=a.delta!=null?`${a.delta>0?'+':''}${a.delta.toFixed(2)}%`:"—";
     return`<div class="alert-item ${typeClass}" data-id="${a.id}">
       <span>${typeBadgeHtml}</span>
