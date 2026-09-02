@@ -91,23 +91,8 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .ex-bybit{background:rgba(247,166,0,.15);color:var(--bybit)}
 .ex-mexc{background:rgba(22,119,255,.15);color:var(--mexc)}
 
-.ex-no-spot{
-  position:relative;
-  opacity:0.55;
-  filter:grayscale(0.3);
-}
-.ex-no-spot::after{
-  content:'';
-  position:absolute;
-  left:10%;
-  right:10%;
-  top:50%;
-  height:2px;
-  background:var(--red);
-  transform:rotate(-20deg);
-  box-shadow:0 0 4px var(--red);
-  pointer-events:none;
-}
+.ex-no-spot{position:relative;opacity:0.55;filter:grayscale(0.3)}
+.ex-no-spot::after{content:'';position:absolute;left:10%;right:10%;top:50%;height:2px;background:var(--red);transform:rotate(-20deg);box-shadow:0 0 4px var(--red);pointer-events:none}
 .ex-no-spot.ex-binance{background:rgba(255,91,91,.12);color:var(--red)}
 .ex-no-spot.ex-mexc{background:rgba(255,91,91,.12);color:var(--red)}
 .ex-no-spot.ex-bybit{background:rgba(255,91,91,.12);color:var(--red)}
@@ -117,88 +102,22 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .mexc-word{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--mexc);line-height:1}
 
 .table-panel{margin:14px 14px 14px;border:1px solid var(--border);border-radius:6px;background:var(--panel-gray);overflow:hidden}
-.table-panel .count-row{
-  padding:12px 14px;
-  border-bottom:1px solid var(--border-light);
-  font-family:'JetBrains Mono',monospace;
-  font-size:10px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.06em;
-  background:rgba(0,0,0,0.15);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.table-panel .count-row .tp-left{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-.table-panel .count-row .tp-left .tp-title-text{
-  padding-left: 8px;
-  font-size:11px;
-  color:var(--graphite);
-  font-weight:700;
-  letter-spacing:.08em;
-}
-.table-panel .count-row .tp-left .tp-title-text .tp-dot{
-  display:inline-block;
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:var(--graphite);
-  margin-right:4px;
-  vertical-align:middle;
-}
+.table-panel .count-row{padding:12px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.table-panel .count-row .tp-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.table-panel .count-row .tp-left .tp-title-text{padding-left: 8px;font-size:11px;color:var(--graphite);font-weight:700;letter-spacing:.08em}
+.table-panel .count-row .tp-left .tp-title-text .tp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--graphite);margin-right:4px;vertical-align:middle}
 
-.table-wrap{
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;
-  scrollbar-color:#2c2d31 var(--panel-gray);
-  max-width:100%;
-}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel-gray);max-width:100%}
 .table-wrap::-webkit-scrollbar{width:10px;height:10px}
 .table-wrap::-webkit-scrollbar-track{background:transparent}
 .table-wrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--panel-gray)}
 .table-wrap::-webkit-scrollbar-thumb:hover{background:#3a3b40}
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:1100px;
-  table-layout:auto;
-}
+table{width:100%;border-collapse:collapse;min-width:1250px;table-layout:auto}
 
-thead th{
-  width: 10%;
-  text-align:right;
-  font-family:'JetBrains Mono',monospace;
-  font-size:10.5px;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  color:var(--muted);
-  padding:10px 14px;
-  border-bottom:1px solid var(--border-light);
-  white-space:nowrap;
-  position:sticky;
-  top:0;
-  background:var(--panel-gray-header);
-  z-index:2;
-}
+thead th{width: 8.33%;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border-light);white-space:nowrap;position:sticky;top:0;background:var(--panel-gray-header);z-index:2}
 thead th:nth-child(-n+3){text-align:left}
-tbody td{
-  padding:9px 14px;
-  text-align:right;
-  font-family:'JetBrains Mono',monospace;
-  font-size:13px;
-  border-bottom:1px solid #2a2d31;
-  white-space:nowrap;
-}
+tbody td{padding:9px 14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;border-bottom:1px solid #2a2d31;white-space:nowrap}
 tbody td:nth-child(-n+3){text-align:left}
 tbody tr{transition:background .1s ease}tbody tr:hover{background:rgba(255,255,255,0.03)}
 tbody tr.alert-row{background:var(--amber-glow)}
@@ -207,8 +126,8 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .empty{text-align:center;color:var(--muted);padding:24px;text-transform:uppercase}
 
 .sortable{cursor:pointer;user-select:none;transition:color .15s}.sortable:hover{color:var(--amber)}.sortable .sort-arrow{margin-left:4px;font-size:9px;opacity:0.5}.sortable.active{color:var(--amber)}.sortable.active .sort-arrow{opacity:1}
-.spread-sort.mode-neg,.funding-sort.mode-neg,.chg24h-sort.mode-neg{color:var(--red)}.spread-sort.mode-neg .sort-arrow,.funding-sort.mode-neg .sort-arrow,.chg24h-sort.mode-neg .sort-arrow{opacity:1}
-.spread-sort.mode-pos,.funding-sort.mode-pos,.chg24h-sort.mode-pos{color:var(--green)}.spread-sort.mode-pos .sort-arrow,.funding-sort.mode-pos .sort-arrow,.chg24h-sort.mode-pos .sort-arrow{opacity:1}
+.spread-sort.mode-neg,.funding-sort.mode-neg,.chg24h-sort.mode-neg,.chg1h-sort.mode-neg,.chg15m-sort.mode-neg{color:var(--red)}.spread-sort.mode-neg .sort-arrow,.funding-sort.mode-neg .sort-arrow,.chg24h-sort.mode-neg .sort-arrow,.chg1h-sort.mode-neg .sort-arrow,.chg15m-sort.mode-neg .sort-arrow{opacity:1}
+.spread-sort.mode-pos,.funding-sort.mode-pos,.chg24h-sort.mode-pos,.chg1h-sort.mode-pos,.chg15m-sort.mode-pos{color:var(--green)}.spread-sort.mode-pos .sort-arrow,.funding-sort.mode-pos .sort-arrow,.chg24h-sort.mode-pos .sort-arrow,.chg1h-sort.mode-pos .sort-arrow,.chg15m-sort.mode-pos .sort-arrow{opacity:1}
 
 .rugpull-panel{margin:14px 14px 0;border:1px solid var(--purple-dim);border-radius:6px;background:var(--panel-gray);overflow:hidden}
 .rugpull-panel .count-row{padding:6px 14px;border-bottom:1px solid var(--border-light);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
@@ -239,13 +158,7 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .rugpull-suggestion .rs-coin{font-weight:700}
 .rugpull-suggestion .rs-info{font-size:9px;color:var(--muted)}
 
-.rugpull-table-wrap{
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;
-  scrollbar-color:#2c2d31 var(--panel-gray);
-  max-width:100%;
-}
+.rugpull-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#2c2d31 var(--panel-gray);max-width:100%}
 .rugpull-table-wrap::-webkit-scrollbar{width:10px;height:10px}
 .rugpull-table-wrap::-webkit-scrollbar-track{background:transparent}
 .rugpull-table-wrap::-webkit-scrollbar-thumb{background:#2c2d31;border-radius:8px;border:2px solid var(--panel-gray)}
@@ -255,29 +168,9 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .rugpull-table-wrap tbody tr:hover{background:rgba(168,85,247,0.04)}
 .rugpull-table-wrap tbody tr.alert-row{background:var(--purple-glow)}
 
-.rp-coin-cell{
-  display:inline-flex;
-  align-items:center;
-  position:relative;
-  padding-right:22px;
-}
+.rp-coin-cell{display:inline-flex;align-items:center;position:relative;padding-right:22px}
 .rp-coin-cell .rp-skull{color:var(--purple);font-size:11px;flex-shrink:0}
-.rp-coin-cell .rp-remove-btn{
-  position:absolute;
-  right:-10px;
-  top:50%;
-  transform:translateY(-50%);
-  background:transparent;
-  border:none;
-  color:var(--muted);
-  cursor:pointer;
-  font-size:12px;
-  padding:2px 4px;
-  opacity:0;
-  transition:all .15s;
-  line-height:1;
-  border-radius:3px;
-}
+.rp-coin-cell .rp-remove-btn{position:absolute;right:-10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;opacity:0;transition:all .15s;line-height:1;border-radius:3px}
 .rp-coin-cell:hover .rp-remove-btn{opacity:0.6}
 .rp-coin-cell .rp-remove-btn:hover{opacity:1 !important;color:var(--red);background:rgba(255,91,91,0.1)}
 
@@ -288,21 +181,7 @@ tbody tr.alert-row{background:var(--amber-glow)}
 .fb-sync-indicator.error .fb-dot{background:var(--red)}
 .fb-sync-indicator.local .fb-dot{background:var(--amber)}
 
-.jump-rugpull-hint{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  padding:3px 8px;
-  border-radius:3px;
-  background:var(--purple-glow);
-  border:1px solid var(--purple-dim);
-  font-family:'JetBrains Mono',monospace;
-  font-size:9.5px;
-  color:var(--purple);
-  text-transform:uppercase;
-  letter-spacing:.05em;
-  font-weight:600;
-}
+.jump-rugpull-hint{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:3px;background:var(--purple-glow);border:1px solid var(--purple-dim);font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
 .jump-rugpull-hint .jrh-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:pulse 1.6s ease-in-out infinite}
 
 footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border);line-height:1.4}
@@ -486,10 +365,12 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
           <th>Спред %</th>
           <th>Фандинг %</th>
           <th>24ч Δ %</th>
+          <th>1ч Δ %</th>
+          <th>15м Δ %</th>
           <th>Объём 24ч</th>
         </tr>
       </thead>
-      <tbody id="rugpullTbody"><tr><td colspan="10" class="empty">ДОБАВЬТЕ МОНЕТЫ ДЛЯ ОТСЛЕЖИВАНИЯ</td></tr></tbody>
+      <tbody id="rugpullTbody"><tr><td colspan="12" class="empty">ДОБАВЬТЕ МОНЕТЫ ДЛЯ ОТСЛЕЖИВАНИЯ</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -510,16 +391,18 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
           <th class="sortable spread-sort">Спред % <span class="sort-arrow">▼</span></th>
           <th class="sortable funding-sort">Фандинг % <span class="sort-arrow">▼</span></th>
           <th class="sortable chg24h-sort">24ч Δ % <span class="sort-arrow">▼</span></th>
+          <th class="sortable chg1h-sort">1ч Δ % <span class="sort-arrow">▼</span></th>
+          <th class="sortable chg15m-sort">15м Δ % <span class="sort-arrow">▼</span></th>
           <th>Объём 24ч</th>
         </tr>
       </thead>
-      <tbody id="tbody"><tr><td colspan="10" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
+      <tbody id="tbody"><tr><td colspan="12" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
     </table>
   </div>
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · BINANCE — основной спот источник · MEXC — приоритет при успешной загрузке · fallback на перп если нет спота · Скачки цен отслеживаются только для монет из списка RUGPULL.
+  Static edition · polling каждые 30 сек · BINANCE — основной спот источник · MEXC — приоритет при успешной загрузке · fallback на перп если нет спота · Скачки цен отслеживаются только для монет из списка RUGPULL · Данные 1ч/15м кэшируются на 5 мин для экономии API лимитов.
 </footer>
 
 <script type="module">
@@ -536,14 +419,14 @@ const firebaseConfig = {
 const $ = id => document.getElementById(id);
 
 const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
-const LS_KEY="spread-scanner-cache-v17",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
+const LS_KEY="spread-scanner-cache-v18",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
 const EXCHANGES=["mexc","binance","bybit"];
 const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
 
-const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],lastApiAt:0,lastSlowAt:0,badge:"init"};
+const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],lastApiAt:0,lastSlowAt:0,badge:"init",shortTerm:{}};
 const errors={binance:null,bybit:null,mexc:null};
 let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
-let spreadMode="neg",fundingMode="abs",chg24hMode="abs",activeSort="spread";
+let spreadMode="neg",fundingMode="abs",chg24hMode="abs",chg1hMode="abs",chg15mMode="abs",activeSort="spread";
 
 let primarySpotSource = 'binance';
 
@@ -718,14 +601,15 @@ function computeRows(){
     const chg = hasSpotData ? spot24.chg : perpChg;
     const vol = hasSpotData ? spot24.vol : perpVol;
     const src = hasSpotData ? spot24.src : perpSrc;
-    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,funding:p.funding,spreadAbs:sa,spreadPct:spc,chg24h:chg,volume:vol,src24:src,hasSpotData});
+    const st = state.shortTerm[p.base] || {};
+    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,funding:p.funding,spreadAbs:sa,spreadPct:spc,chg24h:chg,volume:vol,src24:src,hasSpotData,chg1h:st.chg1h??null,chg15m:st.chg15m??null});
   }
   return out;
 }
 
-function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt,primarySpotSource}));}catch(e){}}
+function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt,primarySpotSource,shortTerm:state.shortTerm}));}catch(e){}}
 function loadCache(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null;}catch{return null;}}
-function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;if(c.primarySpotSource)primarySpotSource=c.primarySpotSource;}
+function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;if(c.primarySpotSource)primarySpotSource=c.primarySpotSource;if(c.shortTerm)state.shortTerm=c.shortTerm;}
 function loadEnabled(){const d={binance:true,bybit:true,mexc:true};try{const r=localStorage.getItem(LS_EXCH);if(r)return{...d,...JSON.parse(r)};}catch{}return d;}
 function saveEnabled(){try{localStorage.setItem(LS_EXCH,JSON.stringify(enabled));}catch{}}
 
@@ -754,7 +638,6 @@ function checkAlerts(rows){
       if(r.funding==null||!isFinite(r.funding))continue;
       const key=r.base+"|"+r.exchange;
       if(checkAlertCondition(r.spreadPct,r.funding))fireAlert("abs",r.base,r.exchange,r.spreadPct,r.funding,null);
-      // Скачки цены отслеживаются ТОЛЬКО для монет из списка RUGPULL
       if(alertState.priceJumpEnabled && rugpullSet.has(r.base) && r.perp>0){
         const now=Date.now();
         const prevTime=alertState.prevPriceTimes[key]||0;
@@ -885,6 +768,81 @@ function testNotification(){
 
 function scheduleNext(delayMs){clearTimeout(fastTimer);nextAt=Date.now()+delayMs;fastTimer=setTimeout(()=>{apiCycle().catch(e=>console.error("apiCycle error:",e));},delayMs);}
 
+async function fetchKlineChange(exchange, base, interval) {
+  const symbol = base + "USDT";
+  try {
+    if (exchange === 'binance') {
+      const inv = interval === '1h' ? '1h' : '15m';
+      const data = await fetchJSON(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${inv}&limit=2`);
+      if (data && data.length >= 1) {
+        const current = data[data.length - 1];
+        const open = parseFloat(current[1]);
+        const close = parseFloat(current[4]);
+        return ((close - open) / open) * 100;
+      }
+    } else if (exchange === 'bybit') {
+      const inv = interval === '1h' ? '60' : '15';
+      const data = await fetchJSON(`https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=${inv}&limit=2`);
+      const list = data?.result?.list;
+      if (list && list.length >= 1) {
+        const current = list[0];
+        const open = parseFloat(current[1]);
+        const close = parseFloat(current[4]);
+        return ((close - open) / open) * 100;
+      }
+    } else if (exchange === 'mexc') {
+      const inv = interval === '1h' ? '1h' : '15m';
+      const data = await fetchJSON(`https://api.mexc.com/api/v3/klines?symbol=${symbol}&interval=${inv}&limit=2`);
+      if (data && data.length >= 1) {
+        const current = data[data.length - 1];
+        const open = parseFloat(current[1]);
+        const close = parseFloat(current[4]);
+        return ((close - open) / open) * 100;
+      }
+    }
+  } catch (e) {
+    // Тихий фолбэк при ошибке отдельной монеты
+  }
+  return null;
+}
+
+async function updateShortTermData() {
+  const targets = new Set();
+  rugpullCoins.forEach(c => targets.add(c));
+  const filtered = getFilteredRows().slice(0, 15);
+  filtered.forEach(r => targets.add(r.base));
+
+  const now = Date.now();
+  const promises = [];
+
+  for (const base of targets) {
+    if (!state.shortTerm[base]) state.shortTerm[base] = {};
+    const cache = state.shortTerm[base];
+    if (now - (cache.lastUpdate || 0) < 300000) continue; // Кэш на 5 минут
+
+    const spotData = state.spotBook[base];
+    let exch = 'binance';
+    if (spotData) {
+      if (enabled.mexc && spotData.mexc) exch = 'mexc';
+      else if (enabled.binance && spotData.binance) exch = 'binance';
+      else if (enabled.bybit && spotData.bybit) exch = 'bybit';
+    }
+
+    promises.push((async () => {
+      const chg1h = await fetchKlineChange(exch, base, '1h');
+      const chg15m = await fetchKlineChange(exch, base, '15m');
+      if (chg1h !== null || chg15m !== null) {
+        state.shortTerm[base] = {
+          chg1h: chg1h ?? cache.chg1h,
+          chg15m: chg15m ?? cache.chg15m,
+          lastUpdate: now
+        };
+      }
+    })());
+  }
+  await Promise.allSettled(promises);
+}
+
 async function apiCycle(){
   if(busy)return;
   busy=true;
@@ -903,6 +861,9 @@ async function apiCycle(){
     if(sn.length&&now-state.lastSlowAt>=SLOW_MS){const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));let ok=false;ss.forEach((s,i)=>{if(s.status!=="fulfilled")return;ok=true;const[nm]=sn[i];if(nm==="binanceSpot")merge24("binance",s.value);else if(nm==="mexcSpot")merge24("mexc",s.value);});if(ok)state.lastSlowAt=now;}
     const pn=[];if(enabled.binance)pn.push(["binancePerp",binancePerpSlow]);if(enabled.bybit)pn.push(["bybitPerp",bybitPerpSlow]);if(enabled.mexc)pn.push(["mexcPerp",mexcPerpSlow]);
     if(pn.length&&now-state.lastSlowAt>=SLOW_MS){const pp=await Promise.allSettled(pn.map(([,fn])=>fn()));pp.forEach((s,i)=>{if(s.status!=="fulfilled")return;const[nm]=pn[i];if(nm==="binancePerp")mergePerp24("binance",s.value);else if(nm==="bybitPerp")mergePerp24("bybit",s.value);else if(nm==="mexcPerp")mergePerp24("mexc",s.value);});}
+    
+    await updateShortTermData();
+    
     state.lastApiAt=Date.now();saveCache();render();renderRugpull();elReqs.textContent=cycleReqs;
     const allDead=names.length>0&&names.every(n=>state.status[n]===false);
     setBadge(allDead?"error":"api");
@@ -939,11 +900,16 @@ function getFilteredRows(){
   else if(fundingMode==="neg")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding<0);
   if(chg24hMode==="pos")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h>0);
   else if(chg24hMode==="neg")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h<0);
-  const dims=[{key:"spread",mode:spreadMode,field:"spreadPct"},{key:"funding",mode:fundingMode,field:"funding"},{key:"chg24h",mode:chg24hMode,field:"chg24h"}];
+  if(chg1hMode==="pos")rows=rows.filter(r=>r.chg1h!=null&&isFinite(r.chg1h)&&r.chg1h>0);
+  else if(chg1hMode==="neg")rows=rows.filter(r=>r.chg1h!=null&&isFinite(r.chg1h)&&r.chg1h<0);
+  if(chg15mMode==="pos")rows=rows.filter(r=>r.chg15m!=null&&isFinite(r.chg15m)&&r.chg15m>0);
+  else if(chg15mMode==="neg")rows=rows.filter(r=>r.chg15m!=null&&isFinite(r.chg15m)&&r.chg15m<0);
+  
+  const dims=[{key:"spread",mode:spreadMode,field:"spreadPct"},{key:"funding",mode:fundingMode,field:"funding"},{key:"chg24h",mode:chg24hMode,field:"chg24h"},{key:"chg1h",mode:chg1hMode,field:"chg1h"},{key:"chg15m",mode:chg15mMode,field:"chg15m"}];
   const ad=dims.filter(d=>d.mode!=="abs");
   if(ad.length>=2){const so=r=>{let s=0;for(const d of ad){const v=r[d.field];if(v!=null&&isFinite(v))s+=d.mode==="neg"?-v:v;}return s;};rows.sort((a,b)=>so(b)-so(a));}
   else if(ad.length===1){const{mode,field}=ad[0];rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return mode==="pos"?bv-av:av-bv;});}
-  else{const field=activeSort==="funding"?"funding":activeSort==="chg24h"?"chg24h":"spreadPct";rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return Math.abs(bv)-Math.abs(av);});}
+  else{const field=activeSort==="funding"?"funding":activeSort==="chg24h"?"chg24h":activeSort==="chg1h"?"chg1h":activeSort==="chg15m"?"chg15m":"spreadPct";rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return Math.abs(bv)-Math.abs(av);});}
   return rows;
 }
 
@@ -954,12 +920,14 @@ function render(){
       const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
       const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
       const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
+      const c1h=r.chg1h==null?"muted-cell":(r.chg1h>=0?"pos":"neg");
+      const c15m=r.chg15m==null?"muted-cell":(r.chg15m>=0?"pos":"neg");
       const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
       const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
       const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
-      return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${spotCell}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
-    }).join(""):`<tr><td colspan="10" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;
-    const ac=[spreadMode,fundingMode,chg24hMode].filter(m=>m!=="abs").length;
+      return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${spotCell}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td class="${c1h}">${fmtPct(r.chg1h,2)}</td><td class="${c15m}">${fmtPct(r.chg15m,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
+    }).join(""):`<tr><td colspan="12" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;
+    const ac=[spreadMode,fundingMode,chg24hMode,chg1hMode,chg15mMode].filter(m=>m!=="abs").length;
     const ch=ac>=2?` · КОМБО: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`:"";
     tpCount.textContent=`· МОНЕТ: ${rows.length} · ПОКАЗАНО: ${shown.length}`;
     updateExButtons();updateSortIndicators();checkAlerts(computeRows());
@@ -970,6 +938,8 @@ function updateSortIndicators(){
   const st=document.querySelector("th.spread-sort");if(st){st.classList.toggle("mode-neg",spreadMode==="neg");st.classList.toggle("mode-pos",spreadMode==="pos");const a=st.querySelector(".sort-arrow");if(spreadMode==="abs")a.textContent="± ▼";else if(spreadMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
   const ft=document.querySelector("th.funding-sort");if(ft){ft.classList.toggle("mode-neg",fundingMode==="neg");ft.classList.toggle("mode-pos",fundingMode==="pos");const a=ft.querySelector(".sort-arrow");if(fundingMode==="abs")a.textContent="± ▼";else if(fundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
   const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
+  const c1ht=document.querySelector("th.chg1h-sort");if(c1ht){c1ht.classList.toggle("mode-neg",chg1hMode==="neg");c1ht.classList.toggle("mode-pos",chg1hMode==="pos");const a=c1ht.querySelector(".sort-arrow");if(chg1hMode==="abs")a.textContent="± ▼";else if(chg1hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
+  const c15mt=document.querySelector("th.chg15m-sort");if(c15mt){c15mt.classList.toggle("mode-neg",chg15mMode==="neg");c15mt.classList.toggle("mode-pos",chg15mMode==="pos");const a=c15mt.querySelector(".sort-arrow");if(chg15mMode==="abs")a.textContent="± ▼";else if(chg15mMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
 }
 
 function getRugpullRows(){
@@ -990,7 +960,7 @@ function renderRugpull(){
     rugpullCount.textContent=`· МОНЕТ: ${rugpullCoins.length} · ПОКАЗАНО: ${rows.length}`;
     updateJumpRugpullHint();
     if(rugpullCoins.length===0){
-      rugpullTbody.innerHTML=`<tr><td colspan="10" class="empty">ДОБАВЬТЕ МОНЕТЫ ДЛЯ ОТСЛЕЖИВАНИЯ</td></tr>`;
+      rugpullTbody.innerHTML=`<tr><td colspan="12" class="empty">ДОБАВЬТЕ МОНЕТЫ ДЛЯ ОТСЛЕЖИВАНИЯ</td></tr>`;
       return;
     }
     const shownCoins=new Set(rows.map(r=>r.base));
@@ -1001,6 +971,8 @@ function renderRugpull(){
         const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
         const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
         const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
+        const c1h=r.chg1h==null?"muted-cell":(r.chg1h>=0?"pos":"neg");
+        const c15m=r.chg15m==null?"muted-cell":(r.chg15m>=0?"pos":"neg");
         const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
         const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
         const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
@@ -1014,6 +986,8 @@ function renderRugpull(){
           <td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td>
           <td class="${fc}">${fmtPct(r.funding,4)}</td>
           <td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td>
+          <td class="${c1h}">${fmtPct(r.chg1h,2)}</td>
+          <td class="${c15m}">${fmtPct(r.chg15m,2)}</td>
           <td${t24}>${fmtVol(r.volume)}</td>
         </tr>`;
       }).join("");
@@ -1024,11 +998,11 @@ function renderRugpull(){
           <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${coin}<button class="rp-remove-btn" data-remove="${coin}" title="УБРАТЬ">✕</button></span></td>
           <td>${noSpotBadgeHtml(primarySpotSource)}</td>
           <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
-          <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
+          <td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td><td class="muted-cell">—</td>
         </tr>`;
       }).join("");
     }
-    rugpullTbody.innerHTML=html||`<tr><td colspan="10" class="empty">НЕТ ДАННЫХ ДЛЯ ОТСЛЕЖИВАЕМЫХ МОНЕТ</td></tr>`;
+    rugpullTbody.innerHTML=html||`<tr><td colspan="12" class="empty">НЕТ ДАННЫХ ДЛЯ ОТСЛЕЖИВАЕМЫХ МОНЕТ</td></tr>`;
     rugpullTbody.querySelectorAll(".rp-remove-btn").forEach(btn=>{
       btn.addEventListener("click",(e)=>{e.stopPropagation();removeRugpullCoin(btn.dataset.remove);});
     });
@@ -1043,14 +1017,12 @@ function addRugpullCoin(coin){
   saveRugpull();
   renderRugpull();
   updateJumpRugpullHint();
-  // Инициализируем prevPrice для новой монеты при следующем цикле
   rugpullSearch.value='';
   hideSuggestions();
 }
 
 function removeRugpullCoin(coin){
   rugpullCoins=rugpullCoins.filter(c=>c!==coin);
-  // Очищаем данные отслеживания скачков для удалённой монеты
   const keysToRemove = [];
   for(const key of Object.keys(alertState.prevPrices)){
     if(key.startsWith(coin+"|")) keysToRemove.push(key);
@@ -1086,7 +1058,6 @@ rugpullSearch.addEventListener('blur',()=>{setTimeout(hideSuggestions,200);});
 rugpullAddBtn.addEventListener('click',()=>{const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);else rugpullSearch.focus();});
 rugpullClearAll.addEventListener('click',()=>{
   if(rugpullCoins.length===0)return;
-  // Очищаем все данные отслеживания скачков
   alertState.prevPrices={};
   alertState.prevPriceTimes={};
   rugpullCoins=[];
@@ -1101,6 +1072,8 @@ rpFilterExch.addEventListener('change',()=>{renderRugpull();});
 document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
 document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeSort="funding";fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";render();});
 document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
+document.querySelector("th.chg1h-sort")?.addEventListener("click",()=>{activeSort="chg1h";chg1hMode=chg1hMode==="abs"?"pos":chg1hMode==="pos"?"neg":"abs";render();});
+document.querySelector("th.chg15m-sort")?.addEventListener("click",()=>{activeSort="chg15m";chg15mMode=chg15mMode==="abs"?"pos":chg15mMode==="pos"?"neg":"abs";render();});
 for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));updateSpotPriority();render();renderRugpull();});}
 
 alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;saveAlerts();renderAlerts();render();}});
