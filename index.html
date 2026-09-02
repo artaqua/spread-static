@@ -208,8 +208,8 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <header>
   <div>
-    <p class="eyebrow">Static edition · без сервера · ваш IP · объёмы/Δ24ч: Binance → MEXC</p>
     <h1>SPREAD <span>//</span> SPOT-PERP SCANNER</h1>
+    <p class="eyebrow">Static edition · без сервера · ваш IP · объёмы/Δ24ч: Binance → MEXC · СПОТ ПРИОРИТЕТ: <span class="spot-priority binance" id="spotPriorityLabel">BINANCE</span> <span id="spotPriorityFallback" style="display:none;color:var(--muted)">· MEXC FALLBACK</span></p>
   </div>
   <div class="status-block">
     <div class="status-line">
@@ -730,6 +730,13 @@ function replacePerps(exch,arr){
 
 function updateSpotPriority(){
   const mexcOk = enabled.mexc && state.status.mexc === true;
+  
+  // Проверяем существование элементов
+  if (!spotPriorityLabel || !spotPriorityFallback) {
+    console.warn('Spot priority elements not found');
+    return;
+  }
+  
   if(mexcOk) {
     primarySpotSource = 'mexc';
     spotPriorityLabel.textContent = 'MEXC';
