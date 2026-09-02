@@ -419,11 +419,11 @@ const firebaseConfig = {
 const $ = id => document.getElementById(id);
 
 const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
-const LS_KEY="spread-scanner-cache-v19",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
+const LS_KEY="spread-scanner-cache-v20",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
 const EXCHANGES=["mexc","binance","bybit"];
 const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
 
-const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],lastApiAt:0,lastSlowAt:0,badge:"init",shortTerm:{}};
+const state={status:{binance:null,bybit:null,mexc:null},spotBook:{},perps:[],lastApiAt:0,lastSlowAt:0,badge:"init",shortTerm:{},klineErrors:{}};
 const errors={binance:null,bybit:null,mexc:null};
 let enabled=loadEnabled(),busy=false,nextAt=0,fastTimer=null,cycleReqs=0;
 let spreadMode="neg",fundingMode="abs",chg24hMode="abs",chg1hMode="abs",chg15mMode="abs",activeSort="spread";
@@ -607,9 +607,9 @@ function computeRows(){
   return out;
 }
 
-function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt,primarySpotSource,shortTerm:state.shortTerm}));}catch(e){}}
+function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt,primarySpotSource,shortTerm:state.shortTerm,klineErrors:state.klineErrors}));}catch(e){}}
 function loadCache(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null;}catch{return null;}}
-function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;if(c.primarySpotSource)primarySpotSource=c.primarySpotSource;if(c.shortTerm)state.shortTerm=c.shortTerm;}
+function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;if(c.primarySpotSource)primarySpotSource=c.primarySpotSource;if(c.shortTerm)state.shortTerm=c.shortTerm;if(c.klineErrors)state.klineErrors=c.klineErrors;}
 function loadEnabled(){const d={binance:true,bybit:true,mexc:true};try{const r=localStorage.getItem(LS_EXCH);if(r)return{...d,...JSON.parse(r)};}catch{}return d;}
 function saveEnabled(){try{localStorage.setItem(LS_EXCH,JSON.stringify(enabled));}catch{}}
 
@@ -758,7 +758,7 @@ function testNotification(){
     try{
       const n1=new Notification(" СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
       setTimeout(()=>n1.close&&n1.close(),6000);
-      setTimeout(()=>{const n2=new Notification("⚡ СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
+      setTimeout(()=>{const n2=new Notification(" СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
     }catch(e){alert("Не удалось показать уведомление: "+e.message);}
   };
   if(Notification.permission==="granted")trySend();
@@ -768,8 +768,18 @@ function testNotification(){
 
 function scheduleNext(delayMs){clearTimeout(fastTimer);nextAt=Date.now()+delayMs;fastTimer=setTimeout(()=>{apiCycle().catch(e=>console.error("apiCycle error:",e));},delayMs);}
 
+// Кэш ошибок klines — если символ не работает, не пытаемся снова 30 минут
+const KLINE_ERROR_CACHE_MS = 30 * 60 * 1000;
+
 async function fetchKlineChange(exchange, base, interval) {
   const symbol = base + "USDT";
+  const errorKey = `${exchange}:${symbol}:${interval}`;
+  
+  // Если недавно была ошибка для этого символа — пропускаем
+  if (state.klineErrors[errorKey] && (Date.now() - state.klineErrors[errorKey]) < KLINE_ERROR_CACHE_MS) {
+    return null;
+  }
+  
   try {
     if (exchange === 'binance') {
       const inv = interval === '1h' ? '1h' : '15m';
@@ -781,15 +791,8 @@ async function fetchKlineChange(exchange, base, interval) {
         if (open > 0) return ((close - open) / open) * 100;
       }
     } else if (exchange === 'bybit') {
-      const inv = interval === '1h' ? '60' : '15';
-      const data = await fetchJSON(`https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=${inv}&limit=2`);
-      const list = data?.result?.list;
-      if (list && list.length >= 1) {
-        const current = list[0];
-        const open = parseFloat(current[1]);
-        const close = parseFloat(current[4]);
-        if (open > 0) return ((close - open) / open) * 100;
-      }
+      // Bybit блокирует CORS из браузера — пропускаем
+      return null;
     } else if (exchange === 'mexc') {
       const inv = interval === '1h' ? '1h' : '15m';
       const data = await fetchJSON(`https://api.mexc.com/api/v3/klines?symbol=${symbol}&interval=${inv}&limit=2`);
@@ -801,7 +804,15 @@ async function fetchKlineChange(exchange, base, interval) {
       }
     }
   } catch (e) {
-    console.warn(`Kline fetch failed for ${base} ${interval} on ${exchange}:`, e.message);
+    // Запоминаем ошибку чтобы не спамить запросами
+    state.klineErrors[errorKey] = Date.now();
+    // Очищаем старые ошибки
+    const now = Date.now();
+    for (const key in state.klineErrors) {
+      if (now - state.klineErrors[key] > KLINE_ERROR_CACHE_MS * 2) {
+        delete state.klineErrors[key];
+      }
+    }
   }
   return null;
 }
@@ -830,6 +841,7 @@ async function updateShortTermData() {
 
     promises.push((async () => {
       const chg15m = await fetchKlineChange(exch, base, '15m');
+      await new Promise(r => setTimeout(r, 150)); // Задержка между запросами
       const chg1h = await fetchKlineChange(exch, base, '1h');
       
       if (chg15m !== null || chg1h !== null) {
@@ -840,8 +852,6 @@ async function updateShortTermData() {
         };
       }
     })());
-    
-    await new Promise(r => setTimeout(r, 100));
   }
   await Promise.allSettled(promises);
 }
