@@ -364,9 +364,9 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
           <th>Спред (абс.)</th>
           <th>Спред %</th>
           <th>Фандинг %</th>
-          <th>24ч Δ %</th>
-          <th>1ч Δ %</th>
           <th>15м Δ %</th>
+          <th>1ч Δ %</th>
+          <th>24ч Δ %</th>
           <th>Объём 24ч</th>
         </tr>
       </thead>
@@ -390,9 +390,9 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
           <th>Спред (абс.)</th>
           <th class="sortable spread-sort">Спред % <span class="sort-arrow">▼</span></th>
           <th class="sortable funding-sort">Фандинг % <span class="sort-arrow">▼</span></th>
-          <th class="sortable chg24h-sort">24ч Δ % <span class="sort-arrow">▼</span></th>
-          <th class="sortable chg1h-sort">1ч Δ % <span class="sort-arrow">▼</span></th>
           <th class="sortable chg15m-sort">15м Δ % <span class="sort-arrow">▼</span></th>
+          <th class="sortable chg1h-sort">1ч Δ % <span class="sort-arrow">▼</span></th>
+          <th class="sortable chg24h-sort">24ч Δ % <span class="sort-arrow">▼</span></th>
           <th>Объём 24ч</th>
         </tr>
       </thead>
@@ -419,7 +419,7 @@ const firebaseConfig = {
 const $ = id => document.getElementById(id);
 
 const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
-const LS_KEY="spread-scanner-cache-v18",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
+const LS_KEY="spread-scanner-cache-v19",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
 const EXCHANGES=["mexc","binance","bybit"];
 const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
 
@@ -602,7 +602,7 @@ function computeRows(){
     const vol = hasSpotData ? spot24.vol : perpVol;
     const src = hasSpotData ? spot24.src : perpSrc;
     const st = state.shortTerm[p.base] || {};
-    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,funding:p.funding,spreadAbs:sa,spreadPct:spc,chg24h:chg,volume:vol,src24:src,hasSpotData,chg1h:st.chg1h??null,chg15m:st.chg15m??null});
+    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,funding:p.funding,spreadAbs:sa,spreadPct:spc,chg24h:chg,volume:vol,src24:src,hasSpotData,chg15m:st.chg15m??null,chg1h:st.chg1h??null});
   }
   return out;
 }
@@ -778,7 +778,7 @@ async function fetchKlineChange(exchange, base, interval) {
         const current = data[data.length - 1];
         const open = parseFloat(current[1]);
         const close = parseFloat(current[4]);
-        return ((close - open) / open) * 100;
+        if (open > 0) return ((close - open) / open) * 100;
       }
     } else if (exchange === 'bybit') {
       const inv = interval === '1h' ? '60' : '15';
@@ -788,7 +788,7 @@ async function fetchKlineChange(exchange, base, interval) {
         const current = list[0];
         const open = parseFloat(current[1]);
         const close = parseFloat(current[4]);
-        return ((close - open) / open) * 100;
+        if (open > 0) return ((close - open) / open) * 100;
       }
     } else if (exchange === 'mexc') {
       const inv = interval === '1h' ? '1h' : '15m';
@@ -797,11 +797,11 @@ async function fetchKlineChange(exchange, base, interval) {
         const current = data[data.length - 1];
         const open = parseFloat(current[1]);
         const close = parseFloat(current[4]);
-        return ((close - open) / open) * 100;
+        if (open > 0) return ((close - open) / open) * 100;
       }
     }
   } catch (e) {
-    // Тихий фолбэк при ошибке отдельной монеты
+    console.warn(`Kline fetch failed for ${base} ${interval} on ${exchange}:`, e.message);
   }
   return null;
 }
@@ -818,7 +818,7 @@ async function updateShortTermData() {
   for (const base of targets) {
     if (!state.shortTerm[base]) state.shortTerm[base] = {};
     const cache = state.shortTerm[base];
-    if (now - (cache.lastUpdate || 0) < 300000) continue; // Кэш на 5 минут
+    if (now - (cache.lastUpdate || 0) < 300000) continue;
 
     const spotData = state.spotBook[base];
     let exch = 'binance';
@@ -829,16 +829,19 @@ async function updateShortTermData() {
     }
 
     promises.push((async () => {
-      const chg1h = await fetchKlineChange(exch, base, '1h');
       const chg15m = await fetchKlineChange(exch, base, '15m');
-      if (chg1h !== null || chg15m !== null) {
+      const chg1h = await fetchKlineChange(exch, base, '1h');
+      
+      if (chg15m !== null || chg1h !== null) {
         state.shortTerm[base] = {
-          chg1h: chg1h ?? cache.chg1h,
           chg15m: chg15m ?? cache.chg15m,
+          chg1h: chg1h ?? cache.chg1h,
           lastUpdate: now
         };
       }
     })());
+    
+    await new Promise(r => setTimeout(r, 100));
   }
   await Promise.allSettled(promises);
 }
@@ -905,7 +908,7 @@ function getFilteredRows(){
   if(chg15mMode==="pos")rows=rows.filter(r=>r.chg15m!=null&&isFinite(r.chg15m)&&r.chg15m>0);
   else if(chg15mMode==="neg")rows=rows.filter(r=>r.chg15m!=null&&isFinite(r.chg15m)&&r.chg15m<0);
   
-  const dims=[{key:"spread",mode:spreadMode,field:"spreadPct"},{key:"funding",mode:fundingMode,field:"funding"},{key:"chg24h",mode:chg24hMode,field:"chg24h"},{key:"chg1h",mode:chg1hMode,field:"chg1h"},{key:"chg15m",mode:chg15mMode,field:"chg15m"}];
+  const dims=[{key:"spread",mode:spreadMode,field:"spreadPct"},{key:"funding",mode:fundingMode,field:"funding"},{key:"chg15m",mode:chg15mMode,field:"chg15m"},{key:"chg1h",mode:chg1hMode,field:"chg1h"},{key:"chg24h",mode:chg24hMode,field:"chg24h"}];
   const ad=dims.filter(d=>d.mode!=="abs");
   if(ad.length>=2){const so=r=>{let s=0;for(const d of ad){const v=r[d.field];if(v!=null&&isFinite(v))s+=d.mode==="neg"?-v:v;}return s;};rows.sort((a,b)=>so(b)-so(a));}
   else if(ad.length===1){const{mode,field}=ad[0];rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return mode==="pos"?bv-av:av-bv;});}
@@ -919,16 +922,14 @@ function render(){
     tbody.innerHTML=shown.length?shown.map(r=>{
       const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
       const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
-      const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
-      const c1h=r.chg1h==null?"muted-cell":(r.chg1h>=0?"pos":"neg");
       const c15m=r.chg15m==null?"muted-cell":(r.chg15m>=0?"pos":"neg");
+      const c1h=r.chg1h==null?"muted-cell":(r.chg1h>=0?"pos":"neg");
+      const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
       const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
       const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
       const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
-      return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${spotCell}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td class="${c1h}">${fmtPct(r.chg1h,2)}</td><td class="${c15m}">${fmtPct(r.chg15m,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
+      return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${spotCell}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${c15m}">${fmtPct(r.chg15m,2)}</td><td class="${c1h}">${fmtPct(r.chg1h,2)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
     }).join(""):`<tr><td colspan="12" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;
-    const ac=[spreadMode,fundingMode,chg24hMode,chg1hMode,chg15mMode].filter(m=>m!=="abs").length;
-    const ch=ac>=2?` · КОМБО: СПРЕД ${spreadMode==="neg"?"−":spreadMode==="pos"?"+":"±"} & ФАНДИНГ ${fundingMode==="neg"?"−":fundingMode==="pos"?"+":"±"} & 24чΔ ${chg24hMode==="neg"?"−":chg24hMode==="pos"?"+":"±"}`:"";
     tpCount.textContent=`· МОНЕТ: ${rows.length} · ПОКАЗАНО: ${shown.length}`;
     updateExButtons();updateSortIndicators();checkAlerts(computeRows());
   }catch(e){console.error("render error:",e);}
@@ -937,9 +938,9 @@ function render(){
 function updateSortIndicators(){
   const st=document.querySelector("th.spread-sort");if(st){st.classList.toggle("mode-neg",spreadMode==="neg");st.classList.toggle("mode-pos",spreadMode==="pos");const a=st.querySelector(".sort-arrow");if(spreadMode==="abs")a.textContent="± ▼";else if(spreadMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
   const ft=document.querySelector("th.funding-sort");if(ft){ft.classList.toggle("mode-neg",fundingMode==="neg");ft.classList.toggle("mode-pos",fundingMode==="pos");const a=ft.querySelector(".sort-arrow");if(fundingMode==="abs")a.textContent="± ▼";else if(fundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const c1ht=document.querySelector("th.chg1h-sort");if(c1ht){c1ht.classList.toggle("mode-neg",chg1hMode==="neg");c1ht.classList.toggle("mode-pos",chg1hMode==="pos");const a=c1ht.querySelector(".sort-arrow");if(chg1hMode==="abs")a.textContent="± ▼";else if(chg1hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
   const c15mt=document.querySelector("th.chg15m-sort");if(c15mt){c15mt.classList.toggle("mode-neg",chg15mMode==="neg");c15mt.classList.toggle("mode-pos",chg15mMode==="pos");const a=c15mt.querySelector(".sort-arrow");if(chg15mMode==="abs")a.textContent="± ▼";else if(chg15mMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
+  const c1ht=document.querySelector("th.chg1h-sort");if(c1ht){c1ht.classList.toggle("mode-neg",chg1hMode==="neg");c1ht.classList.toggle("mode-pos",chg1hMode==="pos");const a=c1ht.querySelector(".sort-arrow");if(chg1hMode==="abs")a.textContent="± ▼";else if(chg1hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
+  const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
 }
 
 function getRugpullRows(){
@@ -970,9 +971,9 @@ function renderRugpull(){
       html=rows.map(r=>{
         const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
         const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
-        const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
-        const c1h=r.chg1h==null?"muted-cell":(r.chg1h>=0?"pos":"neg");
         const c15m=r.chg15m==null?"muted-cell":(r.chg15m>=0?"pos":"neg");
+        const c1h=r.chg1h==null?"muted-cell":(r.chg1h>=0?"pos":"neg");
+        const cc=r.chg24h==null?"muted-cell":(r.chg24h>=0?"pos":"neg");
         const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
         const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
         const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
@@ -985,9 +986,9 @@ function renderRugpull(){
           <td class="muted-cell">${fmtPrice(r.spreadAbs)}</td>
           <td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td>
           <td class="${fc}">${fmtPct(r.funding,4)}</td>
-          <td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td>
-          <td class="${c1h}">${fmtPct(r.chg1h,2)}</td>
           <td class="${c15m}">${fmtPct(r.chg15m,2)}</td>
+          <td class="${c1h}">${fmtPct(r.chg1h,2)}</td>
+          <td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td>
           <td${t24}>${fmtVol(r.volume)}</td>
         </tr>`;
       }).join("");
@@ -1071,9 +1072,9 @@ rpFilterExch.addEventListener('change',()=>{renderRugpull();});
 [fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input",render));
 document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
 document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeSort="funding";fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";render();});
-document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
-document.querySelector("th.chg1h-sort")?.addEventListener("click",()=>{activeSort="chg1h";chg1hMode=chg1hMode==="abs"?"pos":chg1hMode==="pos"?"neg":"abs";render();});
 document.querySelector("th.chg15m-sort")?.addEventListener("click",()=>{activeSort="chg15m";chg15mMode=chg15mMode==="abs"?"pos":chg15mMode==="pos"?"neg":"abs";render();});
+document.querySelector("th.chg1h-sort")?.addEventListener("click",()=>{activeSort="chg1h";chg1hMode=chg1hMode==="abs"?"pos":chg1hMode==="pos"?"neg":"abs";render();});
+document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
 for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));updateSpotPriority();render();renderRugpull();});}
 
 alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;saveAlerts();renderAlerts();render();}});
