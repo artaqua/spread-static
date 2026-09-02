@@ -208,7 +208,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 
 <header>
   <div>
-    <p class="eyebrow">Static edition · ваш IP · FirebaseDB · СПОТ ПРИОРИТЕТ: <span class="spot-priority binance" id="spotPriorityLabel">BINANCE</span> <span id="spotPriorityFallback" style="display:none;color:var(--muted)">· MEXC FALLBACK</span></p>
+    <p class="eyebrow">Static edition · без сервера · ваш IP · объёмы/Δ24ч: Binance → MEXC</p>
     <h1>SPREAD <span>//</span> SPOT-PERP SCANNER</h1>
   </div>
   <div class="status-block">
@@ -243,7 +243,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
     <option value="bybit">BYBIT</option>
   </select>
   <select id="fVol">
-    <option value="0">ОБЪЁМ 24Ч: БЕЗ ФИЛЬТРА</option>
+    <option value="0">ОБЪЁМ 24Ч (BNC→MEXC): БЕЗ ФИЛЬТРА</option>
     <option value="100000">&gt; 100K</option>
     <option value="500000">&gt; 500K</option>
     <option value="1000000">&gt; 1M</option>
@@ -392,8 +392,8 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
           <th class="sortable funding-sort">Фандинг % <span class="sort-arrow">▼</span></th>
           <th class="sortable chg15m-sort">15м Δ % <span class="sort-arrow">▼</span></th>
           <th class="sortable chg1h-sort">1ч Δ % <span class="sort-arrow">▼</span></th>
-          <th class="sortable chg24h-sort">24ч Δ % <span class="sort-arrow">▼</span></th>
-          <th>Объём 24ч</th>
+          <th class="sortable chg24h-sort">24ч Δ % (BNC→MEXC) <span class="sort-arrow">▼</span></th>
+          <th>Объём 24ч (BNC→MEXC)</th>
         </tr>
       </thead>
       <tbody id="tbody"><tr><td colspan="12" class="empty">ПОДКЛЮЧЕНИЕ К БИРЖАМ…</td></tr></tbody>
@@ -419,7 +419,7 @@ const firebaseConfig = {
 const $ = id => document.getElementById(id);
 
 const FAST_MS=30_000,SLOW_MS=60_000,MIN_GAP_MS=30_000,FIRST_LOAD_DELAY_MS=5_000;
-const LS_KEY="spread-scanner-cache-v20",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
+const LS_KEY="spread-scanner-cache-v21",LS_EXCH="spread-scanner-exchanges-v11",LS_ALERTS="spread-scanner-alerts-v3",LS_RUGPULL="spread-scanner-rugpull-v1";
 const EXCHANGES=["mexc","binance","bybit"];
 const TOP_COINS=["BTC","ETH","USDT","XRP","BNB","SOL","USDC","DOGE","TRX","ADA","LINK","XLM","SUI","HBAR","BCH","AVAX","TON","LTC","SHIB","UNI","DOT","NEAR","APT","ICP","PEPE","ARB","OP","ETC","POL","MATIC","TAO","KAS","RENDER","INJ","FET","VET","FIL","ATOM","AAVE","CRO","OKB","LEO","WIF","BONK","SEI","TIA","JUP","LDO","IMX","STX"];
 
@@ -518,38 +518,232 @@ function updateJumpRugpullHint(){
   if(jumpRugpullCount) jumpRugpullCount.textContent = rugpullCoins.length;
 }
 
-async function fetchJSON(url,timeoutMs=15000){const c=new AbortController();const t=setTimeout(()=>c.abort(),timeoutMs);try{cycleReqs++;const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json();}finally{clearTimeout(t);}}
-function describeErr(e){const m=(e&&e.message)?e.message:String(e);if(/Failed to fetch|Load failed|NetworkError|terminated/i.test(m))return m+" — CORS или сеть";if(/abort/i.test(m))return m+" — таймаут";return m;}
-function shortErr(msg){if(!msg)return"";if(/CORS|Failed to fetch|Load failed|NetworkError/i.test(msg))return"CORS/сеть";const m=msg.match(/HTTP (\d{3})/);if(m)return"HTTP "+m[1];if(/таймаут|abort/i.test(msg))return"таймаут";return"ошибка";}
+// Улучшенная функция fetch с обработкой CORS
+async function fetchJSON(url,timeoutMs=15000){
+  const c=new AbortController();
+  const t=setTimeout(()=>c.abort(),timeoutMs);
+  try{
+    cycleReqs++;
+    const r=await fetch(url,{
+      signal:c.signal,
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return await r.json();
+  }catch(e){
+    // Если CORS ошибка - пробуем без mode
+    if(e.message.includes('CORS') || e.message.includes('Failed to fetch')){
+      try{
+        const r=await fetch(url,{signal:c.signal});
+        if(!r.ok)throw new Error("HTTP "+r.status);
+        return await r.json();
+      }catch(e2){
+        throw new Error("CORS/сеть: "+describeErr(e2));
+      }
+    }
+    throw e;
+  }finally{
+    clearTimeout(t);
+  }
+}
 
-async function mexcFast(){const[spot,contract]=await Promise.all([fetchJSON("https://api.mexc.com/api/v3/ticker/price"),fetchJSON("https://contract.mexc.com/api/v1/contract/ticker")]);return{spot:(Array.isArray(spot)?spot:[]).filter(t=>t.symbol?.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),price:parseFloat(t.price)})),perp:(Array.isArray(contract?.data)?contract.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({base:t.symbol.split("_")[0],perp:parseFloat(t.lastPrice),funding:(parseFloat(t.fundingRate)||0)*100}))};}
-async function binanceFast(){const[spot,perp,funding]=await Promise.all([fetchJSON("https://api.binance.com/api/v3/ticker/price"),fetchJSON("https://fapi.binance.com/fapi/v1/ticker/price"),fetchJSON("https://fapi.binance.com/fapi/v1/premiumIndex")]);const fundMap=new Map(funding.map(p=>[p.symbol,parseFloat(p.lastFundingRate)]));return{spot:spot.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),price:parseFloat(p.price)})),perp:perp.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),perp:parseFloat(p.price),funding:(fundMap.get(p.symbol)||0)*100}))};}
-async function bybitFast(){const[spotRes,linRes]=await Promise.all([fetchJSON("https://api.bybit.com/v5/market/tickers?category=spot"),fetchJSON("https://api.bybit.com/v5/market/tickers?category=linear")]);return{spot:(spotRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),price:parseFloat(t.lastPrice)})),perp:(linRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),perp:parseFloat(t.lastPrice),funding:(parseFloat(t.fundingRate)||0)*100}))};}
-async function binanceSpotSlow(){const t=await fetchJSON("https://api.binance.com/api/v3/ticker/24hr");return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),vol:parseFloat(p.quoteVolume)||0,chg:parseFloat(p.priceChangePercent)||0}));}
-async function mexcSpotSlow(){const t=await fetchJSON("https://api.mexc.com/api/v3/ticker/24hr");return(Array.isArray(t)?t:[]).filter(p=>p.symbol?.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),vol:parseFloat(p.quoteVolume)||0,chg:parseFloat(p.priceChangePercent)||0}));}
-async function binancePerpSlow(){const t=await fetchJSON("https://fapi.binance.com/fapi/v1/ticker/24hr");return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({base:p.symbol.slice(0,-4),vol:parseFloat(p.quoteVolume)||0,chg:parseFloat(p.priceChangePercent)||0}));}
-async function bybitPerpSlow(){const r=await fetchJSON("https://api.bybit.com/v5/market/tickers?category=linear");return(r.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({base:t.symbol.slice(0,-4),vol:parseFloat(t.turnover24h)||0,chg:parseFloat(t.price24hPcnt)*100||0}));}
-async function mexcPerpSlow(){const r=await fetchJSON("https://contract.mexc.com/api/v1/contract/detail");return(Array.isArray(r?.data)?r.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({base:t.symbol.split("_")[0],vol:parseFloat(t.amount24)||0,chg:parseFloat(t.riseFallRate)*100||0}));}
+function describeErr(e){
+  const m=(e&&e.message)?e.message:String(e);
+  if(/Failed to fetch|Load failed|NetworkError|terminated/i.test(m))return m+" — CORS или сеть";
+  if(/abort/i.test(m))return m+" — таймаут";
+  return m;
+}
 
-function mergeSpot(exch,arr){for(const s of arr){if(!s?.base||!isFinite(s.price))continue;const b=state.spotBook[s.base]||(state.spotBook[s.base]={});const p=b[exch]||{};b[exch]={price:s.price,vol:s.vol??p.vol??0,chg:s.chg??p.chg??null};}}
-function merge24(exch,arr){for(const s of arr){if(!s?.base)continue;const b=state.spotBook[s.base]||(state.spotBook[s.base]={});b[exch]={...(b[exch]||{}),vol:s.vol,chg:s.chg};}}
-function mergePerp24(exch,arr){for(const s of arr){if(!s?.base)continue;const p=state.perps.find(x=>x.base===s.base&&x.exchange===exch);if(p){p.volume=s.vol||0;p.chg24h=s.chg??null;p.perpSource24=exch;}}}
-function replacePerps(exch,arr){const keep=state.perps.filter(p=>p.exchange!==exch);const add=arr.filter(p=>p?.base&&isFinite(p.perp)).map(p=>({base:p.base,exchange:exch,perp:p.perp,funding:p.funding??0,volume:0,chg24h:null,perpSource24:null}));state.perps=keep.concat(add);}
+function shortErr(msg){
+  if(!msg)return"";
+  if(/CORS|Failed to fetch|Load failed|NetworkError/i.test(msg))return"CORS/сеть";
+  const m=msg.match(/HTTP (\d{3})/);
+  if(m)return"HTTP "+m[1];
+  if(/таймаут|abort/i.test(msg))return"таймаут";
+  return"ошибка";
+}
+
+// MEXC API с лучшим fallback
+async function mexcFast(){
+  try{
+    const [spot,contract]=await Promise.all([
+      fetchJSON("https://api.mexc.com/api/v3/ticker/price").catch(()=>[]),
+      fetchJSON("https://contract.mexc.com/api/v1/contract/ticker").catch(()=>({data:[]}))
+    ]);
+    return{
+      spot:(Array.isArray(spot)?spot:[]).filter(t=>t.symbol?.endsWith("USDT")).map(t=>({
+        base:t.symbol.slice(0,-4),
+        price:parseFloat(t.price)
+      })),
+      perp:(Array.isArray(contract?.data)?contract.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({
+        base:t.symbol.split("_")[0],
+        perp:parseFloat(t.lastPrice),
+        funding:(parseFloat(t.fundingRate)||0)*100
+      }))
+    };
+  }catch(e){
+    console.warn("MEXC fast fetch failed:",e);
+    return {spot:[],perp:[]};
+  }
+}
+
+// Binance API
+async function binanceFast(){
+  const [spot,perp,funding]=await Promise.all([
+    fetchJSON("https://api.binance.com/api/v3/ticker/price"),
+    fetchJSON("https://fapi.binance.com/fapi/v1/ticker/price"),
+    fetchJSON("https://fapi.binance.com/fapi/v1/premiumIndex")
+  ]);
+  const fundMap=new Map(funding.map(p=>[p.symbol,parseFloat(p.lastFundingRate)]));
+  return{
+    spot:spot.filter(p=>p.symbol.endsWith("USDT")).map(p=>({
+      base:p.symbol.slice(0,-4),
+      price:parseFloat(p.price)
+    })),
+    perp:perp.filter(p=>p.symbol.endsWith("USDT")).map(p=>({
+      base:p.symbol.slice(0,-4),
+      perp:parseFloat(p.price),
+      funding:(fundMap.get(p.symbol)||0)*100
+    }))
+  };
+}
+
+// Bybit API
+async function bybitFast(){
+  const [spotRes,linRes]=await Promise.all([
+    fetchJSON("https://api.bybit.com/v5/market/tickers?category=spot"),
+    fetchJSON("https://api.bybit.com/v5/market/tickers?category=linear")
+  ]);
+  return{
+    spot:(spotRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({
+      base:t.symbol.slice(0,-4),
+      price:parseFloat(t.lastPrice)
+    })),
+    perp:(linRes.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({
+      base:t.symbol.slice(0,-4),
+      perp:parseFloat(t.lastPrice),
+      funding:(parseFloat(t.fundingRate)||0)*100
+    }))
+  };
+}
+
+async function binanceSpotSlow(){
+  const t=await fetchJSON("https://api.binance.com/api/v3/ticker/24hr");
+  return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({
+    base:p.symbol.slice(0,-4),
+    vol:parseFloat(p.quoteVolume)||0,
+    chg:parseFloat(p.priceChangePercent)||0
+  }));
+}
+
+async function mexcSpotSlow(){
+  try{
+    const t=await fetchJSON("https://api.mexc.com/api/v3/ticker/24hr");
+    return (Array.isArray(t)?t:[]).filter(p=>p.symbol?.endsWith("USDT")).map(p=>({
+      base:p.symbol.slice(0,-4),
+      vol:parseFloat(p.quoteVolume)||0,
+      chg:parseFloat(p.priceChangePercent)||0
+    }));
+  }catch(e){
+    console.warn("MEXC 24hr fetch failed:",e);
+    return [];
+  }
+}
+
+async function binancePerpSlow(){
+  const t=await fetchJSON("https://fapi.binance.com/fapi/v1/ticker/24hr");
+  return t.filter(p=>p.symbol.endsWith("USDT")).map(p=>({
+    base:p.symbol.slice(0,-4),
+    vol:parseFloat(p.quoteVolume)||0,
+    chg:parseFloat(p.priceChangePercent)||0
+  }));
+}
+
+async function bybitPerpSlow(){
+  const r=await fetchJSON("https://api.bybit.com/v5/market/tickers?category=linear");
+  return (r.result?.list||[]).filter(t=>t.symbol.endsWith("USDT")).map(t=>({
+    base:t.symbol.slice(0,-4),
+    vol:parseFloat(t.turnover24h)||0,
+    chg:parseFloat(t.price24hPcnt)*100||0
+  }));
+}
+
+async function mexcPerpSlow(){
+  try{
+    const r=await fetchJSON("https://contract.mexc.com/api/v1/contract/detail");
+    return (Array.isArray(r?.data)?r.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({
+      base:t.symbol.split("_")[0],
+      vol:parseFloat(t.amount24)||0,
+      chg:parseFloat(t.riseFallRate)*100||0
+    }));
+  }catch(e){
+    console.warn("MEXC perp detail fetch failed:",e);
+    return [];
+  }
+}
+
+function mergeSpot(exch,arr){
+  for(const s of arr){
+    if(!s?.base||!isFinite(s.price))continue;
+    const b=state.spotBook[s.base]||(state.spotBook[s.base]={});
+    const p=b[exch]||{};
+    b[exch]={price:s.price,vol:s.vol??p.vol??0,chg:s.chg??p.chg??null};
+  }
+}
+
+function merge24(exch,arr){
+  for(const s of arr){
+    if(!s?.base)continue;
+    const b=state.spotBook[s.base]||(state.spotBook[s.base]={});
+    b[exch]={...(b[exch]||{}),vol:s.vol,chg:s.chg};
+  }
+}
+
+function mergePerp24(exch,arr){
+  for(const s of arr){
+    if(!s?.base)continue;
+    const p=state.perps.find(x=>x.base===s.base&&x.exchange===exch);
+    if(p){
+      p.volume=s.vol||0;
+      p.chg24h=s.chg??null;
+      p.perpSource24=exch;
+    }
+  }
+}
+
+function replacePerps(exch,arr){
+  const keep=state.perps.filter(p=>p.exchange!==exch);
+  const add=arr.filter(p=>p?.base&&isFinite(p.perp)).map(p=>({
+    base:p.base,
+    exchange:exch,
+    perp:p.perp,
+    funding:p.funding??0,
+    volume:0,
+    chg24h:null,
+    perpSource24:null
+  }));
+  state.perps=keep.concat(add);
+}
 
 function updateSpotPriority(){
   const mexcOk = enabled.mexc && state.status.mexc === true;
-  if(mexcOk) primarySpotSource = 'mexc';
-  else primarySpotSource = 'binance';
-  spotPriorityLabel.textContent = primarySpotSource.toUpperCase();
-  spotPriorityLabel.className = 'spot-priority ' + primarySpotSource;
-  if(primarySpotSource === 'mexc'){
+  if(mexcOk) {
+    primarySpotSource = 'mexc';
+    spotPriorityLabel.textContent = 'MEXC';
+    spotPriorityLabel.className = 'spot-priority mexc';
     spotPriorityFallback.style.display = 'inline';
     spotPriorityFallback.textContent = '· BINANCE FALLBACK';
     spotPriorityFallback.style.color = 'var(--muted)';
   } else {
+    primarySpotSource = 'binance';
+    spotPriorityLabel.textContent = 'BINANCE';
+    spotPriorityLabel.className = 'spot-priority binance';
     if(!mexcOk && enabled.mexc){
       spotPriorityFallback.style.display = 'inline';
-      spotPriorityFallback.textContent = '· MEXC UNAVAILABLE (CORS/ERROR)';
+      spotPriorityFallback.textContent = '· MEXC DISABLED (CORS/ERROR)';
       spotPriorityFallback.style.color = 'var(--red)';
     } else if(!enabled.mexc){
       spotPriorityFallback.style.display = 'inline';
@@ -564,24 +758,46 @@ function updateSpotPriority(){
 function pickSpot(base, perpExch){
   const e = state.spotBook[base];
   if(!e) return null;
-  if(enabled[primarySpotSource] && e[primarySpotSource]?.price) return {...e[primarySpotSource], source: primarySpotSource};
-  if(enabled[perpExch] && perpExch !== primarySpotSource && e[perpExch]?.price) return {...e[perpExch], source: perpExch};
-  for(const ex of EXCHANGES){
-    if(enabled[ex] && ex !== primarySpotSource && ex !== perpExch && e[ex]?.price) return {...e[ex], source: ex};
+  
+  // Сначала пытаемся взять с приоритетной биржи
+  if(enabled[primarySpotSource] && e[primarySpotSource]?.price) {
+    return {...e[primarySpotSource], source: primarySpotSource};
   }
+  
+  // Если нет - пробуем биржу перпа
+  if(enabled[perpExch] && perpExch !== primarySpotSource && e[perpExch]?.price) {
+    return {...e[perpExch], source: perpExch};
+  }
+  
+  // Иначе любую доступную
+  for(const ex of EXCHANGES){
+    if(enabled[ex] && ex !== primarySpotSource && ex !== perpExch && e[ex]?.price) {
+      return {...e[ex], source: ex};
+    }
+  }
+  
   return null;
 }
 
 function getSpot24Data(base){
   const book = state.spotBook[base];
   if(!book) return {chg:null, vol:0, src:null};
+  
+  // Сначала приоритетная биржа
   const primary = book[primarySpotSource];
-  if(primary && (primary.chg != null || primary.vol)) return {chg: primary.chg ?? null, vol: primary.vol || 0, src: primarySpotSource};
+  if(primary && (primary.chg != null || primary.vol)) {
+    return {chg: primary.chg ?? null, vol: primary.vol || 0, src: primarySpotSource};
+  }
+  
+  // Потом остальные
   for(const ex of EXCHANGES){
     if(ex === primarySpotSource) continue;
     const d = book[ex];
-    if(d && (d.chg != null || d.vol)) return {chg: d.chg ?? null, vol: d.vol || 0, src: ex};
+    if(d && (d.chg != null || d.vol)) {
+      return {chg: d.chg ?? null, vol: d.vol || 0, src: ex};
+    }
   }
+  
   return {chg:null, vol:0, src:null};
 }
 
@@ -602,18 +818,89 @@ function computeRows(){
     const vol = hasSpotData ? spot24.vol : perpVol;
     const src = hasSpotData ? spot24.src : perpSrc;
     const st = state.shortTerm[p.base] || {};
-    out.push({base:p.base,exchange:p.exchange,spot:sp,spotSource:spot?.source??null,perp:p.perp,funding:p.funding,spreadAbs:sa,spreadPct:spc,chg24h:chg,volume:vol,src24:src,hasSpotData,chg15m:st.chg15m??null,chg1h:st.chg1h??null});
+    out.push({
+      base:p.base,
+      exchange:p.exchange,
+      spot:sp,
+      spotSource:spot?.source??null,
+      perp:p.perp,
+      funding:p.funding,
+      spreadAbs:sa,
+      spreadPct:spc,
+      chg24h:chg,
+      volume:vol,
+      src24:src,
+      hasSpotData,
+      chg15m:st.chg15m??null,
+      chg1h:st.chg1h??null
+    });
   }
   return out;
 }
 
-function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify({savedAt:Date.now(),status:state.status,spotBook:state.spotBook,perps:state.perps,lastSlowAt:state.lastSlowAt,primarySpotSource,shortTerm:state.shortTerm,klineErrors:state.klineErrors}));}catch(e){}}
-function loadCache(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null;}catch{return null;}}
-function applyCache(c){if(!c)return;state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};state.spotBook=c.spotBook||{};state.perps=c.perps||[];state.lastSlowAt=c.lastSlowAt||0;state.lastApiAt=c.savedAt||0;if(c.primarySpotSource)primarySpotSource=c.primarySpotSource;if(c.shortTerm)state.shortTerm=c.shortTerm;if(c.klineErrors)state.klineErrors=c.klineErrors;}
-function loadEnabled(){const d={binance:true,bybit:true,mexc:true};try{const r=localStorage.getItem(LS_EXCH);if(r)return{...d,...JSON.parse(r)};}catch{}return d;}
-function saveEnabled(){try{localStorage.setItem(LS_EXCH,JSON.stringify(enabled));}catch{}}
+function saveCache(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify({
+      savedAt:Date.now(),
+      status:state.status,
+      spotBook:state.spotBook,
+      perps:state.perps,
+      lastSlowAt:state.lastSlowAt,
+      primarySpotSource,
+      shortTerm:state.shortTerm,
+      klineErrors:state.klineErrors
+    }));
+  }catch(e){}
+}
 
-function checkAlertCondition(spreadPct,funding){const sThr=alertState.spreadThr,fThr=alertState.fundingThr,sDir=alertState.spreadDir,fDir=alertState.fundingDir;let sOk=false;if(sDir==="neg")sOk=spreadPct<-sThr;else if(sDir==="pos")sOk=spreadPct>sThr;else if(sDir==="abs")sOk=Math.abs(spreadPct)>sThr;let fOk=false;if(fDir==="pos")fOk=funding>fThr;else if(fDir==="neg")fOk=funding<-fThr;else if(fDir==="abs")fOk=Math.abs(funding)>fThr;return sOk&&fOk;}
+function loadCache(){
+  try{
+    const r=localStorage.getItem(LS_KEY);
+    return r?JSON.parse(r):null;
+  }catch{
+    return null;
+  }
+}
+
+function applyCache(c){
+  if(!c)return;
+  state.status={binance:c.status?.binance??null,bybit:c.status?.bybit??null,mexc:c.status?.mexc??null};
+  state.spotBook=c.spotBook||{};
+  state.perps=c.perps||[];
+  state.lastSlowAt=c.lastSlowAt||0;
+  state.lastApiAt=c.savedAt||0;
+  if(c.primarySpotSource)primarySpotSource=c.primarySpotSource;
+  if(c.shortTerm)state.shortTerm=c.shortTerm;
+  if(c.klineErrors)state.klineErrors=c.klineErrors;
+}
+
+function loadEnabled(){
+  const d={binance:true,bybit:true,mexc:true};
+  try{
+    const r=localStorage.getItem(LS_EXCH);
+    if(r)return{...d,...JSON.parse(r)};
+  }catch{}
+  return d;
+}
+
+function saveEnabled(){
+  try{
+    localStorage.setItem(LS_EXCH,JSON.stringify(enabled));
+  }catch{}
+}
+
+function checkAlertCondition(spreadPct,funding){
+  const sThr=alertState.spreadThr,fThr=alertState.fundingThr,sDir=alertState.spreadDir,fDir=alertState.fundingDir;
+  let sOk=false;
+  if(sDir==="neg")sOk=spreadPct<-sThr;
+  else if(sDir==="pos")sOk=spreadPct>sThr;
+  else if(sDir==="abs")sOk=Math.abs(spreadPct)>sThr;
+  let fOk=false;
+  if(fDir==="pos")fOk=funding>fThr;
+  else if(fDir==="neg")fOk=funding<-fThr;
+  else if(fDir==="abs")fOk=Math.abs(funding)>fThr;
+  return sOk&&fOk;
+}
 
 function fireAlert(type,coin,exchange,spreadPct,funding,delta){
   const key=type+"|"+coin+"|"+exchange;
@@ -626,7 +913,9 @@ function fireAlert(type,coin,exchange,spreadPct,funding,delta){
   alertState.feed=alertState.feed.slice(0,50);
   if(alertState.notifEnabled)sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta);
   if(alertState.soundEnabled)playAlertSound();
-  saveAlerts();renderAlerts();updateAlertBadge();
+  saveAlerts();
+  renderAlerts();
+  updateAlertBadge();
   return true;
 }
 
@@ -642,8 +931,10 @@ function checkAlerts(rows){
         const now=Date.now();
         const prevTime=alertState.prevPriceTimes[key]||0;
         const intervalMs=(alertState.priceJumpMin||15)*60*1000;
-        if(now-prevTime>=intervalMs){alertState.prevPrices[key]=r.perp;alertState.prevPriceTimes[key]=now;}
-        else{
+        if(now-prevTime>=intervalMs){
+          alertState.prevPrices[key]=r.perp;
+          alertState.prevPriceTimes[key]=now;
+        } else{
           const prevPrice=alertState.prevPrices[key];
           if(prevPrice!=null){
             const signedChange=((r.perp-prevPrice)/prevPrice)*100;
@@ -656,7 +947,9 @@ function checkAlerts(rows){
         }
       }
     }
-  }catch(e){console.warn("checkAlerts error:",e);}
+  }catch(e){
+    console.warn("checkAlerts error:",e);
+  }
 }
 
 function sendBrowserNotification(type,coin,exchange,spreadPct,funding,delta){
@@ -684,10 +977,22 @@ function playAlertSound(){
     gain1.gain.setValueAtTime(0,now);gain1.gain.linearRampToValueAtTime(0.15,now+0.1);gain1.gain.exponentialRampToValueAtTime(0.001,now+3.0);
     gain2.gain.setValueAtTime(0,now);gain2.gain.linearRampToValueAtTime(0.05,now+0.1);gain2.gain.exponentialRampToValueAtTime(0.001,now+3.0);
     osc1.start(now);osc2.start(now);osc1.stop(now+3.1);osc2.stop(now+3.1);
-  }catch(e){console.error("Audio error:",e);}
+  }catch(e){
+    console.error("Audio error:",e);
+  }
 }
 
-function updateAlertBadge(){const c=alertState.feed.length;alertBadgeText.textContent=c;if(c>0){alertBadge.classList.remove("idle");alertBadge.querySelector(".pulse-dot").style.display="inline-block";}else{alertBadge.classList.add("idle");alertBadge.querySelector(".pulse-dot").style.display="none";}}
+function updateAlertBadge(){
+  const c=alertState.feed.length;
+  alertBadgeText.textContent=c;
+  if(c>0){
+    alertBadge.classList.remove("idle");
+    alertBadge.querySelector(".pulse-dot").style.display="inline-block";
+  }else{
+    alertBadge.classList.add("idle");
+    alertBadge.querySelector(".pulse-dot").style.display="none";
+  }
+}
 
 const LOGO_BINANCE=`<b class="binance-word">BINANCE</b>`,LOGO_BYBIT=`<b class="bybit-word">BYB<i>I</i>T</b>`,LOGO_MEXC=`<b class="mexc-word">MEXC</b>`;
 
@@ -710,7 +1015,11 @@ function exBadgeHtml(ex){
 }
 
 function renderAlerts(){
-  if(alertState.feed.length===0){alertFeed.classList.add('hidden');alertFeed.innerHTML='';return;}
+  if(alertState.feed.length===0){
+    alertFeed.classList.add('hidden');
+    alertFeed.innerHTML='';
+    return;
+  }
   alertFeed.classList.remove('hidden');
   alertFeed.innerHTML=alertState.feed.map(a=>{
     const t=new Date(a.time);
@@ -736,37 +1045,88 @@ function renderAlerts(){
     btn.addEventListener("click",()=>{
       const id=btn.dataset.dismiss;
       alertState.feed=alertState.feed.filter(a=>a.id!==id);
-      saveAlerts();renderAlerts();updateAlertBadge();
+      saveAlerts();
+      renderAlerts();
+      updateAlertBadge();
     });
   });
 }
 
 function updateNotifStatus(){
-  if(!alertState.notifEnabled){notifStatus.className="notif-status off";notifStatusText.textContent="ВЫКЛ";return;}
-  if(!("Notification"in window)){notifStatus.className="notif-status denied";notifStatusText.textContent="НЕ ПОДДЕРЖИВАЕТСЯ";return;}
+  if(!alertState.notifEnabled){
+    notifStatus.className="notif-status off";
+    notifStatusText.textContent="ВЫКЛ";
+    return;
+  }
+  if(!("Notification"in window)){
+    notifStatus.className="notif-status denied";
+    notifStatusText.textContent="НЕ ПОДДЕРЖИВАЕТСЯ";
+    return;
+  }
   const p=Notification.permission;
-  if(p==="granted"){notifStatus.className="notif-status on";notifStatusText.textContent="АКТИВНЫ";}
-  else if(p==="denied"){notifStatus.className="notif-status denied";notifStatusText.textContent="ЗАБЛОКИРОВАНЫ";}
-  else{notifStatus.className="notif-status pending";notifStatusText.textContent="ТРЕБУЕТСЯ РАЗРЕШЕНИЕ";}
+  if(p==="granted"){
+    notifStatus.className="notif-status on";
+    notifStatusText.textContent="АКТИВНЫ";
+  } else if(p==="denied"){
+    notifStatus.className="notif-status denied";
+    notifStatusText.textContent="ЗАБЛОКИРОВАНЫ";
+  } else{
+    notifStatus.className="notif-status pending";
+    notifStatusText.textContent="ТРЕБУЕТСЯ РАЗРЕШЕНИЕ";
+  }
 }
 
-async function requestNotifPermission(){if(!("Notification"in window))return false;if(Notification.permission==="granted")return true;if(Notification.permission==="denied")return false;try{return(await Notification.requestPermission())==="granted";}catch(e){return false;}}
+async function requestNotifPermission(){
+  if(!("Notification"in window))return false;
+  if(Notification.permission==="granted")return true;
+  if(Notification.permission==="denied")return false;
+  try{
+    return (await Notification.requestPermission())==="granted";
+  }catch(e){
+    return false;
+  }
+}
 
 function testNotification(){
-  if(!("Notification"in window)){alert("Ваш браузер не поддерживает уведомления");return;}
+  if(!("Notification"in window)){
+    alert("Ваш браузер не поддерживает уведомления");
+    return;
+  }
   const trySend=()=>{
     try{
-      const n1=new Notification(" СПРЕД АЛЕРТ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",tag:"spread-test-spread",silent:false});
+      const n1=new Notification(" СПРЕД АЛЕРТ · TEST",{
+        body:"Спред: +5.20% · Фандинг: +0.150% · BINANCE · Уведомления от спреда работают ✓",
+        tag:"spread-test-spread",
+        silent:false
+      });
       setTimeout(()=>n1.close&&n1.close(),6000);
-      setTimeout(()=>{const n2=new Notification(" СКАЧОК ЦЕНЫ · TEST",{body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",tag:"spread-test-jump",silent:false});setTimeout(()=>n2.close&&n2.close(),6000);},1500);
-    }catch(e){alert("Не удалось показать уведомление: "+e.message);}
+      setTimeout(()=>{
+        const n2=new Notification(" СКАЧОК ЦЕНЫ · TEST",{
+          body:"Спред: +5.20% · Фандинг: +0.150% · Скачок: +25.30% за 10 мин · BINANCE · Уведомления от скачка работают ✓",
+          tag:"spread-test-jump",
+          silent:false
+        });
+        setTimeout(()=>n2.close&&n2.close(),6000);
+      },1500);
+    }catch(e){
+      alert("Не удалось показать уведомление: "+e.message);
+    }
   };
   if(Notification.permission==="granted")trySend();
-  else requestNotifPermission().then(ok=>{if(ok)trySend();else alert("Разрешение не получено");});
+  else requestNotifPermission().then(ok=>{
+    if(ok)trySend();
+    else alert("Разрешение не получено");
+  });
   if(alertState.soundEnabled)playAlertSound();
 }
 
-function scheduleNext(delayMs){clearTimeout(fastTimer);nextAt=Date.now()+delayMs;fastTimer=setTimeout(()=>{apiCycle().catch(e=>console.error("apiCycle error:",e));},delayMs);}
+function scheduleNext(delayMs){
+  clearTimeout(fastTimer);
+  nextAt=Date.now()+delayMs;
+  fastTimer=setTimeout(()=>{
+    apiCycle().catch(e=>console.error("apiCycle error:",e));
+  },delayMs);
+}
 
 // Кэш ошибок klines — если символ не работает, не пытаемся снова 30 минут
 const KLINE_ERROR_CACHE_MS = 30 * 60 * 1000;
@@ -861,42 +1221,171 @@ async function apiCycle(){
   busy=true;
   try{
     const c=loadCache();
-    if(c&&Date.now()-c.savedAt<MIN_GAP_MS){applyCache(c);updateSpotPriority();render();renderRugpull();setBadge("local");scheduleNext(MIN_GAP_MS-(Date.now()-c.savedAt));return;}
-    setBadge("loading");cycleReqs=0;const now=Date.now();
+    if(c&&Date.now()-c.savedAt<MIN_GAP_MS){
+      applyCache(c);
+      updateSpotPriority();
+      render();
+      renderRugpull();
+      setBadge("local");
+      scheduleNext(MIN_GAP_MS-(Date.now()-c.savedAt));
+      return;
+    }
+    setBadge("loading");
+    cycleReqs=0;
+    const now=Date.now();
     const fl={mexc:mexcFast,binance:binanceFast,bybit:bybitFast};
     const names=EXCHANGES.filter(n=>enabled[n]);
+    
     if(names.length){
       const settled=await Promise.allSettled(names.map(n=>fl[n]()));
-      names.forEach((n,i)=>{const s=settled[i];if(s.status==="fulfilled"){state.status[n]=true;errors[n]=null;mergeSpot(n,s.value.spot);replacePerps(n,s.value.perp);}else{state.status[n]=false;errors[n]=describeErr(s.reason);console.warn(n+" failed:",errors[n]);}});
+      names.forEach((n,i)=>{
+        const s=settled[i];
+        if(s.status==="fulfilled"){
+          state.status[n]=true;
+          errors[n]=null;
+          mergeSpot(n,s.value.spot);
+          replacePerps(n,s.value.perp);
+        }else{
+          state.status[n]=false;
+          errors[n]=describeErr(s.reason);
+          console.warn(n+" failed:",errors[n]);
+        }
+      });
     }
+    
     updateSpotPriority();
-    const sn=[];if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
-    if(sn.length&&now-state.lastSlowAt>=SLOW_MS){const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));let ok=false;ss.forEach((s,i)=>{if(s.status!=="fulfilled")return;ok=true;const[nm]=sn[i];if(nm==="binanceSpot")merge24("binance",s.value);else if(nm==="mexcSpot")merge24("mexc",s.value);});if(ok)state.lastSlowAt=now;}
-    const pn=[];if(enabled.binance)pn.push(["binancePerp",binancePerpSlow]);if(enabled.bybit)pn.push(["bybitPerp",bybitPerpSlow]);if(enabled.mexc)pn.push(["mexcPerp",mexcPerpSlow]);
-    if(pn.length&&now-state.lastSlowAt>=SLOW_MS){const pp=await Promise.allSettled(pn.map(([,fn])=>fn()));pp.forEach((s,i)=>{if(s.status!=="fulfilled")return;const[nm]=pn[i];if(nm==="binancePerp")mergePerp24("binance",s.value);else if(nm==="bybitPerp")mergePerp24("bybit",s.value);else if(nm==="mexcPerp")mergePerp24("mexc",s.value);});}
+    
+    const sn=[];
+    if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);
+    if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
+    
+    if(sn.length&&now-state.lastSlowAt>=SLOW_MS){
+      const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));
+      let ok=false;
+      ss.forEach((s,i)=>{
+        if(s.status!=="fulfilled")return;
+        ok=true;
+        const[nm]=sn[i];
+        if(nm==="binanceSpot")merge24("binance",s.value);
+        else if(nm==="mexcSpot")merge24("mexc",s.value);
+      });
+      if(ok)state.lastSlowAt=now;
+    }
+    
+    const pn=[];
+    if(enabled.binance)pn.push(["binancePerp",binancePerpSlow]);
+    if(enabled.bybit)pn.push(["bybitPerp",bybitPerpSlow]);
+    if(enabled.mexc)pn.push(["mexcPerp",mexcPerpSlow]);
+    
+    if(pn.length&&now-state.lastSlowAt>=SLOW_MS){
+      const pp=await Promise.allSettled(pn.map(([,fn])=>fn()));
+      pp.forEach((s,i)=>{
+        if(s.status!=="fulfilled")return;
+        const[nm]=pn[i];
+        if(nm==="binancePerp")mergePerp24("binance",s.value);
+        else if(nm==="bybitPerp")mergePerp24("bybit",s.value);
+        else if(nm==="mexcPerp")mergePerp24("mexc",s.value);
+      });
+    }
     
     await updateShortTermData();
     
-    state.lastApiAt=Date.now();saveCache();render();renderRugpull();elReqs.textContent=cycleReqs;
+    state.lastApiAt=Date.now();
+    saveCache();
+    render();
+    renderRugpull();
+    elReqs.textContent=cycleReqs;
     const allDead=names.length>0&&names.every(n=>state.status[n]===false);
     setBadge(allDead?"error":"api");
-  }catch(e){console.error("apiCycle fatal:",e);setBadge("error");}
-  finally{busy=false;scheduleNext(FAST_MS);}
+  }catch(e){
+    console.error("apiCycle fatal:",e);
+    setBadge("error");
+  }finally{
+    busy=false;
+    scheduleNext(FAST_MS);
+  }
 }
 
-function setBadge(kind){state.badge=kind;const map={api:["LIVE · API","ok"],local:["LIVE · LOCAL DATA","local"],loading:["ЗАПРОС К API…","busy"],error:["ОШИБКА API — ПОВТОР ЧЕРЕЗ 30 СЕК","err"],init:["ПОДКЛЮЧЕНИЕ…","busy"]};const[t,cls]=map[kind]||map.init;elBadge.textContent=t;elBadge.className="badge-txt "+cls;elDot.className="dot"+(cls==="ok"?" live":cls==="err"?" err":"");}
+function setBadge(kind){
+  state.badge=kind;
+  const map={
+    api:["LIVE · API","ok"],
+    local:["LIVE · LOCAL DATA","local"],
+    loading:["ЗАПРОС К API…","busy"],
+    error:["ОШИБКА API — ПОВТОР ЧЕРЕЗ 30 СЕК","err"],
+    init:["ПОДКЛЮЧЕНИЕ…","busy"]
+  };
+  const[t,cls]=map[kind]||map.init;
+  elBadge.textContent=t;
+  elBadge.className="badge-txt "+cls;
+  elDot.className="dot"+(cls==="ok"?" live":cls==="err"?" err":"");
+}
 
-function updateExButtons(){for(const n of EXCHANGES){const btn=$("ex-"+n);if(!enabled[n]){btn.textContent=n+" off";btn.className="exbtn off";btn.title="БИРЖА ВЫКЛЮЧЕНА · КЛИК, ЧТОБЫ ВКЛЮЧИТЬ";continue;}const s=state.status[n];const et=(s===false&&errors[n])?" · "+shortErr(errors[n]):"";btn.textContent=n+(s===true?" ✓":s===false?" "+et:" …");btn.className="exbtn "+(s===true?"ok":s===false?"err":"");btn.title=(errors[n]||(s===true?"OK":""))+" · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";}}
+function updateExButtons(){
+  for(const n of EXCHANGES){
+    const btn=$("ex-"+n);
+    if(!enabled[n]){
+      btn.textContent=n+" off";
+      btn.className="exbtn off";
+      btn.title="БИРЖА ВЫКЛЮЧЕНА · КЛИК, ЧТОБЫ ВКЛЮЧИТЬ";
+      continue;
+    }
+    const s=state.status[n];
+    const et=(s===false&&errors[n])?" · "+shortErr(errors[n]):"";
+    btn.textContent=n+(s===true?" ✓":s===false?" "+et:" …");
+    btn.className="exbtn "+(s===true?"ok":s===false?"err":"");
+    btn.title=(errors[n]||(s===true?"OK":""))+" · КЛИК, ЧТОБЫ ВЫКЛЮЧИТЬ";
+  }
+}
 
-function fmtPrice(p){if(p==null||!isFinite(p))return"—";const a=Math.abs(p);if(a>=1000)return p.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});if(a>=1)return p.toFixed(4);if(a>=0.01)return p.toFixed(6);return p.toPrecision(4);}
-function fmtPct(x,d=3){if(x==null||!isFinite(x))return"—";return(x>0?"+":"")+x.toFixed(d)+"%";}
-function fmtVol(v){if(!v||!isFinite(v))return"—";if(v>=1e9)return(v/1e9).toFixed(2)+"B";if(v>=1e6)return(v/1e6).toFixed(2)+"M";if(v>=1e3)return(v/1e3).toFixed(1)+"K";return v.toFixed(0);}
-function topRank(base){const i=TOP_COINS.indexOf(base);return i<0?0:i+1;}
-function topRange(){const from=parseInt(fTopFrom.value,10);if(isNaN(from))return[null,null];const to=parseInt(fTopTo.value,10);return[from,isNaN(to)?999:to];}
-function maxRows(){const v=parseInt(fMaxRows.value,10);return(isNaN(v)||v<=0)?Infinity:v;}
+function fmtPrice(p){
+  if(p==null||!isFinite(p))return"—";
+  const a=Math.abs(p);
+  if(a>=1000)return p.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(a>=1)return p.toFixed(4);
+  if(a>=0.01)return p.toFixed(6);
+  return p.toPrecision(4);
+}
+
+function fmtPct(x,d=3){
+  if(x==null||!isFinite(x))return"—";
+  return(x>0?"+":"")+x.toFixed(d)+"%";
+}
+
+function fmtVol(v){
+  if(!v||!isFinite(v))return"—";
+  if(v>=1e9)return(v/1e9).toFixed(2)+"B";
+  if(v>=1e6)return(v/1e6).toFixed(2)+"M";
+  if(v>=1e3)return(v/1e3).toFixed(1)+"K";
+  return v.toFixed(0);
+}
+
+function topRank(base){
+  const i=TOP_COINS.indexOf(base);
+  return i<0?0:i+1;
+}
+
+function topRange(){
+  const from=parseInt(fTopFrom.value,10);
+  if(isNaN(from))return[null,null];
+  const to=parseInt(fTopTo.value,10);
+  return[from,isNaN(to)?999:to];
+}
+
+function maxRows(){
+  const v=parseInt(fMaxRows.value,10);
+  return(isNaN(v)||v<=0)?Infinity:v;
+}
 
 function getFilteredRows(){
-  const q=fSearch.value.trim().toUpperCase(),exch=fExch.value,minVol=parseFloat(fVol.value)||0,minSp=parseFloat(fSpread.value)||0,maxSp=parseFloat(fMaxSpread.value)||0,onlySpot=fOnlySpot.checked,[tf,tt]=topRange();
+  const q=fSearch.value.trim().toUpperCase(),
+        exch=fExch.value,
+        minVol=parseFloat(fVol.value)||0,
+        minSp=parseFloat(fSpread.value)||0,
+        maxSp=parseFloat(fMaxSpread.value)||0,
+        onlySpot=fOnlySpot.checked,
+        [tf,tt]=topRange();
+  
   let rows=computeRows().filter(r=>{
     if(q&&!r.base.includes(q))return false;
     if(exch!=="all"&&r.exchange!==exch)return false;
@@ -904,31 +1393,79 @@ function getFilteredRows(){
     if(minVol&&!(r.volume>=minVol))return false;
     if(minSp&&!(Math.abs(r.spreadPct??0)>=minSp))return false;
     if(maxSp&&!(Math.abs(r.spreadPct??0)<=maxSp))return false;
-    if(tf!=null){const rk=topRank(r.base);if(rk>=tf&&rk<=tt)return false;}
+    if(tf!=null){
+      const rk=topRank(r.base);
+      if(rk>=tf&&rk<=tt)return false;
+    }
     return true;
   });
+  
   if(spreadMode==="pos")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct>0);
   else if(spreadMode==="neg")rows=rows.filter(r=>r.spreadPct!=null&&isFinite(r.spreadPct)&&r.spreadPct<0);
+  
   if(fundingMode==="pos")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding>0);
   else if(fundingMode==="neg")rows=rows.filter(r=>r.funding!=null&&isFinite(r.funding)&&r.funding<0);
+  
   if(chg24hMode==="pos")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h>0);
   else if(chg24hMode==="neg")rows=rows.filter(r=>r.chg24h!=null&&isFinite(r.chg24h)&&r.chg24h<0);
+  
   if(chg1hMode==="pos")rows=rows.filter(r=>r.chg1h!=null&&isFinite(r.chg1h)&&r.chg1h>0);
   else if(chg1hMode==="neg")rows=rows.filter(r=>r.chg1h!=null&&isFinite(r.chg1h)&&r.chg1h<0);
+  
   if(chg15mMode==="pos")rows=rows.filter(r=>r.chg15m!=null&&isFinite(r.chg15m)&&r.chg15m>0);
   else if(chg15mMode==="neg")rows=rows.filter(r=>r.chg15m!=null&&isFinite(r.chg15m)&&r.chg15m<0);
   
-  const dims=[{key:"spread",mode:spreadMode,field:"spreadPct"},{key:"funding",mode:fundingMode,field:"funding"},{key:"chg15m",mode:chg15mMode,field:"chg15m"},{key:"chg1h",mode:chg1hMode,field:"chg1h"},{key:"chg24h",mode:chg24hMode,field:"chg24h"}];
+  const dims=[
+    {key:"spread",mode:spreadMode,field:"spreadPct"},
+    {key:"funding",mode:fundingMode,field:"funding"},
+    {key:"chg15m",mode:chg15mMode,field:"chg15m"},
+    {key:"chg1h",mode:chg1hMode,field:"chg1h"},
+    {key:"chg24h",mode:chg24hMode,field:"chg24h"}
+  ];
+  
   const ad=dims.filter(d=>d.mode!=="abs");
-  if(ad.length>=2){const so=r=>{let s=0;for(const d of ad){const v=r[d.field];if(v!=null&&isFinite(v))s+=d.mode==="neg"?-v:v;}return s;};rows.sort((a,b)=>so(b)-so(a));}
-  else if(ad.length===1){const{mode,field}=ad[0];rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return mode==="pos"?bv-av:av-bv;});}
-  else{const field=activeSort==="funding"?"funding":activeSort==="chg24h"?"chg24h":activeSort==="chg1h"?"chg1h":activeSort==="chg15m"?"chg15m":"spreadPct";rows.sort((a,b)=>{const av=a[field],bv=b[field];const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);if(ab&&bb)return 0;if(ab)return 1;if(bb)return-1;return Math.abs(bv)-Math.abs(av);});}
+  
+  if(ad.length>=2){
+    const so=r=>{
+      let s=0;
+      for(const d of ad){
+        const v=r[d.field];
+        if(v!=null&&isFinite(v))s+=d.mode==="neg"?-v:v;
+      }
+      return s;
+    };
+    rows.sort((a,b)=>so(b)-so(a));
+  } else if(ad.length===1){
+    const{mode,field}=ad[0];
+    rows.sort((a,b)=>{
+      const av=a[field],bv=b[field];
+      const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);
+      if(ab&&bb)return 0;
+      if(ab)return 1;
+      if(bb)return-1;
+      return mode==="pos"?bv-av:av-bv;
+    });
+  } else{
+    const field=activeSort==="funding"?"funding":activeSort==="chg24h"?"chg24h":activeSort==="chg1h"?"chg1h":activeSort==="chg15m"?"chg15m":"spreadPct";
+    rows.sort((a,b)=>{
+      const av=a[field],bv=b[field];
+      const ab=av==null||!isFinite(av),bb=bv==null||!isFinite(bv);
+      if(ab&&bb)return 0;
+      if(ab)return 1;
+      if(bb)return-1;
+      return Math.abs(bv)-Math.abs(av);
+    });
+  }
+  
   return rows;
 }
 
 function render(){
   try{
-    const rows=getFilteredRows(),shown=rows.slice(0,maxRows()),noneEnabled=EXCHANGES.every(n=>!enabled[n]);
+    const rows=getFilteredRows(),
+          shown=rows.slice(0,maxRows()),
+          noneEnabled=EXCHANGES.every(n=>!enabled[n]);
+    
     tbody.innerHTML=shown.length?shown.map(r=>{
       const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
       const fc=r.funding>0?"pos":(r.funding<0?"neg":"muted-cell");
@@ -938,19 +1475,82 @@ function render(){
       const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
       const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
       const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
-      return`<tr${isAlert?' class="alert-row"':''}><td class="sym-cell">${r.base}</td><td>${spotCell}</td><td>${exBadgeHtml(r.exchange)}</td><td>${fmtPrice(r.spot)}</td><td>${fmtPrice(r.perp)}</td><td class="muted-cell">${fmtPrice(r.spreadAbs)}</td><td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td><td class="${fc}">${fmtPct(r.funding,4)}</td><td class="${c15m}">${fmtPct(r.chg15m,2)}</td><td class="${c1h}">${fmtPct(r.chg1h,2)}</td><td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td><td${t24}>${fmtVol(r.volume)}</td></tr>`;
+      
+      return`<tr${isAlert?' class="alert-row"':''}>
+        <td class="sym-cell">${r.base}</td>
+        <td>${spotCell}</td>
+        <td>${exBadgeHtml(r.exchange)}</td>
+        <td>${fmtPrice(r.spot)}</td>
+        <td>${fmtPrice(r.perp)}</td>
+        <td class="muted-cell">${fmtPrice(r.spreadAbs)}</td>
+        <td><span class="spread-cell ${spc}">${fmtPct(r.spreadPct)}</span></td>
+        <td class="${fc}">${fmtPct(r.funding,4)}</td>
+        <td class="${c15m}">${fmtPct(r.chg15m,2)}</td>
+        <td class="${c1h}">${fmtPct(r.chg1h,2)}</td>
+        <td class="${cc}"${t24}>${fmtPct(r.chg24h,2)}</td>
+        <td${t24}>${fmtVol(r.volume)}</td>
+      </tr>`;
     }).join(""):`<tr><td colspan="12" class="empty">${noneEnabled?"ВСЕ БИРЖИ ВЫКЛЮЧЕНЫ":"НЕТ ДАННЫХ"+(state.badge==="error"?" — БИРЖИ НЕДОСТУПНЫ":"")}</td></tr>`;
+    
     tpCount.textContent=`· МОНЕТ: ${rows.length} · ПОКАЗАНО: ${shown.length}`;
-    updateExButtons();updateSortIndicators();checkAlerts(computeRows());
-  }catch(e){console.error("render error:",e);}
+    updateExButtons();
+    updateSortIndicators();
+    checkAlerts(computeRows());
+  }catch(e){
+    console.error("render error:",e);
+  }
 }
 
 function updateSortIndicators(){
-  const st=document.querySelector("th.spread-sort");if(st){st.classList.toggle("mode-neg",spreadMode==="neg");st.classList.toggle("mode-pos",spreadMode==="pos");const a=st.querySelector(".sort-arrow");if(spreadMode==="abs")a.textContent="± ▼";else if(spreadMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const ft=document.querySelector("th.funding-sort");if(ft){ft.classList.toggle("mode-neg",fundingMode==="neg");ft.classList.toggle("mode-pos",fundingMode==="pos");const a=ft.querySelector(".sort-arrow");if(fundingMode==="abs")a.textContent="± ▼";else if(fundingMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const c15mt=document.querySelector("th.chg15m-sort");if(c15mt){c15mt.classList.toggle("mode-neg",chg15mMode==="neg");c15mt.classList.toggle("mode-pos",chg15mMode==="pos");const a=c15mt.querySelector(".sort-arrow");if(chg15mMode==="abs")a.textContent="± ▼";else if(chg15mMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const c1ht=document.querySelector("th.chg1h-sort");if(c1ht){c1ht.classList.toggle("mode-neg",chg1hMode==="neg");c1ht.classList.toggle("mode-pos",chg1hMode==="pos");const a=c1ht.querySelector(".sort-arrow");if(chg1hMode==="abs")a.textContent="± ▼";else if(chg1hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
-  const ct=document.querySelector("th.chg24h-sort");if(ct){ct.classList.toggle("mode-neg",chg24hMode==="neg");ct.classList.toggle("mode-pos",chg24hMode==="pos");const a=ct.querySelector(".sort-arrow");if(chg24hMode==="abs")a.textContent="± ▼";else if(chg24hMode==="pos")a.textContent="+ ▼";else a.textContent="− ▲";}
+  const st=document.querySelector("th.spread-sort");
+  if(st){
+    st.classList.toggle("mode-neg",spreadMode==="neg");
+    st.classList.toggle("mode-pos",spreadMode==="pos");
+    const a=st.querySelector(".sort-arrow");
+    if(spreadMode==="abs")a.textContent="± ▼";
+    else if(spreadMode==="pos")a.textContent="+ ▼";
+    else a.textContent="− ▲";
+  }
+  
+  const ft=document.querySelector("th.funding-sort");
+  if(ft){
+    ft.classList.toggle("mode-neg",fundingMode==="neg");
+    ft.classList.toggle("mode-pos",fundingMode==="pos");
+    const a=ft.querySelector(".sort-arrow");
+    if(fundingMode==="abs")a.textContent="± ▼";
+    else if(fundingMode==="pos")a.textContent="+ ▼";
+    else a.textContent="− ▲";
+  }
+  
+  const c15mt=document.querySelector("th.chg15m-sort");
+  if(c15mt){
+    c15mt.classList.toggle("mode-neg",chg15mMode==="neg");
+    c15mt.classList.toggle("mode-pos",chg15mMode==="pos");
+    const a=c15mt.querySelector(".sort-arrow");
+    if(chg15mMode==="abs")a.textContent="± ▼";
+    else if(chg15mMode==="pos")a.textContent="+ ▼";
+    else a.textContent="− ▲";
+  }
+  
+  const c1ht=document.querySelector("th.chg1h-sort");
+  if(c1ht){
+    c1ht.classList.toggle("mode-neg",chg1hMode==="neg");
+    c1ht.classList.toggle("mode-pos",chg1hMode==="pos");
+    const a=c1ht.querySelector(".sort-arrow");
+    if(chg1hMode==="abs")a.textContent="± ▼";
+    else if(chg1hMode==="pos")a.textContent="+ ▼";
+    else a.textContent="− ▲";
+  }
+  
+  const ct=document.querySelector("th.chg24h-sort");
+  if(ct){
+    ct.classList.toggle("mode-neg",chg24hMode==="neg");
+    ct.classList.toggle("mode-pos",chg24hMode==="pos");
+    const a=ct.querySelector(".sort-arrow");
+    if(chg24hMode==="abs")a.textContent="± ▼";
+    else if(chg24hMode==="pos")a.textContent="+ ▼";
+    else a.textContent="− ▲";
+  }
 }
 
 function getRugpullRows(){
@@ -970,13 +1570,16 @@ function renderRugpull(){
     const rows=getRugpullRows();
     rugpullCount.textContent=`· МОНЕТ: ${rugpullCoins.length} · ПОКАЗАНО: ${rows.length}`;
     updateJumpRugpullHint();
+    
     if(rugpullCoins.length===0){
       rugpullTbody.innerHTML=`<tr><td colspan="12" class="empty">ДОБАВЬТЕ МОНЕТЫ ДЛЯ ОТСЛЕЖИВАНИЯ</td></tr>`;
       return;
     }
+    
     const shownCoins=new Set(rows.map(r=>r.base));
     const missingCoins=rugpullCoins.filter(c=>!shownCoins.has(c));
     let html='';
+    
     if(rows.length>0){
       html=rows.map(r=>{
         const spc=r.spreadPct==null?"muted-cell":(r.spreadPct>=0?"spread-pos":"spread-neg");
@@ -987,6 +1590,7 @@ function renderRugpull(){
         const t24=r.src24?` title="Источник 24ч: ${r.src24}${r.hasSpotData?' (спот)':' (перп)'}"`:"";
         const isAlert=checkAlertCondition(r.spreadPct??0,r.funding??0);
         const spotCell = r.spotSource ? exBadgeHtml(r.spotSource) : noSpotBadgeHtml(primarySpotSource);
+        
         return`<tr${isAlert?' class="alert-row"':''}>
           <td class="sym-cell"><span class="rp-coin-cell"><span class="rp-skull"></span>${r.base}<button class="rp-remove-btn" data-remove="${r.base}" title="УБРАТЬ">✕</button></span></td>
           <td>${spotCell}</td>
@@ -1003,6 +1607,7 @@ function renderRugpull(){
         </tr>`;
       }).join("");
     }
+    
     if(missingCoins.length>0){
       html+=missingCoins.map(coin=>{
         return`<tr>
@@ -1013,11 +1618,18 @@ function renderRugpull(){
         </tr>`;
       }).join("");
     }
+    
     rugpullTbody.innerHTML=html||`<tr><td colspan="12" class="empty">НЕТ ДАННЫХ ДЛЯ ОТСЛЕЖИВАЕМЫХ МОНЕТ</td></tr>`;
+    
     rugpullTbody.querySelectorAll(".rp-remove-btn").forEach(btn=>{
-      btn.addEventListener("click",(e)=>{e.stopPropagation();removeRugpullCoin(btn.dataset.remove);});
+      btn.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        removeRugpullCoin(btn.dataset.remove);
+      });
     });
-  }catch(e){console.error("renderRugpull error:",e);}
+  }catch(e){
+    console.error("renderRugpull error:",e);
+  }
 }
 
 function addRugpullCoin(coin){
@@ -1049,24 +1661,74 @@ function removeRugpullCoin(coin){
 
 function showSuggestions(query){
   const q=query.trim().toUpperCase();
-  if(!q||q.length<1){hideSuggestions();return;}
+  if(!q||q.length<1){
+    hideSuggestions();
+    return;
+  }
   const allRows=computeRows();
   const rowMap=new Map(allRows.map(r=>[r.base,r]));
   const allCoins=new Set([...allRows.map(r=>r.base),...Object.keys(state.spotBook)]);
-  let matches=[...allCoins].filter(c=>c.includes(q)&&!rugpullCoins.includes(c)).sort((a,b)=>{const aStart=a.startsWith(q)?0:1;const bStart=b.startsWith(q)?0:1;if(aStart!==bStart)return aStart-bStart;return a.localeCompare(b);}).slice(0,20);
-  if(matches.length===0){hideSuggestions();return;}
-  rugpullSuggestions.innerHTML=matches.map(coin=>{const row=rowMap.get(coin);const info=row?`${row.exchange.toUpperCase()} · ${fmtPct(row.spreadPct,2)}`:'нет данных';return`<div class="rugpull-suggestion" data-coin="${coin}"><span class="rs-coin">${coin}</span><span class="rs-info">${info}</span></div>`;}).join("");
+  let matches=[...allCoins].filter(c=>c.includes(q)&&!rugpullCoins.includes(c)).sort((a,b)=>{
+    const aStart=a.startsWith(q)?0:1;
+    const bStart=b.startsWith(q)?0:1;
+    if(aStart!==bStart)return aStart-bStart;
+    return a.localeCompare(b);
+  }).slice(0,20);
+  
+  if(matches.length===0){
+    hideSuggestions();
+    return;
+  }
+  
+  rugpullSuggestions.innerHTML=matches.map(coin=>{
+    const row=rowMap.get(coin);
+    const info=row?`${row.exchange.toUpperCase()} · ${fmtPct(row.spreadPct,2)}`:'нет данных';
+    return`<div class="rugpull-suggestion" data-coin="${coin}"><span class="rs-coin">${coin}</span><span class="rs-info">${info}</span></div>`;
+  }).join("");
+  
   rugpullSuggestions.style.display='block';
-  rugpullSuggestions.querySelectorAll('.rugpull-suggestion').forEach(el=>{el.addEventListener('click',()=>{addRugpullCoin(el.dataset.coin);});});
+  rugpullSuggestions.querySelectorAll('.rugpull-suggestion').forEach(el=>{
+    el.addEventListener('click',()=>{
+      addRugpullCoin(el.dataset.coin);
+    });
+  });
 }
 
-function hideSuggestions(){rugpullSuggestions.style.display='none';rugpullSuggestions.innerHTML='';}
+function hideSuggestions(){
+  rugpullSuggestions.style.display='none';
+  rugpullSuggestions.innerHTML='';
+}
 
-rugpullSearch.addEventListener('input',()=>{showSuggestions(rugpullSearch.value);});
-rugpullSearch.addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.preventDefault();const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);}if(e.key==='Escape'){hideSuggestions();rugpullSearch.blur();}});
-rugpullSearch.addEventListener('focus',()=>{if(rugpullSearch.value.trim())showSuggestions(rugpullSearch.value);});
-rugpullSearch.addEventListener('blur',()=>{setTimeout(hideSuggestions,200);});
-rugpullAddBtn.addEventListener('click',()=>{const val=rugpullSearch.value.trim().toUpperCase();if(val)addRugpullCoin(val);else rugpullSearch.focus();});
+rugpullSearch.addEventListener('input',()=>{
+  showSuggestions(rugpullSearch.value);
+});
+
+rugpullSearch.addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const val=rugpullSearch.value.trim().toUpperCase();
+    if(val)addRugpullCoin(val);
+  }
+  if(e.key==='Escape'){
+    hideSuggestions();
+    rugpullSearch.blur();
+  }
+});
+
+rugpullSearch.addEventListener('focus',()=>{
+  if(rugpullSearch.value.trim())showSuggestions(rugpullSearch.value);
+});
+
+rugpullSearch.addEventListener('blur',()=>{
+  setTimeout(hideSuggestions,200);
+});
+
+rugpullAddBtn.addEventListener('click',()=>{
+  const val=rugpullSearch.value.trim().toUpperCase();
+  if(val)addRugpullCoin(val);
+  else rugpullSearch.focus();
+});
+
 rugpullClearAll.addEventListener('click',()=>{
   if(rugpullCoins.length===0)return;
   alertState.prevPrices={};
@@ -1076,39 +1738,175 @@ rugpullClearAll.addEventListener('click',()=>{
   renderRugpull();
   updateJumpRugpullHint();
 });
-rpFilterSearch.addEventListener('input',()=>{renderRugpull();});
-rpFilterExch.addEventListener('change',()=>{renderRugpull();});
+
+rpFilterSearch.addEventListener('input',()=>{
+  renderRugpull();
+});
+
+rpFilterExch.addEventListener('change',()=>{
+  renderRugpull();
+});
 
 [fSearch,fExch,fVol,fSpread,fMaxSpread,fOnlySpot,fMaxRows,fTopFrom,fTopTo].forEach(el=>el.addEventListener("input",render));
-document.querySelector("th.spread-sort")?.addEventListener("click",()=>{activeSort="spread";spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";render();});
-document.querySelector("th.funding-sort")?.addEventListener("click",()=>{activeSort="funding";fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";render();});
-document.querySelector("th.chg15m-sort")?.addEventListener("click",()=>{activeSort="chg15m";chg15mMode=chg15mMode==="abs"?"pos":chg15mMode==="pos"?"neg":"abs";render();});
-document.querySelector("th.chg1h-sort")?.addEventListener("click",()=>{activeSort="chg1h";chg1hMode=chg1hMode==="abs"?"pos":chg1hMode==="pos"?"neg":"abs";render();});
-document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{activeSort="chg24h";chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";render();});
-for(const n of EXCHANGES){const btn=$("ex-"+n);btn.addEventListener("click",()=>{enabled[n]=!enabled[n];saveEnabled();if(!enabled[n]&&fExch.value===n)fExch.value="all";btn.setAttribute("aria-pressed",String(!!enabled[n]));updateSpotPriority();render();renderRugpull();});}
 
-alertSpreadThr.addEventListener("input",()=>{const v=parseFloat(alertSpreadThr.value);if(!isNaN(v)&&v>=0){alertState.spreadThr=v;saveAlerts();renderAlerts();render();}});
-alertSpreadDir.addEventListener("change",()=>{alertState.spreadDir=alertSpreadDir.value;saveAlerts();renderAlerts();render();});
-alertFundingThr.addEventListener("input",()=>{const v=parseFloat(alertFundingThr.value);if(!isNaN(v)&&v>=0){alertState.fundingThr=v;saveAlerts();renderAlerts();render();}});
-alertFundingDir.addEventListener("change",()=>{alertState.fundingDir=alertFundingDir.value;saveAlerts();renderAlerts();render();});
-alertPriceJumpThr.addEventListener("input",()=>{const v=parseFloat(alertPriceJumpThr.value);if(!isNaN(v)&&v>=0){alertState.priceJumpThr=v;saveAlerts();renderAlerts();}});
-alertPriceJumpMin.addEventListener("input",()=>{const v=parseInt(alertPriceJumpMin.value,10);if(!isNaN(v)&&v>=1){alertState.priceJumpMin=v;saveAlerts();renderAlerts();}});
-alertPriceJumpEnabled.addEventListener("change",()=>{alertState.priceJumpEnabled=alertPriceJumpEnabled.checked;saveAlerts();renderAlerts();});
-alertNotifEnabled.addEventListener("change",async()=>{if(alertNotifEnabled.checked){const ok=await requestNotifPermission();if(!ok)alertNotifEnabled.checked=false;}alertState.notifEnabled=alertNotifEnabled.checked;saveAlerts();updateNotifStatus();});
-alertSoundEnabled.addEventListener("change",()=>{alertState.soundEnabled=alertSoundEnabled.checked;saveAlerts();});
+document.querySelector("th.spread-sort")?.addEventListener("click",()=>{
+  activeSort="spread";
+  spreadMode=spreadMode==="neg"?"abs":spreadMode==="abs"?"pos":"neg";
+  render();
+});
+
+document.querySelector("th.funding-sort")?.addEventListener("click",()=>{
+  activeSort="funding";
+  fundingMode=fundingMode==="abs"?"pos":fundingMode==="pos"?"neg":"abs";
+  render();
+});
+
+document.querySelector("th.chg15m-sort")?.addEventListener("click",()=>{
+  activeSort="chg15m";
+  chg15mMode=chg15mMode==="abs"?"pos":chg15mMode==="pos"?"neg":"abs";
+  render();
+});
+
+document.querySelector("th.chg1h-sort")?.addEventListener("click",()=>{
+  activeSort="chg1h";
+  chg1hMode=chg1hMode==="abs"?"pos":chg1hMode==="pos"?"neg":"abs";
+  render();
+});
+
+document.querySelector("th.chg24h-sort")?.addEventListener("click",()=>{
+  activeSort="chg24h";
+  chg24hMode=chg24hMode==="abs"?"pos":chg24hMode==="pos"?"neg":"abs";
+  render();
+});
+
+for(const n of EXCHANGES){
+  const btn=$("ex-"+n);
+  btn.addEventListener("click",()=>{
+    enabled[n]=!enabled[n];
+    saveEnabled();
+    if(!enabled[n]&&fExch.value===n)fExch.value="all";
+    btn.setAttribute("aria-pressed",String(!!enabled[n]));
+    updateSpotPriority();
+    render();
+    renderRugpull();
+  });
+}
+
+alertSpreadThr.addEventListener("input",()=>{
+  const v=parseFloat(alertSpreadThr.value);
+  if(!isNaN(v)&&v>=0){
+    alertState.spreadThr=v;
+    saveAlerts();
+    renderAlerts();
+    render();
+  }
+});
+
+alertSpreadDir.addEventListener("change",()=>{
+  alertState.spreadDir=alertSpreadDir.value;
+  saveAlerts();
+  renderAlerts();
+  render();
+});
+
+alertFundingThr.addEventListener("input",()=>{
+  const v=parseFloat(alertFundingThr.value);
+  if(!isNaN(v)&&v>=0){
+    alertState.fundingThr=v;
+    saveAlerts();
+    renderAlerts();
+    render();
+  }
+});
+
+alertFundingDir.addEventListener("change",()=>{
+  alertState.fundingDir=alertFundingDir.value;
+  saveAlerts();
+  renderAlerts();
+  render();
+});
+
+alertPriceJumpThr.addEventListener("input",()=>{
+  const v=parseFloat(alertPriceJumpThr.value);
+  if(!isNaN(v)&&v>=0){
+    alertState.priceJumpThr=v;
+    saveAlerts();
+    renderAlerts();
+  }
+});
+
+alertPriceJumpMin.addEventListener("input",()=>{
+  const v=parseInt(alertPriceJumpMin.value,10);
+  if(!isNaN(v)&&v>=1){
+    alertState.priceJumpMin=v;
+    saveAlerts();
+    renderAlerts();
+  }
+});
+
+alertPriceJumpEnabled.addEventListener("change",()=>{
+  alertState.priceJumpEnabled=alertPriceJumpEnabled.checked;
+  saveAlerts();
+  renderAlerts();
+});
+
+alertNotifEnabled.addEventListener("change",async()=>{
+  if(alertNotifEnabled.checked){
+    const ok=await requestNotifPermission();
+    if(!ok)alertNotifEnabled.checked=false;
+  }
+  alertState.notifEnabled=alertNotifEnabled.checked;
+  saveAlerts();
+  updateNotifStatus();
+});
+
+alertSoundEnabled.addEventListener("change",()=>{
+  alertState.soundEnabled=alertSoundEnabled.checked;
+  saveAlerts();
+});
+
 alertTestBtn.addEventListener("click",testNotification);
-alertClearBtn.addEventListener("click",()=>{alertState.feed=[];alertState.firedKeys.clear();alertState.prevPrices={};alertState.prevPriceTimes={};alertState.lastAlertTs={};saveAlerts();renderAlerts();updateAlertBadge();});
-refreshBtn.addEventListener("click",()=>{if(busy)return;clearTimeout(fastTimer);try{localStorage.removeItem(LS_KEY);}catch{}apiCycle().catch(e=>console.error("refresh error:",e));});
 
-setInterval(()=>{const left=Math.max(0,Math.ceil((nextAt-Date.now())/1000));elNext.textContent=nextAt?left+"С":"—";elLast.textContent=state.lastApiAt?new Date(state.lastApiAt).toLocaleTimeString():"--:--:--";},500);
+alertClearBtn.addEventListener("click",()=>{
+  alertState.feed=[];
+  alertState.firedKeys.clear();
+  alertState.prevPrices={};
+  alertState.prevPriceTimes={};
+  alertState.lastAlertTs={};
+  saveAlerts();
+  renderAlerts();
+  updateAlertBadge();
+});
 
-loadAlerts();loadRugpull();
-alertSpreadThr.value=alertState.spreadThr;alertSpreadDir.value=alertState.spreadDir;
-alertFundingThr.value=alertState.fundingThr;alertFundingDir.value=alertState.fundingDir;
-alertPriceJumpThr.value=alertState.priceJumpThr;alertPriceJumpMin.value=alertState.priceJumpMin;
+refreshBtn.addEventListener("click",()=>{
+  if(busy)return;
+  clearTimeout(fastTimer);
+  try{
+    localStorage.removeItem(LS_KEY);
+  }catch{}
+  apiCycle().catch(e=>console.error("refresh error:",e));
+});
+
+setInterval(()=>{
+  const left=Math.max(0,Math.ceil((nextAt-Date.now())/1000));
+  elNext.textContent=nextAt?left+"С":"—";
+  elLast.textContent=state.lastApiAt?new Date(state.lastApiAt).toLocaleTimeString():"--:--:--";
+},500);
+
+loadAlerts();
+loadRugpull();
+alertSpreadThr.value=alertState.spreadThr;
+alertSpreadDir.value=alertState.spreadDir;
+alertFundingThr.value=alertState.fundingThr;
+alertFundingDir.value=alertState.fundingDir;
+alertPriceJumpThr.value=alertState.priceJumpThr;
+alertPriceJumpMin.value=alertState.priceJumpMin;
 alertPriceJumpEnabled.checked=alertState.priceJumpEnabled;
-alertNotifEnabled.checked=alertState.notifEnabled;alertSoundEnabled.checked=alertState.soundEnabled;
-updateAlertBadge();renderAlerts();updateNotifStatus();
+alertNotifEnabled.checked=alertState.notifEnabled;
+alertSoundEnabled.checked=alertState.soundEnabled;
+updateAlertBadge();
+renderAlerts();
+updateNotifStatus();
 syncExchFilterWithEnabled();
 updateSpotPriority();
 updateJumpRugpullHint();
@@ -1117,8 +1915,24 @@ renderRugpull();
 initFirebase();
 
 const cache=loadCache();
-if(cache){applyCache(cache);updateSpotPriority();render();renderRugpull();updateJumpRugpullHint();const age=Date.now()-cache.savedAt;if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}}
-else{setBadge("init");scheduleNext(FIRST_LOAD_DELAY_MS);}
+if(cache){
+  applyCache(cache);
+  updateSpotPriority();
+  render();
+  renderRugpull();
+  updateJumpRugpullHint();
+  const age=Date.now()-cache.savedAt;
+  if(age<MIN_GAP_MS){
+    setBadge("local");
+    scheduleNext(MIN_GAP_MS-age);
+  }else{
+    setBadge("local");
+    apiCycle().catch(e=>console.error("init apiCycle error:",e));
+  }
+}else{
+  setBadge("init");
+  scheduleNext(FIRST_LOAD_DELAY_MS);
+}
 </script>
 </body>
 </html>
