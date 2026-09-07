@@ -402,7 +402,7 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 </div>
 
 <footer>
-  Static edition · polling каждые 30 сек · BINANCE — основной спот источник · MEXC — приоритет при успешной загрузке · fallback на перп если нет спота · Скачки цен отслеживаются только для монет из списка RUGPULL · Данные 1ч/15м рассчитываются локально из истории цен (без API свечей).
+  Static edition · polling каждые 30 сек · BINANCE — основной спот источник · MEXC — приоритет при успешной загрузке · fallback на перп если нет спота · Скачки цен отслеживаются только для монет из списка RUGPULL · Данные 1ч/15м загружаются мгновенно из API свечей для RUGPULL и первых 30 монет.
 </footer>
 
 <script type="module">
@@ -485,6 +485,7 @@ async function initFirebase(){
           saveRugpullLocal();
           renderRugpull();
           updateJumpRugpullHint();
+          backfillAllHistory();
         }
       }
       if(!fbConnected){fbConnected=true;fbInitialized=true;setFbStatus("connected","FB: SYNCED");}
@@ -711,11 +712,9 @@ function updatePriceHistory(base, price) {
   const history = state.priceHistory[base];
   const last = history[history.length - 1];
   
-  // Записываем только если прошло >= 25 секунд с последней записи (экономим память)
   if (last && (now - last.time < 25000)) return;
 
   history.push({ time: now, price: price });
-  // Храним только последние 150 записей (75 минут при интервале 30 сек)
   if (history.length > 150) {
     history.shift();
   }
@@ -739,11 +738,75 @@ function getHistoricalChange(base, minutesAgo) {
     }
   }
   
-  // Если ближайшая точка слишком далеко (например, > 5 мин для 15м цели), считаем данные ненадежными
-  const maxAllowedDiff = minutesAgo === 15 ? 5 * 60 * 1000 : 10 * 60 * 1000;
+  const maxAllowedDiff = minutesAgo === 15 ? 15 * 60 * 1000 : 30 * 60 * 1000;
   if (minDiff > maxAllowedDiff) return null;
   
   return ((current.price - closest.price) / closest.price) * 100;
+}
+
+// --- НОВАЯ ФУНКЦИЯ: Мгновенная загрузка истории из API свечей ---
+async function backfillPriceHistory(base) {
+  if (!base) return;
+  const symbol = base + "USDT";
+  
+  try {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=10`;
+    const data = await fetchJSON(url, 10000);
+    
+    if (!Array.isArray(data) || data.length === 0) return;
+    
+    const candles = data.map(c => ({
+      time: parseInt(c[0]),
+      price: parseFloat(c[1])
+    }));
+    
+    if (!state.priceHistory[base]) state.priceHistory[base] = [];
+    const existing = state.priceHistory[base];
+    
+    for (const c of candles) {
+      if (!existing.some(e => Math.abs(e.time - c.time) < 60000)) {
+        existing.push(c);
+      }
+    }
+    
+    existing.sort((a, b) => a.time - b.time);
+    if (existing.length > 150) {
+      state.priceHistory[base] = existing.slice(-150);
+    }
+    
+    saveCache();
+  } catch (e) {
+    console.warn(`Backfill history failed for ${base}:`, e);
+  }
+}
+
+async function backfillAllHistory() {
+  const coinsToBackfill = new Set();
+  
+  rugpullCoins.forEach(coin => coinsToBackfill.add(coin));
+  
+  const allRows = computeRows();
+  const topCoins = allRows.slice(0, 30).map(r => r.base);
+  topCoins.forEach(coin => coinsToBackfill.add(coin));
+  
+  const coinsArray = [...coinsToBackfill];
+  
+  for (let i = 0; i < coinsArray.length; i++) {
+    const coin = coinsArray[i];
+    const history = state.priceHistory[coin];
+    const needsBackfill = !history || history.length < 5 || 
+      (Date.now() - (history[history.length - 1]?.time || 0)) > 30 * 60 * 1000;
+    
+    if (needsBackfill) {
+      await backfillPriceHistory(coin);
+      if (i < coinsArray.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+  }
+  
+  render();
+  renderRugpull();
 }
 // ---------------------------------------------
 
@@ -754,7 +817,6 @@ function computeRows(){
     const spot=pickSpot(p.base,p.exchange);
     const sp=spot?.price??null;
     
-    // Обновляем историю цен, если есть актуальная спот-цена
     if (sp) updatePriceHistory(p.base, sp);
     
     const sa=sp!=null?p.perp-sp:null;
@@ -1132,6 +1194,7 @@ function renderRugpull(){
 function addRugpullCoin(coin){
   const c=coin.trim().toUpperCase();if(!c||c.length<1)return;if(rugpullCoins.includes(c))return;
   rugpullCoins.push(c);saveRugpull();renderRugpull();updateJumpRugpullHint();rugpullSearch.value='';hideSuggestions();
+  backfillPriceHistory(c);
 }
 
 function removeRugpullCoin(coin){
@@ -1201,8 +1264,8 @@ if(cache){
   applyCache(cache);updateSpotPriority();render();renderRugpull();updateJumpRugpullHint();
   const age=Date.now()-cache.savedAt;
   if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}
-  else{setBadge("local");apiCycle().catch(e=>console.error("init apiCycle error:",e));}
-}else{setBadge("init");scheduleNext(FIRST_LOAD_DELAY_MS);}
+  else{setBadge("local");apiCycle().then(()=>backfillAllHistory()).catch(e=>console.error("init apiCycle error:",e));}
+}else{setBadge("init");scheduleNext(FIRST_LOAD_DELAY_MS).then(()=>backfillAllHistory());}
 </script>
 </body>
 </html>
