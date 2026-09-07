@@ -796,11 +796,13 @@ async function backfillPriceHistory(base) {
 async function backfillAllHistory() {
   const coinsToBackfill = new Set();
   
+  // Все монеты из rugpull списка
   rugpullCoins.forEach(coin => coinsToBackfill.add(coin));
   
+  // Все монеты из текущих отфильтрованных строк (не только топ-30)
   const allRows = computeRows();
-  const topCoins = allRows.slice(0, 30).map(r => r.base);
-  topCoins.forEach(coin => coinsToBackfill.add(coin));
+  const visibleCoins = allRows.slice(0, 100).map(r => r.base);
+  visibleCoins.forEach(coin => coinsToBackfill.add(coin));
   
   const coinsArray = [...coinsToBackfill];
   
@@ -813,7 +815,7 @@ async function backfillAllHistory() {
     if (needsBackfill) {
       await backfillPriceHistory(coin);
       if (i < coinsArray.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 150));
       }
     }
   }
@@ -838,13 +840,25 @@ function computeRows(){
     const perpVol=p.volume||0;
     const perpSrc=p.perpSource24||null;
     
-    const hasValidSpotChg = spot24.chg != null;
-    const hasValidPerpChg = perpChg != null;
+    const hasValidSpotChg = spot24.chg != null && isFinite(spot24.chg);
+    const hasValidPerpChg = perpChg != null && isFinite(perpChg);
     
-    const chg = hasValidSpotChg ? spot24.chg : (hasValidPerpChg ? perpChg : null);
-    const vol = hasValidSpotChg ? (spot24.vol || perpVol) : perpVol;
-    const src = hasValidSpotChg ? spot24.src : (hasValidPerpChg ? perpSrc : null);
-    const hasSpotData = hasValidSpotChg;
+    // Приоритет: spot chg, потом perp chg
+    let chg = null;
+    let vol = perpVol;
+    let src = perpSrc;
+    let hasSpotData = false;
+    
+    if (hasValidSpotChg) {
+      chg = spot24.chg;
+      vol = spot24.vol || perpVol;
+      src = spot24.src;
+      hasSpotData = true;
+    } else if (hasValidPerpChg) {
+      chg = perpChg;
+      vol = perpVol;
+      src = perpSrc;
+    }
     
     out.push({
       base:p.base, exchange:p.exchange, spot:sp, spotSource:spot?.source??null,
@@ -1068,16 +1082,32 @@ async function apiCycle(){
       });
     }
     updateSpotPriority();
+    
+    // Принудительно вызываем slow API при первом запуске или если прошло больше минуты
+    const forceSlow = state.lastSlowAt === 0 || (now-state.lastSlowAt)>=SLOW_MS;
+    
     const sn=[];if(enabled.binance)sn.push(["binanceSpot",binanceSpotSlow]);if(enabled.mexc)sn.push(["mexcSpot",mexcSpotSlow]);
-    if(sn.length&&now-state.lastSlowAt>=SLOW_MS){
-      const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));let ok=false;
-      ss.forEach((s,i)=>{if(s.status!=="fulfilled")return;ok=true;const[nm]=sn[i];if(nm==="binanceSpot")merge24("binance",s.value);else if(nm==="mexcSpot")merge24("mexc",s.value);});
-      if(ok)state.lastSlowAt=now;
+    if(sn.length&&forceSlow){
+      const ss=await Promise.allSettled(sn.map(([,fn])=>fn()));
+      ss.forEach((s,i)=>{
+        if(s.status!=="fulfilled"){console.warn(sn[i][0]+" failed:",s.reason);return;}
+        const[nm]=sn[i];
+        if(nm==="binanceSpot")merge24("binance",s.value);
+        else if(nm==="mexcSpot")merge24("mexc",s.value);
+      });
+      state.lastSlowAt=now;
     }
+    
     const pn=[];if(enabled.binance)pn.push(["binancePerp",binancePerpSlow]);if(enabled.bybit)pn.push(["bybitPerp",bybitPerpSlow]);if(enabled.mexc)pn.push(["mexcPerp",mexcPerpSlow]);
-    if(pn.length&&now-state.lastSlowAt>=SLOW_MS){
+    if(pn.length&&forceSlow){
       const pp=await Promise.allSettled(pn.map(([,fn])=>fn()));
-      pp.forEach((s,i)=>{if(s.status!=="fulfilled")return;const[nm]=pn[i];if(nm==="binancePerp")mergePerp24("binance",s.value);else if(nm==="bybitPerp")mergePerp24("bybit",s.value);else if(nm==="mexcPerp")mergePerp24("mexc",s.value);});
+      pp.forEach((s,i)=>{
+        if(s.status!=="fulfilled"){console.warn(pn[i][0]+" failed:",s.reason);return;}
+        const[nm]=pn[i];
+        if(nm==="binancePerp")mergePerp24("binance",s.value);
+        else if(nm==="bybitPerp")mergePerp24("bybit",s.value);
+        else if(nm==="mexcPerp")mergePerp24("mexc",s.value);
+      });
     }
     
     state.lastApiAt=Date.now();saveCache();render();renderRugpull();elReqs.textContent=cycleReqs;
@@ -1281,9 +1311,20 @@ const cache=loadCache();
 if(cache){
   applyCache(cache);updateSpotPriority();render();renderRugpull();updateJumpRugpullHint();
   const age=Date.now()-cache.savedAt;
-  if(age<MIN_GAP_MS){setBadge("local");scheduleNext(MIN_GAP_MS-age);}
-  else{setBadge("local");apiCycle().then(()=>backfillAllHistory()).catch(e=>console.error("init apiCycle error:",e));}
-}else{setBadge("init");scheduleNext(FIRST_LOAD_DELAY_MS).then(()=>backfillAllHistory());}
+  if(age<MIN_GAP_MS){
+    setBadge("local");
+    scheduleNext(MIN_GAP_MS-age);
+    setTimeout(()=>backfillAllHistory(), 1000);
+  }
+  else{
+    setBadge("local");
+    apiCycle().then(()=>setTimeout(()=>backfillAllHistory(), 500)).catch(e=>console.error("init apiCycle error:",e));
+  }
+}else{
+  setBadge("init");
+  scheduleNext(FIRST_LOAD_DELAY_MS);
+  setTimeout(()=>backfillAllHistory(), FIRST_LOAD_DELAY_MS + 2000);
+}
 </script>
 </body>
 </html>
