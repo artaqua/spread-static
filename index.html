@@ -80,7 +80,7 @@ input[type="checkbox"]{width:14px;height:14px;padding:0;background:transparent;b
 .alert-item .ai-exch{display:flex;align-items:center}
 .alert-item .ai-spread{font-weight:700;text-align:right}
 .alert-item .ai-funding{font-weight:700;text-align:right}
-.alert-item .ai-time{color:var(--muted);font-size:10.5px;text-align:right}
+.alert-item .ai-time{color:var(--muted);font-size:9px;text-align:right;white-space:nowrap;letter-spacing:-0.02em}
 .alert-item .ai-jump{font-weight:700;color:var(--text);text-align:right}
 .alert-item .ai-dismiss{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 4px;opacity:.5;transition:opacity .15s;text-align:center}
 .alert-item .ai-dismiss:hover{opacity:1;color:var(--red)}
@@ -237,13 +237,13 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
 <div class="controls">
   <input id="fSearch" placeholder="ПОИСК МОНЕТЫ…" style="width:140px"/>
   <select id="fExch">
-    <option value="all" selected>ПЕРП: ВСЕ</option>
+    <option value="all">ПЕРП: ВСЕ</option>
     <option value="binance">BINANCE</option> 
-    <option value="mexc">MEXC</option>
+    <option value="mexc" selected>MEXC</option>
     <option value="bybit">BYBIT</option>
   </select>
   <select id="fVol">
-    <option value="0">ОБЪЁМ 24Ч (BNC→MEXC): БЕЗ ФИЛЬТРА</option>
+    <option value="0">ОБЪЁМ 24Ч: БЕЗ ФИЛЬТРА</option>
     <option value="100000">&gt; 100K</option>
     <option value="500000">&gt; 500K</option>
     <option value="1000000">&gt; 1M</option>
@@ -343,9 +343,9 @@ footer{padding:14px 14px 14px;color:#54585c;font-size:10px;font-family:'JetBrain
     <div class="rp-filters">
       <input id="rpFilterSearch" placeholder="ПОИСК…" autocomplete="off"/>
       <select id="rpFilterExch">
-        <option value="all" selected>ВСЕ БИРЖИ</option>
+        <option value="all">ВСЕ БИРЖИ</option>
         <option value="binance">BINANCE</option>
-        <option value="mexc">MEXC</option>
+        <option value="mexc" selected>MEXC</option>
         <option value="bybit">BYBIT</option>
       </select>
     </div>
@@ -641,8 +641,22 @@ function merge24(exch,arr){
 function mergePerp24(exch,arr){
   for(const s of arr){
     if(!s?.base)continue;
-    const p=state.perps.find(x=>x.base===s.base&&x.exchange===exch);
-    if(p){p.volume=s.vol||0;p.chg24h=s.chg??null;p.perpSource24=exch;}
+    let p=state.perps.find(x=>x.base===s.base&&x.exchange===exch);
+    if(p){
+      p.volume=s.vol||0;
+      p.chg24h=s.chg??null;
+      p.perpSource24=exch;
+    } else {
+      state.perps.push({
+        base:s.base,
+        exchange:exch,
+        perp:null,
+        funding:0,
+        volume:s.vol||0,
+        chg24h:s.chg??null,
+        perpSource24:exch
+      });
+    }
   }
 }
 
@@ -695,16 +709,15 @@ function getSpot24Data(base){
   const book = state.spotBook[base];
   if(!book) return {chg:null, vol:0, src:null};
   const primary = book[primarySpotSource];
-  if(primary && (primary.chg != null || primary.vol)) return {chg: primary.chg ?? null, vol: primary.vol || 0, src: primarySpotSource};
+  if(primary && primary.chg != null) return {chg: primary.chg, vol: primary.vol || 0, src: primarySpotSource};
   for(const ex of EXCHANGES){
     if(ex === primarySpotSource) continue;
     const d = book[ex];
-    if(d && (d.chg != null || d.vol)) return {chg: d.chg ?? null, vol: d.vol || 0, src: ex};
+    if(d && d.chg != null) return {chg: d.chg, vol: d.vol || 0, src: ex};
   }
   return {chg:null, vol:0, src:null};
 }
 
-// --- НОВАЯ ЛОГИКА: Локальная история цен ---
 function updatePriceHistory(base, price) {
   if (!price || !isFinite(price)) return;
   if (!state.priceHistory[base]) state.priceHistory[base] = [];
@@ -725,7 +738,8 @@ function getHistoricalChange(base, minutesAgo) {
   if (!history || history.length < 2) return null;
   
   const current = history[history.length - 1];
-  const targetTime = Date.now() - (minutesAgo * 60 * 1000);
+  const lastHistoryTime = current.time;
+  const targetTime = lastHistoryTime - (minutesAgo * 60 * 1000);
   
   let closest = history[0];
   let minDiff = Math.abs(history[0].time - targetTime);
@@ -738,13 +752,12 @@ function getHistoricalChange(base, minutesAgo) {
     }
   }
   
-  const maxAllowedDiff = minutesAgo === 15 ? 15 * 60 * 1000 : 30 * 60 * 1000;
+  const maxAllowedDiff = minutesAgo === 15 ? 15 * 60 * 1000 : 45 * 60 * 1000;
   if (minDiff > maxAllowedDiff) return null;
   
   return ((current.price - closest.price) / closest.price) * 100;
 }
 
-// --- НОВАЯ ФУНКЦИЯ: Мгновенная загрузка истории из API свечей ---
 async function backfillPriceHistory(base) {
   if (!base) return;
   const symbol = base + "USDT";
@@ -808,7 +821,6 @@ async function backfillAllHistory() {
   render();
   renderRugpull();
 }
-// ---------------------------------------------
 
 function computeRows(){
   const out=[];
@@ -825,10 +837,14 @@ function computeRows(){
     const perpChg=p.chg24h??null;
     const perpVol=p.volume||0;
     const perpSrc=p.perpSource24||null;
-    const hasSpotData = spot24.src != null && (spot24.vol > 0 || spot24.chg != null);
-    const chg = hasSpotData ? spot24.chg : perpChg;
-    const vol = hasSpotData ? spot24.vol : perpVol;
-    const src = hasSpotData ? spot24.src : perpSrc;
+    
+    const hasValidSpotChg = spot24.chg != null;
+    const hasValidPerpChg = perpChg != null;
+    
+    const chg = hasValidSpotChg ? spot24.chg : (hasValidPerpChg ? perpChg : null);
+    const vol = hasValidSpotChg ? (spot24.vol || perpVol) : perpVol;
+    const src = hasValidSpotChg ? spot24.src : (hasValidPerpChg ? perpSrc : null);
+    const hasSpotData = hasValidSpotChg;
     
     out.push({
       base:p.base, exchange:p.exchange, spot:sp, spotSource:spot?.source??null,
@@ -969,7 +985,9 @@ function renderAlerts(){
   alertFeed.classList.remove('hidden');
   alertFeed.innerHTML=alertState.feed.map(a=>{
     const t=new Date(a.time);
-    const ts=t.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const dateStr=t.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+    const timeStr=t.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const ts=`${dateStr} ${timeStr}`;
     const exchBadge=exBadgeHtml(a.exchange);
     const spSign=a.spreadPct<0?"":"+",spClass=a.spreadPct<0?"spread-neg":"spread-pos",spVal=`${spSign}${a.spreadPct.toFixed(2)}%`;
     const fuSign=a.funding<0?"":"+",fuClass=a.funding<0?"funding-neg":"funding-pos",fuVal=`${fuSign}${a.funding.toFixed(3)}%`;
@@ -979,7 +997,7 @@ function renderAlerts(){
     return`<div class="alert-item ${typeClass}" data-id="${a.id}">
       <span>${typeBadgeHtml}</span><span class="ai-coin">${a.coin}</span><span class="ai-exch">${exchBadge}</span>
       <span class="ai-spread ${spClass}" title="СПРЕД">${spVal}</span><span class="ai-funding ${fuClass}" title="ФАНДИНГ">${fuVal}</span>
-      <span class="ai-jump" title="СКАЧОК">${jumpVal}</span><span class="ai-time" title="ВРЕМЯ">${ts}</span>
+      <span class="ai-jump" title="СКАЧОК">${jumpVal}</span><span class="ai-time" title="ДАТА И ВРЕМЯ">${ts}</span>
       <button class="ai-dismiss" data-dismiss="${a.id}" title="УДАЛИТЬ">✕</button>
     </div>`;
   }).join("");
