@@ -617,7 +617,19 @@ async function bybitPerpSlow(){
 async function mexcPerpSlow(){
   try{
     const r=await fetchJSON("https://contract.mexc.com/api/v1/contract/detail");
-    return (Array.isArray(r?.data)?r.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>({base:t.symbol.split("_")[0],vol:parseFloat(t.amount24)||0,chg:parseFloat(t.riseFallRate)*100||0}));
+    return (Array.isArray(r?.data)?r.data:[]).filter(t=>t.symbol?.endsWith("_USDT")).map(t=>{
+      let chg = parseFloat(t.riseFallRate);
+      // Если значение очень маленькое (< 1), значит это десятичная дробь - умножаем на 100
+      // Если значение > 1, значит уже в процентах
+      if (Math.abs(chg) < 1 && chg !== 0) {
+        chg = chg * 100;
+      }
+      return {
+        base:t.symbol.split("_")[0],
+        vol:parseFloat(t.amount24)||0,
+        chg:chg||0
+      };
+    });
   }catch(e){ console.warn("MEXC perp detail fetch failed:",e); return []; }
 }
 
@@ -762,34 +774,59 @@ async function backfillPriceHistory(base) {
   if (!base) return;
   const symbol = base + "USDT";
   
-  try {
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=20`;
-    const data = await fetchJSON(url, 10000);
-    
-    if (!Array.isArray(data) || data.length === 0) return;
-    
-    const candles = data.map(c => ({
-      time: parseInt(c[0]),
-      price: parseFloat(c[1])
-    }));
-    
-    if (!state.priceHistory[base]) state.priceHistory[base] = [];
-    const existing = state.priceHistory[base];
-    
-    for (const c of candles) {
-      if (!existing.some(e => Math.abs(e.time - c.time) < 60000)) {
-        existing.push(c);
+  // Пробуем несколько бирж последовательно
+  const sources = [
+    {
+      name: 'binance',
+      url: `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=20`,
+      parse: (data) => Array.isArray(data) ? data.map(c => ({ time: parseInt(c[0]), price: parseFloat(c[1]) })) : []
+    },
+    {
+      name: 'mexc',
+      url: `https://api.mexc.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=20`,
+      parse: (data) => Array.isArray(data) ? data.map(c => ({ time: parseInt(c[0]), price: parseFloat(c[1]) })) : []
+    },
+    {
+      name: 'bybit',
+      url: `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=15&limit=20`,
+      parse: (data) => {
+        const list = data?.result?.list || [];
+        return list.reverse().map(c => ({ time: parseInt(c[0]), price: parseFloat(c[1]) }));
       }
     }
-    
-    existing.sort((a, b) => a.time - b.time);
-    if (existing.length > 150) {
-      state.priceHistory[base] = existing.slice(-150);
+  ];
+  
+  for (const source of sources) {
+    try {
+      const data = await fetchJSON(source.url, 10000);
+      const candles = source.parse(data);
+      
+      if (!Array.isArray(candles) || candles.length === 0) continue;
+      
+      if (!state.priceHistory[base]) state.priceHistory[base] = [];
+      const existing = state.priceHistory[base];
+      
+      let added = 0;
+      for (const c of candles) {
+        if (!isFinite(c.price) || c.price <= 0) continue;
+        if (!existing.some(e => Math.abs(e.time - c.time) < 60000)) {
+          existing.push(c);
+          added++;
+        }
+      }
+      
+      if (added > 0) {
+        existing.sort((a, b) => a.time - b.time);
+        if (existing.length > 150) {
+          state.priceHistory[base] = existing.slice(-150);
+        }
+        saveCache();
+        console.log(`Backfill ${base}: +${added} candles from ${source.name}`);
+        return; // Успех, выходим
+      }
+    } catch (e) {
+      console.warn(`Backfill ${base} from ${source.name} failed:`, e.message);
     }
-    
-    saveCache();
-  } catch (e) {
-    console.warn(`Backfill history failed for ${base}:`, e);
   }
 }
 
@@ -843,7 +880,6 @@ function computeRows(){
     const hasValidSpotChg = spot24.chg != null && isFinite(spot24.chg);
     const hasValidPerpChg = perpChg != null && isFinite(perpChg);
     
-    // Приоритет: spot chg, потом perp chg
     let chg = null;
     let vol = perpVol;
     let src = perpSrc;
@@ -860,12 +896,20 @@ function computeRows(){
       src = perpSrc;
     }
     
+    const chg15m = getHistoricalChange(p.base, 15);
+    const chg1h = getHistoricalChange(p.base, 60);
+    
+    // Отладка для первых 5 монет
+    if (out.length < 5) {
+      console.log(`${p.base}: spot24.chg=${spot24.chg}, perpChg=${perpChg}, historyLen=${state.priceHistory[p.base]?.length||0}, chg15m=${chg15m}, chg1h=${chg1h}`);
+    }
+    
     out.push({
       base:p.base, exchange:p.exchange, spot:sp, spotSource:spot?.source??null,
       perp:p.perp, funding:p.funding, spreadAbs:sa, spreadPct:spc,
       chg24h:chg, volume:vol, src24:src, hasSpotData,
-      chg15m: getHistoricalChange(p.base, 15),
-      chg1h: getHistoricalChange(p.base, 60)
+      chg15m: chg15m,
+      chg1h: chg1h
     });
   }
   return out;
